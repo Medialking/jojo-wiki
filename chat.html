@@ -457,32 +457,6 @@
         <a href="apel.html">🛡️ Апелляция</a>
     </div>
     
-    <!-- Авторизация -->
-    <div id="authSection">
-        <div id="loginForm">
-            <h3 style="color: #6ab7ff; margin-bottom: 15px;">🔐 Вход в чат</h3>
-            <button onclick="googleLogin()" id="googleLoginBtn">
-                <img src="https://img.icons8.com/color/24/000000/google-logo.png" alt="Google">
-                Войти с Google
-            </button>
-            <p style="margin: 15px 0; color: #ccccff;">Или продолжай как гость:</p>
-            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <input type="text" id="guestUsername" placeholder="Твой игровой ник" 
-                       style="padding: 12px; border-radius: 25px; border: none; background: rgba(255,255,255,0.1); color: white;">
-                <button onclick="guestLogin()" class="action-btn">🎮 Продолжить как гость</button>
-            </div>
-        </div>
-        
-        <div id="userInfo" style="display: none;">
-            <img id="userPhoto" class="user-avatar">
-            <div>
-                <div id="userName" style="font-weight: bold;"></div>
-                <div id="userRank" style="font-size: 12px; opacity: 0.8;"></div>
-            </div>
-            <button onclick="logout()" class="logout-btn">Выйти</button>
-        </div>
-    </div>
-    
     <!-- Основной контейнер чата -->
     <div class="chat-container">
         <!-- Заголовок -->
@@ -524,8 +498,6 @@
         
         <!-- Кнопки действий -->
         <div class="action-buttons">
-            <button onclick="toggleImageUpload()" class="action-btn">
-                📎 Прикрепить картинку
             </button>
             <button onclick="toggleModMode()" class="action-btn" id="modToggleBtn" style="display: none;">
                 🛡️ Режим модератора
@@ -534,19 +506,6 @@
                 ⚠️ Пожаловаться
             </button>
         </div>
-        
-        <!-- Загрузка картинок (скрыто по умолчанию) -->
-        <div id="imageUploadSection" style="display: none; margin-top: 15px;">
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <button onclick="document.getElementById('imageInput').click()" class="action-btn">
-                    📁 Выбрать файл
-                </button>
-                <span id="fileName" style="color: #aaa; font-size: 14px;">Файл не выбран</span>
-            </div>
-            <div id="imagePreview" style="margin-top: 10px;"></div>
-        </div>
-    </div>
     
     <!-- Панель модератора (скрыта по умолчанию) -->
     <div id="modPanel" style="display: none;">
