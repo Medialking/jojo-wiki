@@ -9,20 +9,32 @@
         body {
             margin: 0;
             font-family: "Segoe UI", sans-serif;
-            background: linear-gradient(135deg, #2b0037, #4d0061);
+            background: #2b0037 url('items-bg.png') repeat;
+            background-size: 180px;
             color: white;
         }
 
-        header {
-            text-align: center;
-            padding: 40px 20px;
+        /* Логотип */
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
         }
 
-        header h1 {
-            font-size: 38px;
-            margin: 0;
+        .logo img {
+            width: 85px;
+            height: 85px;
+            border-radius: 6px;
+            box-shadow: 0 0 15px #ff00ff;
+        }
+
+        .logo-text {
+            font-size: 48px;
+            font-weight: bold;
             color: #ffb8ff;
-            text-shadow: 0 0 15px #ff00ff;
+            text-shadow: 0 0 12px #ff00ff;
         }
 
         /* меню кнопок */
@@ -30,7 +42,7 @@
             display: flex;
             justify-content: center;
             gap: 25px;
-            margin-top: 20px;
+            margin-top: 25px;
         }
 
         .menu a {
@@ -104,17 +116,20 @@
 
 <body>
 
-<header>
-    <h1>💠 JojoLand — Официальный сайт</h1>
+<!-- Логотип -->
+<div class="logo">
+    <img src="dragon.png" alt="Logo">
+    <div class="logo-text">JL</div>
+</div>
 
-    <div class="menu">
+<!-- Меню -->
+<div class="menu">
     <a href="rules.html">📜 Правила</a>
-    <a href="tgrules.html">📘 Правила ТГК</a>
+    <a href="tgk.html">📘 Правила ТГК</a>
     <a href="roles.html">💼 Должности</a>
 </div>
-</header>
 
-<!-- Информационная панель -->
+<!-- Информационный блок -->
 <div class="info-card">
     <h2>О сервере JojoLand</h2>
     <p>
@@ -122,12 +137,12 @@
         Здесь вы найдёте правила, важные ссылки и информацию о проекте.
     </p>
 
-<div class="info-links">
-    <a href="https://t.me/Jojolandpe" class="info-btn" target="_blank">📌 TGK чат</a>
-    <a href="https://t.me/+18-ycRRnOTgxZTgy" class="info-btn" target="_blank">💬 Telegram группа</a>
-    <a href="http://pay.jojoland.ru/" class="info-btn" target="_blank">💎 Донат сайт</a>
-    <a href="#" class="info-btn" target="_blank">📘 Wiki / Гайды</a>
-</div>
+    <div class="info-links">
+        <a href="https://t.me/Jojolandpe" class="info-btn" target="_blank">📌 TGK чат</a>
+        <a href="https://t.me/+18-ycRRnOTgxZTgy" class="info-btn" target="_blank">💬 Telegram группа</a>
+        <a href="http://pay.jojoland.ru/" class="info-btn" target="_blank">💎 Донат сайт</a>
+        <a href="#" class="info-btn" target="_blank">📘 Wiki / Гайды</a>
+    </div>
 </div>
 
 </body>
