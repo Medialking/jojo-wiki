@@ -7,15 +7,6 @@ body {
     overflow-x: hidden;
 }
 
-/* СНЕЖИНКИ */
-#snow {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 0;
-}
-
 /* АНИМАЦИЯ ЗАГРУЗКИ */
 #loader {
     position: fixed;
@@ -47,8 +38,6 @@ body {
 #content {
     opacity: 0;
     transition: opacity 0.8s ease-in-out;
-    position: relative;
-    z-index: 2;
 }
 
 /* ХЕДЕР */
@@ -79,34 +68,32 @@ h1 {
     text-shadow: 0 0 15px #ff00ff;
 }
 
-/* МЕНЮ — НЕОНОВЫЕ РАМКИ */
+/* МЕНЮ */
 nav a {
     margin: 0 12px;
     background: rgba(255, 0, 170, 0.15);
     padding: 10px 25px;
     border-radius: 14px;
-    border: 2px solid #ff00e6;
-    box-shadow: 0 0 15px #ff00e6;
     color: #ffbaff;
     text-decoration: none;
     transition: 0.25s;
+    box-shadow: 0 0 10px #b100ff50;
 }
 
 nav a:hover {
     background: #ff00c8;
-    box-shadow: 0 0 25px #ff00ee, 0 0 45px #ff00ff;
+    box-shadow: 0 0 25px #ff00ee;
     transform: scale(1.1);
 }
 
-/* ОСНОВНОЙ БЛОК + НЕОН */
+/* ОСНОВНОЙ БЛОК */
 .main-block {
     background: rgba(255, 255, 255, 0.07);
     width: 75%;
     margin: 40px auto;
     padding: 35px;
     border-radius: 25px;
-    border: 2px solid #b300ff;
-    box-shadow: 0 0 30px #8800ff70;
+    box-shadow: 0 0 30px #8800ff50;
     animation: fadeInUp 0.9s;
 }
 
@@ -115,17 +102,15 @@ nav a:hover {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* КНОПКИ */
 .btn {
     display: inline-block;
     margin: 10px;
     padding: 12px 30px;
     background: linear-gradient(90deg, #b300ff, #ff00bf);
     border-radius: 15px;
-    border: 2px solid #ff00d9;
-    box-shadow: 0 0 20px #ff00dd80;
     color: #fff;
     text-decoration: none;
+    box-shadow: 0 0 20px #ff00dd80;
     transition: 0.25s;
 }
 
@@ -143,12 +128,10 @@ nav a:hover {
     padding: 18px 20px;
     font-size: 28px;
     border-radius: 50%;
-    border: 2px solid #ff00e6;
     text-decoration: none;
     color: #fff;
     box-shadow: 0 0 25px #ff00ff;
     transition: 0.25s;
-    z-index: 3;
 }
 
 .chat-btn:hover {
@@ -163,7 +146,7 @@ footer {
     opacity: 0.7;
 }
 
-/* АДАПТАЦИЯ ПОД МОБИЛУ */
+/* 📱 АДАПТАЦИЯ ПОД МОБИЛУ */
 @media (max-width: 600px) {
 
     .logo {
