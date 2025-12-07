@@ -1,100 +1,95 @@
-/* Глобальные настройки */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background: linear-gradient(180deg, #1a0028, #33004d, #1a0028);
     color: #fff;
     text-align: center;
-    min-height: 100vh;
 }
 
-/* Лого */
-.logo {
-    width: 65px;
-    height: 65px;
-    border-radius: 15px;
-    margin-right: 15px;
-    animation: glow 3s infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: drop-shadow(0 0 5px #8b00ff); }
-    to   { filter: drop-shadow(0 0 20px #ff00ff); }
-}
-
-/* Шапка */
+/* HEADER */
 header {
     padding: 20px;
     display: flex;
-    justify-content: center;
-    gap: 20px;
+    flex-direction: column;
     align-items: center;
+}
+
+.logo {
+    width: 130px;
+    height: 130px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { filter: drop-shadow(0 0 10px #8b00ff); }
+    to   { filter: drop-shadow(0 0 35px #ff00ff); }
+}
+
+nav {
+    margin-top: 15px;
 }
 
 nav a {
     margin: 0 10px;
     text-decoration: none;
     color: #ffb7ff;
-    padding: 10px 20px;
+    padding: 10px 25px;
     border-radius: 12px;
     background: rgba(255, 0, 128, 0.15);
     transition: 0.3s;
     box-shadow: 0 0 10px #a600ff50;
+    font-size: 16px;
 }
 
 nav a:hover {
     background: #ff00c8;
-    color: #fff;
+    color: white;
     box-shadow: 0 0 20px #ff00dd;
 }
 
-/* Главный блок */
+/* MAIN BLOCK */
 .main-block {
-    background: rgba(255, 255, 255, 0.05);
-    margin: 50px auto;
+    background: rgba(255, 255, 255, 0.06);
     padding: 40px;
     width: 70%;
+    margin: 50px auto;
     border-radius: 25px;
-    box-shadow: 0 0 20px #8800ff50;
-    backdrop-filter: blur(4px);
-    animation: fadeIn 1.4s;
+    box-shadow: 0 0 25px #8800ff40;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
+/* BUTTONS */
 .btn-row {
     margin-top: 20px;
 }
 
 .btn {
     display: inline-block;
-    margin: 10px;
     padding: 12px 25px;
+    margin: 10px;
     background: linear-gradient(90deg, #b300ff, #ff00bf);
-    border-radius: 15px;
+    color: white;
     text-decoration: none;
-    color: #fff;
+    border-radius: 15px;
     font-weight: bold;
     transition: 0.3s;
     box-shadow: 0 0 15px #ff00c870;
 }
 
 .btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.12);
     box-shadow: 0 0 25px #ff00ea;
 }
 
-/* Чат-кнопка */
+/* CHAT BUTTON */
 .chat-btn {
     position: fixed;
     bottom: 30px;
     right: 30px;
     background: #ff00d4;
     padding: 18px;
-    font-size: 26px;
+    font-size: 28px;
     border-radius: 50%;
     color: #fff;
     text-decoration: none;
@@ -107,10 +102,9 @@ nav a:hover {
     box-shadow: 0 0 35px #ff00ff;
 }
 
-/* Футер */
+/* FOOTER */
 footer {
-    margin-top: 100px;
+    margin-top: 80px;
     padding: 20px;
     color: #aaa;
-    font-size: 14px;
 }
