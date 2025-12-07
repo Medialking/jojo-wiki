@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Правила сервера JojoLand</title>
 
     <style>
@@ -10,6 +11,7 @@
             font-family: 'Trebuchet MS', sans-serif;
             background: radial-gradient(circle at top, #3a0055, #110015 70%);
             color: white;
+            min-height: 100vh;
         }
 
         .container {
@@ -47,11 +49,16 @@
             font-weight: bold;
             color: #ff66ff;
             font-size: 18px;
+            margin-bottom: 8px;
+            display: block;
         }
 
         .punish {
-            margin-top: 8px;
+            margin-top: 10px;
             color: #ff9cff;
+            font-style: italic;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 100, 255, 0.2);
         }
 
         .back {
@@ -64,11 +71,100 @@
             margin-bottom: 20px;
             box-shadow: 0 0 12px #d000ff;
             transition: 0.2s;
+            font-weight: 600;
         }
 
         .back:hover {
             background: #b300ff;
             box-shadow: 0 0 20px #ff00ff;
+        }
+
+        /* ------ 📱 Адаптация для мобильных ------ */
+        @media (max-width: 600px) {
+            .container {
+                width: 92%;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 5px;
+            }
+
+            h2.section-title {
+                font-size: 22px;
+                margin-top: 30px;
+                margin-bottom: 5px;
+            }
+
+            .card {
+                padding: 15px;
+                margin: 12px 0;
+                border-left-width: 3px;
+                border-radius: 10px;
+            }
+
+            .num {
+                font-size: 16px;
+            }
+
+            .punish {
+                font-size: 14px;
+                margin-top: 8px;
+                padding-top: 6px;
+            }
+
+            .back {
+                padding: 8px 16px;
+                font-size: 14px;
+                margin-bottom: 15px;
+                display: inline-block;
+                width: auto;
+            }
+
+            /* Улучшаем читаемость текста на мобильных */
+            .card > div:not(.num):not(.punish) {
+                font-size: 15px;
+            }
+        }
+
+        /* Для очень маленьких экранов */
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            h2.section-title {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 12px;
+                line-height: 1.5;
+            }
+
+            .num {
+                font-size: 15px;
+            }
+
+            .card > div:not(.num):not(.punish) {
+                font-size: 14px;
+            }
+
+            .punish {
+                font-size: 13px;
+            }
+        }
+
+        /* Для вертикальной ориентации - улучшаем прокрутку */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .container {
+                padding-bottom: 30px;
+            }
         }
     </style>
 </head>
@@ -84,7 +180,7 @@
     <h2 class="section-title">1. Поведение и общение 👥</h2>
 
     <div class="card">
-        <div class="num">💀 1.1</div>
+        <span class="num">💀 1.1</span>
         Запрещено спамить, провоцировать конфликты и использовать грубые оскорбления.
         Лёгкая ненормативная лексика допускается только как эмоция и не в адрес игрока.
         Оскорбления, включая завуалированные формы, запрещены.
@@ -92,68 +188,68 @@
     </div>
 
     <div class="card">
-        <div class="num">💀 1.2</div>
+        <span class="num">💀 1.2</span>
         Запрещено оскорблять родственников/близких, даже в шутку.
         <div class="punish">⚠️ Наказание: мут 1–24 ч → бан до 5 дней</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.1.1</div>
+        <span class="num">💀 1.1.1</span>
         Запрещено во время мута писать оскорбления в ЛС (/w).
         <div class="punish">⚠️ Наказание: бан 1–5 дней</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.3</div>
+        <span class="num">💀 1.3</span>
         Ники и названия предметов с оскорблениями или провокациями запрещены.
         <div class="punish">⚠️ Наказание: кик → бан 1–5 дней</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.4</div>
+        <span class="num">💀 1.4</span>
         Запрещена реклама сторонних проектов.
         <div class="punish">⚠️ Наказание: бан 5–30 дней</div>
         💡 Разрешено позвать на 1×1 практис — 1 раз.
     </div>
 
     <div class="card">
-        <div class="num">💀 1.5</div>
+        <span class="num">💀 1.5</span>
         Запрещено выдавать себя за администрацию.
         <div class="punish">⚠️ Наказание: кик → бан 5 дней</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.6</div>
+        <span class="num">💀 1.6</span>
         Запрещена продажа предметов/привилегий за реальные деньги.
         <div class="punish">⚠️ Наказание: бан 30 дней; возможно снятие привилегии</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.7</div>
+        <span class="num">💀 1.7</span>
         Запрещена дискриминация, расизм и унижение игроков.
         <div class="punish">⚠️ Наказание: мут до 24 ч</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.8</div>
+        <span class="num">💀 1.8</span>
         Запрещены угрозы, доксинг, слив инфы, шантаж.
         <div class="punish">⚠️ Наказание: бан 10–20 дней</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.9</div>
+        <span class="num">💀 1.9</span>
         Оскорбление администрации запрещено.
         <div class="punish">⚠️ Наказание: мут 1–24 ч</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.10</div>
+        <span class="num">💀 1.10</span>
         Оскорбление сервера или попытка его дискредитации.
         <div class="punish">⚠️ Наказание: бан 1–10 дней</div>
     </div>
 
     <div class="card">
-        <div class="num">💀 1.11</div>
+        <span class="num">💀 1.11</span>
         Запрещено вводить игроков в заблуждение или выдумывать правила.
         <div class="punish">⚠️ Кик → бан 1–5 дней</div>
     </div>
@@ -161,50 +257,60 @@
     <!-- 2. Читы -->
     <h2 class="section-title">2. Читы и технические нарушения ⚙️</h2>
 
-    <div class="card"><div class="num">💀 2.1</div> Любые читы, скрипты, модификации.
+    <div class="card">
+        <span class="num">💀 2.1</span> Любые читы, скрипты, модификации.
         <div class="punish">⚠️ Наказание: бан 15–30 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.2</div> 18+ или невидимые скины.
+    <div class="card">
+        <span class="num">💀 2.2</span> 18+ или невидимые скины.
         <div class="punish">⚠️ Наказание: кик → бан 5–15 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.3</div>
+    <div class="card">
+        <span class="num">💀 2.3</span>
         Использование багов, добыча в запрещённых мирах, /fly в PvP.
         <div class="punish">⚠️ Бан 15–30 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.4</div>
+    <div class="card">
+        <span class="num">💀 2.4</span>
         Постройка баг/дюп-машин.
         <div class="punish">⚠️ Бан 15–30 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.5</div>
+    <div class="card">
+        <span class="num">💀 2.5</span>
         Помощь читеру или дюперу.
         <div class="punish">⚠️ Бан 15–30 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.6</div>
+    <div class="card">
+        <span class="num">💀 2.6</span>
         Обход наказания (вход с твинка).
         <div class="punish">⚠️ Бан как на основном аккаунте</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.7</div>
+    <div class="card">
+        <span class="num">💀 2.7</span>
         Уклон от проверки.
         <div class="punish">⚠️ Бан 25 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.8</div>
+    <div class="card">
+        <span class="num">💀 2.8</span>
         Множественные нарушения — срок удваивается.
         <div class="punish">⚠️ Бан ×2</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.9</div>
+    <div class="card">
+        <span class="num">💀 2.9</span>
         Дезинформация администрации.
         <div class="punish">⚠️ Бан 5 дней</div>
     </div>
 
-    <div class="card"><div class="num">💀 2.13</div>
+    <div class="card">
+        <span class="num">💀 2.13</span>
         Модеры обязаны использовать команды строго по правилам.
         <div class="punish">⚠️ Наказание: 15–30 дней</div>
     </div>
@@ -214,11 +320,11 @@
 
     <div class="card">
         <p>💡 Вы обязаны сообщать администрации о читерах и дюперах.</p>  
-        </p>💡 За честное информирование наказаний нет.</p>
-        </p>💡 Администрация может менять правила без уведомления.</p>  
-        </p>💡 Наказания могут быть изменены модератором по ситуации.</p>  
-        </p>💡 Модератор может выступать гарантом — обманывать запрещено.</p>  
-        </p>💡 Система предупреждений: 3/3 возможных предов.</p>  
+        <p>💡 За честное информирование наказаний нет.</p>
+        <p>💡 Администрация может менять правила без уведомления.</p>  
+        <p>💡 Наказания могут быть изменены модератором по ситуации.</p>  
+        <p>💡 Модератор может выступать гарантом — обманывать запрещено.</p>  
+        <p>💡 Система предупреждений: 3/3 возможных предов.</p>  
     </div>
 
 </div>
