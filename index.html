@@ -1,10 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мой сайт</title>
+    <title>JojoLand — Сайт сервера</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Trebuchet MS', sans-serif;
+            background: url('https://wallpapercave.com/wp/wp5269691.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        /* Тёмный фиолетовый фильтр поверх фона */
+        .overlay {
+            background: rgba(20, 0, 40, 0.7);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #a700ff;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        /* Блоки категорий */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #c800ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            transition: 0.25s;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px #d300ff;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        /* Аккаунт JoJo стиль */
+        .btn-top {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-top a {
+            display: inline-block;
+            padding: 10px 25px;
+            margin: 5px;
+            background: #8500b3;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px #b800ff;
+            transition: 0.25s;
+        }
+
+        .btn-top a:hover {
+            background: #c700ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Привет! Это Wiki сервера JojoLand</h1>
+<div class="overlay">
+
+<header>🌌 JojoLand — Официальный сайт сервера</header>
+
+<div class="btn-top">
+    <a href="#rules">Правила</a>
+    <a href="#tg-rules">Правила в ТГК</a>
+    <a href="#roles">Должности</a>
+</div>
+
+<div class="container">
+
+    <!-- Правила -->
+    <div class="card" id="rules">
+        <h2>📜 Правила сервера</h2>
+        <p>Тут ты вписываешь правила сервера. Могу заполнить для тебя, если скажешь.</p>
+    </div>
+
+    <!-- Правила в ТГК -->
+    <div class="card" id="tg-rules">
+        <h2>📘 Правила в ТГК</h2>
+        <p>Здесь будут правила Telegram-чата. Тоже могу оформить текст красиво.</p>
+    </div>
+
+    <!-- Должности -->
+    <div class="card" id="roles">
+        <h2>💠 Должности</h2>
+        <p>Список ролей, их описание, обязанности. Напиши — заполню красиво.</p>
+    </div>
+
+</div>
+</div>
 </body>
 </html>
