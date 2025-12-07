@@ -5,146 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JojoLand — Официальный сайт</title>
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        body {
-            margin: 0;
-            font-family: "Segoe UI", sans-serif;
-            background: #2b0037 url('items-bg.png') repeat;
-            background-size: 180px;
-            color: white;
-        }
-
-        /* Логотип */
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .logo img {
-            width: 85px;
-            height: 85px;
-            border-radius: 6px;
-            box-shadow: 0 0 15px #ff00ff;
-        }
-
-        .logo-text {
-            font-size: 48px;
-            font-weight: bold;
-            color: #ffb8ff;
-            text-shadow: 0 0 12px #ff00ff;
-        }
-
-        /* меню кнопок */
-        .menu {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            margin-top: 25px;
-        }
-
-        .menu a {
-            padding: 12px 25px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: #ffe6ff;
-            text-decoration: none;
-            border-radius: 14px;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
-            transition: 0.25s;
-            box-shadow: 0 0 12px rgba(255, 0, 255, 0.25);
-        }
-
-        .menu a:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #ff00ff;
-        }
-
-        /* инфо блок */
-        .info-card {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 18px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.25);
-            backdrop-filter: blur(10px);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .info-card h2 {
-            color: #ff9aff;
-            font-size: 32px;
-            margin-bottom: 15px;
-            text-shadow: 0 0 10px #ff00ff;
-        }
-
-        .info-card p {
-            color: #e5c8ff;
-            font-size: 18px;
-            margin-bottom: 25px;
-        }
-
-        .info-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .info-btn {
-            padding: 12px 22px;
-            background: linear-gradient(135deg, #ff00ff, #7e00ff);
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            text-decoration: none;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.35);
-            transition: 0.25s;
-        }
-
-        .info-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #ff00ff;
-        }
-    </style>
 </head>
-
 <body>
 
-<!-- Логотип -->
-<div class="logo">
-    <img src="dragon.png" alt="Logo">
-    <div class="logo-text">JL</div>
-</div>
-
-<!-- Меню -->
-<div class="menu">
-    <a href="rules.html">📜 Правила</a>
-    <a href="tgk.html">📘 Правила ТГК</a>
-    <a href="roles.html">💼 Должности</a>
-</div>
-
-<!-- Информационный блок -->
-<div class="info-card">
-    <h2>О сервере JojoLand</h2>
-    <p>
-        Добро пожаловать на официальный сайт сервера <b>JojoLand</b>!  
-        Здесь вы найдёте правила, важные ссылки и информацию о проекте.
-    </p>
-
-    <div class="info-links">
-        <a href="https://t.me/Jojolandpe" class="info-btn" target="_blank">📌 TGK чат</a>
-        <a href="https://t.me/+18-ycRRnOTgxZTgy" class="info-btn" target="_blank">💬 Telegram группа</a>
-        <a href="http://pay.jojoland.ru/" class="info-btn" target="_blank">💎 Донат сайт</a>
-        <a href="#" class="info-btn" target="_blank">📘 Wiki / Гайды</a>
+    <!-- ЛОГО В ЛЕВОМ ВЕРХУ (позиция 1) -->
+    <div class="corner-logo">
+        <img src="images/logo.png" alt="JL Logo">
     </div>
-</div>
+
+    <!-- САЙТ -->
+    <header>
+        <h1>JL</h1>
+        <nav>
+            <a href="rules.html">📜 Правила</a>
+            <a href="tgk.html">📘 Правила ТГК</a>
+            <a href="roles.html">👜 Должности</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="main-box">
+            <h2>О сервере JojoLand</h2>
+            <p>
+                Добро пожаловать на официальный сайт сервера <b>JojoLand</b>!  
+                Здесь вы найдёте правила, важные ссылки и информацию о проекте.
+            </p>
+
+            <div class="info-links">
+                <a href="https://t.me/Jojolandpe" class="info-btn" target="_blank">📌 TGK чат</a>
+                <a href="https://t.me/+18-ycRRnOTgxZTgy" class="info-btn" target="_blank">💬 Telegram группа</a>
+                <a href="http://pay.jojoland.ru/" class="info-btn" target="_blank">💎 Донат сайт</a>
+                <a href="#" class="info-btn" target="_blank">📘 Wiki / Гайды</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- КНОПКА ПОДДЕРЖКИ (позиция 2) -->
+    <a href="https://t.me/testnjyy_bot" target="_blank" class="support-button">
+        💬
+    </a>
 
 </body>
 </html>
