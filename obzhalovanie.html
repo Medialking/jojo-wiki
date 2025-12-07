@@ -22,18 +22,20 @@
             text-align: center;
             text-shadow: 0 0 12px #ff00bf;
             margin-bottom: 35px;
+            font-size: 38px;
         }
 
         .back {
             display: inline-block;
             margin-bottom: 25px;
-            padding: 10px 20px;
+            padding: 10px 22px;
             background: #99006b;
             color: white;
             text-decoration: none;
             border-radius: 10px;
             box-shadow: 0 0 12px #ff00d0;
             transition: 0.3s;
+            font-size: 18px;
         }
 
         .back:hover {
@@ -44,7 +46,7 @@
         .card {
             background: rgba(255,255,255,0.06);
             padding: 25px;
-            margin: 20px 0;
+            margin: 22px 0;
             border-radius: 15px;
             border: 1px solid rgba(255,0,200,0.4);
             box-shadow: 0 0 15px #ff00d0;
@@ -59,29 +61,75 @@
 
         .card h2 {
             margin-top: 0;
+            font-size: 26px;
             color: #ff73f5;
             text-shadow: 0 0 8px #ff00e1;
         }
 
         .card p {
             color: #f3d9ff;
+            font-size: 18px;
+            line-height: 1.55;
         }
 
         .card a {
             display: inline-block;
             margin-top: 15px;
-            padding: 10px 20px;
+            padding: 12px 22px;
             background: #b300a8;
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 0 10px #ff00d0;
             transition: 0.3s;
+            font-size: 17px;
         }
 
         .card a:hover {
             background: #d600c9;
             transform: scale(1.07);
+        }
+
+        /* 📱 АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ */
+        @media (max-width: 600px) {
+
+            .container {
+                width: 92%;
+                margin: auto;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 25px;
+            }
+
+            .back {
+                font-size: 15px;
+                padding: 9px 16px;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 14px;
+                margin: 15px 0;
+            }
+
+            .card h2 {
+                font-size: 22px;
+            }
+
+            .card p {
+                font-size: 16px;
+            }
+
+            .card a {
+                width: 100%;
+                text-align: center;
+                padding: 14px 0;
+                font-size: 17px;
+                border-radius: 12px;
+            }
         }
     </style>
 </head>
@@ -96,26 +144,22 @@
     <div class="card">
         <h2>📌 Что ты хочешь сделать?</h2>
         <p>
-            Тут ты можешь выбрать нужную категорию.  
-            Мы покажем, как правильно оформить обращение, чтобы модератор ответил быстрее!
+            Выбери нужную категорию.  
+            Мы покажем, как правильно оформить обращение, чтобы модератор ответил быстрее.
         </p>
     </div>
 
-    <!-- Блок 1 -->
     <div class="card">
         <h2>⚠️ Заполнение жалобы</h2>
-        <p>
-            Узнай, как корректно и аккуратно написать жалобу, чтобы её приняли быстрее.
-        </p>
+        <p>Узнай, как корректно и аккуратно написать жалобу, чтобы её приняли быстрее.</p>
         <a href="zhaloba.html">Перейти →</a>
     </div>
 
-    <!-- Блок 2 -->
     <div class="card">
         <h2>🛡️ Заполнение апелляции</h2>
         <p>
-            Регистрация апелляции на наказание.  
-            Подробная инструкция, чтобы модератор смог пересмотреть решение.
+            Узнай, как оформить апелляцию на наказание.<br>
+            Подробная инструкция, чтобы модератор мог пересмотреть решение.
         </p>
         <a href="apel.html">Перейти →</a>
     </div>
