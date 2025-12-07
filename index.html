@@ -8,17 +8,9 @@
         body {
             margin: 0;
             font-family: 'Trebuchet MS', sans-serif;
-            background: linear-gradient(135deg, #200030, #4a0066, #200030);
-            background-size: 300% 300%;
-            animation: gradientMove 12s ease infinite;
+            background: linear-gradient(135deg, #2a0040, #5c0080, #2a0040);
+            background-size: cover;
             color: white;
-        }
-
-        /* Анимация заднего фона */
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         /* Логотип */
@@ -26,15 +18,7 @@
             width: 180px;
             display: block;
             margin: 30px auto 10px auto;
-            filter: drop-shadow(0 0 15px #ff00ff);
-            animation: pulse 2.5s infinite ease-in-out;
-        }
-
-        /* Плавная пульсация */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.07); }
-            100% { transform: scale(1); }
+            filter: drop-shadow(0 0 10px #ff00ff);
         }
 
         header {
@@ -43,14 +27,6 @@
             font-size: 35px;
             font-weight: bold;
             text-shadow: 0 0 15px #ff00ff;
-            animation: glow 3s infinite linear;
-        }
-
-        /* Анимация сияния текста */
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px #ff00ff; }
-            50% { text-shadow: 0 0 30px #ff40ff; }
-            100% { text-shadow: 0 0 10px #ff00ff; }
         }
 
         /* Меню */
@@ -69,25 +45,17 @@
             text-decoration: none;
             font-weight: bold;
             font-size: 20px;
-            box-shadow: 0 0 20px #ff00ff;
-            backdrop-filter: blur(4px);
-            transition: 0.3s;
-            animation: menuGlow 4s infinite ease-in-out;
+            box-shadow: 0 0 18px #ff00ff;
+            transition: 0.25s;
         }
 
-        /* Меню светится волнами */
-        @keyframes menuGlow {
-            0% { box-shadow: 0 0 15px #ff00ff; }
-            50% { box-shadow: 0 0 28px #ff55ff; }
-            100% { box-shadow: 0 0 15px #ff00ff; }
-        }
-
-        /* Ховер эффект */
+        /* Лёгкий ховер (не нагружает) */
         .buttons a:hover {
-            transform: scale(1.12);
+            transform: scale(1.08);
             background: rgba(200, 0, 255, 0.85);
-            box-shadow: 0 0 35px #ff66ff;
+            box-shadow: 0 0 30px #ff55ff;
         }
+
     </style>
 </head>
 
