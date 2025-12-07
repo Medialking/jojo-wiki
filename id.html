@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Узнай свой Google ID</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px;">
+    <h1>🔑 Узнай свой Google User ID</h1>
+    
+    <div id="loginSection" style="margin: 20px 0;">
+        <button onclick="loginWithGoogle()" 
+                style="padding: 15px 30px; font-size: 18px; background: #4285f4; color: white; border: none; border-radius: 10px; cursor: pointer;">
+            🔐 Войти через Google
+        </button>
+    </div>
+    
+    <div id="userInfo" style="display: none; padding: 20px; background: #f0f8ff; border-radius: 10px; margin-top: 20px;">
+        <h2>✅ Твой Google User ID:</h2>
+        <div style="background: white; padding: 15px; border-radius: 8px; border: 2px solid #4285f4; font-family: monospace; font-size: 16px; margin: 10px 0; word-break: break-all;">
+            <span id="userId">Загрузка...</span>
+        </div>
+        
+        <h3>📋 Как использовать:</h3>
+        <ol>
+            <li>Скопируй ID выше</li>
+            <li>Открой файл <code>admin_support.html</code></li>
+            <li>Найди строку: <code>const SUPER_ADMINS = [...]</code></li>
+            <li>Вставь свой ID: <code>'твой_id_здесь'</code></li>
+            <li>Сохрани файл</li>
+        </ol>
+        
+        <button onclick="copyToClipboard()" 
+                style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+            📋 Скопировать ID
+        </button>
+    </div>
+    
+    <div id="status" style="margin-top: 20px; padding: 10px; border-radius: 5px;"></div>
+
+    <script>
+        // Firebase конфиг
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebaseapp.com",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    showUserInfo(result.user);
+                })
+                .catch((error) => {
+                    document.getElementById('status').innerHTML = 
+                        `<div style="color: red;">❌ Ошибка: ${error.message}</div>`;
+                });
+        }
+
+        function showUserInfo(user) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            
+            document.getElementById('userId').textContent = user.uid;
+            
+            // Показываем дополнительную информацию
+            document.getElementById('status').innerHTML = `
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #4CAF50;">
+                    <strong>✅ Вход выполнен!</strong>
+                    <br><br>
+                    <strong>Имя:</strong> ${user.displayName || 'Не указано'}
+                    <br>
+                    <strong>Email:</strong> ${user.email || 'Не указан'}
+                    <br>
+                    <strong>ID:</strong> ${user.uid}
+                </div>
+            `;
+            
+            // Сохраняем в localStorage для удобства
+            localStorage.setItem('my_google_id', user.uid);
+        }
+
+        function copyToClipboard() {
+            const userId = document.getElementById('userId').textContent;
+            navigator.clipboard.writeText(userId)
+                .then(() => {
+                    alert('✅ ID скопирован в буфер обмена!');
+                })
+                .catch(err => {
+                    alert('❌ Не удалось скопировать: ' + err);
+                });
+        }
+
+        // Проверяем, не вошел ли уже пользователь
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                showUserInfo(user);
+            }
+        });
+    </script>
+</body>
+</html>
