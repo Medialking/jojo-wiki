@@ -6,53 +6,111 @@
     <title>JojoLand — Официальный сайт</title>
     <link rel="stylesheet" href="style.css">
 
-    <!-- Google Fonts для игрового шрифта -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Красивый игровой шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-    <!-- ЭКРАН ЗАГРУЗКИ -->
-    <div id="preloader">
-        <div class="loader"></div>
-        <p>Загрузка...</p>
+<!-- ❄ СНЕЖИНКИ / ЧАСТИЦЫ -->
+<canvas id="snow"></canvas>
+
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<!-- ГЛАВНОЕ СОДЕРЖИМОЕ -->
+<div id="content">
+
+<header>
+    <img src="images/logo.png" class="logo" alt="">
+    <h1>JL</h1>
+
+    <nav>
+        <a href="rules.html">📜 Правила</a>
+        <a href="tgk.html">📘 Правила ТГК</a>
+        <a href="roles.html">🔐 Должности</a>
+    </nav>
+</header>
+
+<section class="main-block">
+    <h2>О сервере JojoLand</h2>
+    <p>Добро пожаловать на официальный сайт сервера <b>JojoLand!</b> Здесь вы найдёте правила, важные ссылки и информацию о проекте.</p>
+
+    <div class="btn-row">
+        <a class="btn" href="https://t.me/+18-ycRRnOTgxZTgy">📌 TGK чат</a>
+        <a class="btn" href="https://t.me/Jojolandpe">💬 Telegram группа</a>
+        <a class="btn" href="http://pay.jojoland.ru/">💎 Донат сайт</a>
+        <a class="btn" href="wiki.html">📘 Wiki / Гайды</a>
     </div>
+</section>
 
-    <!-- ВЕСЬ САЙТ -->
-    <div class="page">
+<a class="chat-btn" href="https://t.me/jojolandpe_support_bot" target="_blank">💬</a>
 
-        <!-- ЛОГО + НЕОНОВАЯ РАМКА -->
-        <header class="logo-box neon">
-            <img src="images/logo.png" alt="JL logo" class="logo">
-            <h1 class="title">JOJOLAND</h1>
-        </header>
+<footer>
+    <p>© 2025 JojoLand • Все права защищены</p>
+</footer>
 
-        <!-- КНОПКИ -->
-        <div class="info-links neon">
-            <a href="tgk.html" class="info-btn">📌 TGK чат</a>
-            <a href="https://t.me/+18-ycRRnOTgxZTgy" class="info-btn">💬 Telegram группа</a>
-            <a href="http://pay.jojoland.ru" class="info-btn">💎 Донат сайт</a>
-            <a href="rules.html" class="info-btn">📘 Wiki / Гайды</a>
-        </div>
+</div> <!-- /content -->
 
-        <!-- ИКОНКА ТЕХПОДДЕРЖКИ -->
-        <a href="https://t.me/testnjyy_bot" class="support-btn">
-            💬
-        </a>
+<script>
+window.onload = function() {
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+    }, 400);
+};
+</script>
 
-    </div>
+<!-- ❄ СКРИПТ СНЕЖИНОК -->
+<script>
+const canvas = document.getElementById("snow");
+const ctx = canvas.getContext("2d");
 
-    <!-- СКРИПТ ДЛЯ ЭКРАНА ЗАГРУЗКИ -->
-    <script>
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById("preloader").style.opacity = "0";
-                setTimeout(() => {
-                    document.getElementById("preloader").style.display = "none";
-                }, 500);
-            }, 500);
-        };
-    </script>
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let flakes = [];
+
+function createFlakes() {
+    for (let i = 0; i < 80; i++) {
+        flakes.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 3 + 1,
+            d: Math.random() + 1
+        });
+    }
+}
+
+function drawFlakes() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.beginPath();
+
+    for (let f of flakes) ctx.moveTo(f.x, f.y), ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+
+    ctx.fill();
+    moveFlakes();
+}
+
+function moveFlakes() {
+    for (let f of flakes) {
+        f.y += Math.pow(f.d, 2) + 1;
+        if (f.y > canvas.height) f.y = -10;
+    }
+}
+
+setInterval(drawFlakes, 33);
+createFlakes();
+
+window.onresize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+};
+</script>
 
 </body>
 </html>
