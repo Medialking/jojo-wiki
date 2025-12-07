@@ -5,17 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JojoLand — Официальный сайт</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="images/logo.png" type="image/png">
+
+    <!-- Красивый игровой шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<!-- ГЛАВНОЕ СОДЕРЖИМОЕ -->
+<div id="content">
+
 <header>
-    <img src="images/logo.png" class="logo">
+    <img src="images/logo.png" class="logo" alt="">
     <h1>JL</h1>
 
     <nav>
         <a href="rules.html">📜 Правила</a>
-        <a href="tgrules.html">📘 Правила ТГК</a>
+        <a href="tgk.html">📘 Правила ТГК</a>
         <a href="roles.html">🔐 Должности</a>
     </nav>
 </header>
@@ -32,11 +43,24 @@
     </div>
 </section>
 
+<!-- КНОПКА ТЕХПОДДЕРЖКИ -->
 <a class="chat-btn" href="https://t.me/testnjyy_bot" target="_blank">💬</a>
 
 <footer>
     <p>© 2025 JojoLand • Все права защищены</p>
 </footer>
+
+</div> <!-- /content -->
+
+<script>
+window.onload = function() {
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+    }, 400);
+};
+</script>
 
 </body>
 </html>
