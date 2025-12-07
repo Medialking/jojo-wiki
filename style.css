@@ -1,110 +1,186 @@
+/* ОБЩИЙ ФОН */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(180deg, #1a0028, #33004d, #1a0028);
+    background: linear-gradient(180deg, #12001c, #2a0040, #12001c);
+    font-family: 'Orbitron', sans-serif;
     color: #fff;
-    text-align: center;
+    overflow-x: hidden;
 }
 
-/* HEADER */
-header {
-    padding: 20px;
+/* АНИМАЦИЯ ЗАГРУЗКИ */
+#loader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #0a0011;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    transition: 0.4s;
+    z-index: 1000;
 }
 
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #6200ff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+}
+
+#content {
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+/* ХЕДЕР */
+header {
+    text-align: center;
+    padding-top: 20px;
+}
+
+/* 3D ЛОГО */
 .logo {
-    width: 130px;
-    height: 130px;
-    border-radius: 20px;
-    margin-bottom: 15px;
-    animation: glow 2s infinite alternate;
+    width: 140px;
+    height: 140px;
+    border-radius: 25px;
+    animation: logoFloat 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 25px #7b00ff);
 }
 
-@keyframes glow {
-    from { filter: drop-shadow(0 0 10px #8b00ff); }
-    to   { filter: drop-shadow(0 0 35px #ff00ff); }
+@keyframes logoFloat {
+    0%   { transform: translateY(0) rotateX(0deg); }
+    50%  { transform: translateY(-12px) rotateX(10deg); }
+    100% { transform: translateY(0) rotateX(0deg); }
 }
 
-nav {
-    margin-top: 15px;
+h1 {
+    font-size: 42px;
+    margin-top: 10px;
+    letter-spacing: 6px;
+    text-shadow: 0 0 15px #ff00ff;
 }
 
+/* МЕНЮ */
 nav a {
-    margin: 0 10px;
-    text-decoration: none;
-    color: #ffb7ff;
+    margin: 0 12px;
+    background: rgba(255, 0, 170, 0.15);
     padding: 10px 25px;
-    border-radius: 12px;
-    background: rgba(255, 0, 128, 0.15);
-    transition: 0.3s;
-    box-shadow: 0 0 10px #a600ff50;
-    font-size: 16px;
+    border-radius: 14px;
+    color: #ffbaff;
+    text-decoration: none;
+    transition: 0.25s;
+    box-shadow: 0 0 10px #b100ff50;
 }
 
 nav a:hover {
     background: #ff00c8;
-    color: white;
-    box-shadow: 0 0 20px #ff00dd;
+    box-shadow: 0 0 25px #ff00ee;
+    transform: scale(1.1);
 }
 
-/* MAIN BLOCK */
+/* ОСНОВНОЙ БЛОК */
 .main-block {
-    background: rgba(255, 255, 255, 0.06);
-    padding: 40px;
-    width: 70%;
-    margin: 50px auto;
+    background: rgba(255, 255, 255, 0.07);
+    width: 75%;
+    margin: 40px auto;
+    padding: 35px;
     border-radius: 25px;
-    box-shadow: 0 0 25px #8800ff40;
+    box-shadow: 0 0 30px #8800ff50;
+    animation: fadeInUp 0.9s;
 }
 
-/* BUTTONS */
-.btn-row {
-    margin-top: 20px;
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .btn {
     display: inline-block;
-    padding: 12px 25px;
     margin: 10px;
+    padding: 12px 30px;
     background: linear-gradient(90deg, #b300ff, #ff00bf);
-    color: white;
-    text-decoration: none;
     border-radius: 15px;
-    font-weight: bold;
-    transition: 0.3s;
-    box-shadow: 0 0 15px #ff00c870;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 0 20px #ff00dd80;
+    transition: 0.25s;
 }
 
 .btn:hover {
-    transform: scale(1.12);
-    box-shadow: 0 0 25px #ff00ea;
+    transform: scale(1.15);
+    box-shadow: 0 0 30px #ff00ee;
 }
 
-/* CHAT BUTTON */
+/* КНОПКА ЧАТА */
 .chat-btn {
     position: fixed;
-    bottom: 30px;
     right: 30px;
+    bottom: 30px;
     background: #ff00d4;
-    padding: 18px;
+    padding: 18px 20px;
     font-size: 28px;
     border-radius: 50%;
-    color: #fff;
     text-decoration: none;
-    box-shadow: 0 0 20px #ff00ff;
-    transition: 0.3s;
+    color: #fff;
+    box-shadow: 0 0 25px #ff00ff;
+    transition: 0.25s;
 }
 
 .chat-btn:hover {
-    transform: scale(1.15);
-    box-shadow: 0 0 35px #ff00ff;
+    transform: scale(1.2);
+    box-shadow: 0 0 40px #ff00ff;
 }
 
-/* FOOTER */
+/* ФУТЕР */
 footer {
-    margin-top: 80px;
-    padding: 20px;
-    color: #aaa;
+    padding: 25px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+/* 📱 АДАПТАЦИЯ ПОД МОБИЛУ */
+@media (max-width: 600px) {
+
+    .logo {
+        width: 110px;
+        height: 110px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+
+    nav a {
+        display: block;
+        margin: 10px auto;
+        width: 70%;
+        font-size: 16px;
+    }
+
+    .main-block {
+        width: 90%;
+        padding: 25px;
+    }
+
+    .btn {
+        display: block;
+        width: 80%;
+        margin: 12px auto;
+        font-size: 18px;
+    }
+
+    .chat-btn {
+        right: 15px;
+        bottom: 15px;
+        padding: 15px 17px;
+        font-size: 24px;
+    }
 }
