@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Обжалование</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #200030, #4a0066, #200030);
+            color: white;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        h1 {
+            text-align: center;
+            text-shadow: 0 0 12px #ff00bf;
+            margin-bottom: 35px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 25px;
+            padding: 10px 20px;
+            background: #99006b;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            box-shadow: 0 0 12px #ff00d0;
+            transition: 0.3s;
+        }
+
+        .back:hover {
+            background: #cc0099;
+            transform: scale(1.05);
+        }
+
+        .card {
+            background: rgba(255,255,255,0.06);
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border: 1px solid rgba(255,0,200,0.4);
+            box-shadow: 0 0 15px #ff00d0;
+            backdrop-filter: blur(6px);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px #ff00ff;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #ff73f5;
+            text-shadow: 0 0 8px #ff00e1;
+        }
+
+        .card p {
+            color: #f3d9ff;
+        }
+
+        .card a {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #b300a8;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #ff00d0;
+            transition: 0.3s;
+        }
+
+        .card a:hover {
+            background: #d600c9;
+            transform: scale(1.07);
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <a class="back" href="index.html">← Назад</a>
+
+    <h1>🔐 Обжалование</h1>
+
+    <div class="card">
+        <h2>📌 Что ты хочешь сделать?</h2>
+        <p>
+            Тут ты можешь выбрать нужную категорию.  
+            Мы покажем, как правильно оформить обращение, чтобы модератор ответил быстрее!
+        </p>
+    </div>
+
+    <!-- Блок 1 -->
+    <div class="card">
+        <h2>⚠️ Заполнение жалобы</h2>
+        <p>
+            Узнай, как корректно и аккуратно написать жалобу, чтобы её приняли быстрее.
+        </p>
+        <a href="zhaloba.html">Перейти →</a>
+    </div>
+
+    <!-- Блок 2 -->
+    <div class="card">
+        <h2>🛡️ Заполнение апелляции</h2>
+        <p>
+            Регистрация апелляции на наказание.  
+            Подробная инструкция, чтобы модератор смог пересмотреть решение.
+        </p>
+        <a href="apel.html">Перейти →</a>
+    </div>
+
+</div>
+</body>
+</html>
