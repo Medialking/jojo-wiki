@@ -3,64 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JojoLand — Официальный сайт</title>
-    <link rel="stylesheet" href="style.css">
+    <title>JojoLand — Главная</title>
 
     <!-- Красивый игровой шрифт -->
-    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
-<div id="loader">
-    <div class="spinner"></div>
-    <p>Загрузка...</p>
-</div>
-
-<!-- ГЛАВНОЕ СОДЕРЖИМОЕ -->
-<div id="content">
-
-<header>
-    <img src="images/logo.png" class="logo" alt="">
-    <h1>JL</h1>
-
-    <nav>
-        <a href="rules.html">📜 Правила</a>
-        <a href="tgk.html">📘 Правила ТГК</a>
-        <a href="roles.html">🔐 Должности</a>
-    </nav>
-</header>
-
-<section class="main-block">
-    <h2>О сервере JojoLand</h2>
-    <p>Добро пожаловать на официальный сайт сервера <b>JojoLand!</b> Здесь вы найдёте правила, важные ссылки и информацию о проекте.</p>
-
-    <div class="btn-row">
-        <a class="btn" href="https://t.me/+18-ycRRnOTgxZTgy">📌 TGK чат</a>
-        <a class="btn" href="https://t.me/Jojolandpe">💬 Telegram группа</a>
-        <a class="btn" href="http://pay.jojoland.ru/">💎 Донат сайт</a>
-        <a class="btn" href="wiki.html">📘 Wiki / Гайды</a>
+    <!-- ЛОГО -->
+    <div class="logo">
+        <img src="images/logo.png" alt="JL Logo">
     </div>
-</section>
 
-<!-- КНОПКА ТЕХПОДДЕРЖКИ -->
-<a class="chat-btn" href="https://t.me/jojolandpe_support_bot" target="_blank">💬</a>
+    <!-- Название -->
+    <div class="logo-title">JL</div>
 
-<footer>
-    <p>© 2025 JojoLand • Все права защищены</p>
-</footer>
+    <!-- Главное меню -->
+    <div class="menu">
+        <a href="rules.html">📄 Правила</a>
+        <a href="tgk.html">📘 Правила ТГК</a>
+        <a href="roles.html">🔒 Должности</a>
+    </div>
 
-</div> <!-- /content -->
+    <!-- Основной блок -->
+    <div class="panel">
+        <h2>О сервере JojoLand</h2>
 
-<script>
-window.onload = function() {
-    document.getElementById("loader").style.opacity = "0";
-    setTimeout(() => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
-    }, 400);
-};
-</script>
+        <p>
+            Добро пожаловать на официальный сайт сервера <b>JojoLand!</b><br>
+            Здесь вы найдёте правила, важные ссылки и информацию о проекте.
+        </p>
+
+        <div class="btn-box">
+            <a href="https://t.me/+..." target="_blank">📌 TGK чат</a>
+            <a href="https://t.me/+..." target="_blank">💬 Telegram группа</a>
+            <a href="#donate" target="_blank">💎 Донат сайт</a>
+            <a href="#wiki" target="_blank">📘 Wiki / Гайды</a>
+        </div>
+    </div>
+
+    <!-- Кнопка чата -->
+    <div class="chat-button">💬</div>
 
 </body>
 </html>
