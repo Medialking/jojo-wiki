@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Апелляция</title>
 
     <style>
@@ -10,6 +11,7 @@
             font-family: 'Trebuchet MS', sans-serif;
             background: linear-gradient(135deg, #200030, #4a0066, #200030);
             color: white;
+            min-height: 100vh;
         }
 
         .container {
@@ -22,6 +24,7 @@
             text-align: center;
             text-shadow: 0 0 12px #ff00bf;
             margin-bottom: 35px;
+            font-size: 32px;
         }
 
         .back {
@@ -34,6 +37,7 @@
             border-radius: 10px;
             box-shadow: 0 0 12px #ff00d0;
             transition: 0.3s;
+            font-weight: 600;
         }
 
         .back:hover {
@@ -61,11 +65,13 @@
             margin-top: 0;
             color: #ff73f5;
             text-shadow: 0 0 8px #ff00e1;
+            font-size: 24px;
         }
 
         .card p, li {
             color: #f3d9ff;
             line-height: 1.5;
+            font-size: 16px;
         }
 
         ul {
@@ -84,8 +90,9 @@
             margin-top: 10px;
             border-left: 4px solid #ff00bf;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 15px;
             color: #ffeaff;
+            line-height: 1.5;
         }
 
         .send-btn {
@@ -98,11 +105,98 @@
             border-radius: 10px;
             box-shadow: 0 0 12px #ff00d0;
             transition: 0.3s;
+            font-weight: 600;
+            font-size: 16px;
         }
 
         .send-btn:hover {
             background: #d600c9;
             transform: scale(1.08);
+        }
+
+        /* ------ 📱 Адаптация для мобильных ------ */
+        @media (max-width: 600px) {
+            .container {
+                width: 92%;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .back {
+                padding: 8px 16px;
+                font-size: 14px;
+                margin-bottom: 15px;
+                width: auto;
+                display: inline-block;
+            }
+
+            .card {
+                padding: 18px;
+                margin: 15px 0;
+                border-radius: 12px;
+            }
+
+            .card h2 {
+                font-size: 20px;
+            }
+
+            .card p, li {
+                font-size: 15px;
+            }
+
+            .example-box {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .send-btn {
+                width: 100%;
+                text-align: center;
+                padding: 14px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+
+            ul {
+                padding-left: 18px;
+            }
+            
+            /* Улучшение для списков на мобильных */
+            ul li {
+                margin-bottom: 8px;
+            }
+        }
+
+        /* Для очень маленьких экранов */
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 22px;
+            }
+            
+            .card h2 {
+                font-size: 18px;
+            }
+            
+            .container {
+                padding: 12px;
+            }
+            
+            .example-box {
+                font-size: 13px;
+                padding: 10px;
+            }
+            
+            ul {
+                padding-left: 15px;
+            }
+            
+            ul li {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
