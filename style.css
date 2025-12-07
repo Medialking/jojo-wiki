@@ -1,5 +1,3 @@
 body {
-    background: url('https://i.imgur.com/kN9xQ4R.png') no-repeat center center fixed;
-    background-size: cover;
-    background-color: #1a0025;
+    background: red !important;
 }
