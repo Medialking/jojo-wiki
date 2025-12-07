@@ -8,26 +8,26 @@
         body {
             margin: 0;
             font-family: 'Trebuchet MS', sans-serif;
-            background: #1a0026;
-            background: linear-gradient(180deg, #24003a, #1a0026);
+            background: radial-gradient(circle at top, #3a0060, #1a0026 65%);
             color: white;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 820px;
+            max-width: 760px;
             margin: auto;
             padding: 20px;
         }
 
-        /* 🔙 Кнопка назад */
+        /* Кнопка назад */
         .back {
             display: inline-block;
             background: rgba(255, 0, 190, 0.35);
-            padding: 10px 20px;
+            padding: 9px 18px;
             border-radius: 12px;
             color: #ffd9ff;
             text-decoration: none;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             backdrop-filter: blur(6px);
             transition: 0.25s;
@@ -37,101 +37,107 @@
             background: rgba(255, 0, 210, 0.55);
         }
 
-        /* 🔐 Заголовок */
+        /* Заголовок */
         h1 {
             text-align: center;
-            margin: 25px 0 30px;
-            font-size: 32px;
+            margin: 25px 0 28px;
+            font-size: 30px;
             font-weight: 700;
         }
 
-        /* 📦 Карточки */
+        /* Карточки */
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 120, 255, 0.15);
-            border-radius: 18px;
-            padding: 22px;
-            margin: 18px 0;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 120, 255, 0.12);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.32);
             transition: 0.25s;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+            transform: translateY(-2px);
         }
 
-        /* Заголовки карточек */
         .card h2 {
             margin-top: 0;
-            font-size: 22px;
+            font-size: 21px;
             color: #ffb3ff;
         }
 
         .card p {
-            font-size: 16px;
-            line-height: 1.55;
-            color: #f8eaff;
+            font-size: 15.5px;
+            line-height: 1.52;
+            color: #f2dbff;
         }
 
         /* Кнопка перехода */
         .card a {
             display: inline-block;
-            margin-top: 14px;
-            padding: 12px 18px;
+            margin-top: 12px;
+            padding: 11px 16px;
             background: #ff00c8;
             text-decoration: none;
             color: white;
             font-weight: 600;
             border-radius: 12px;
             transition: 0.25s;
+            font-size: 15px;
         }
 
         .card a:hover {
             background: #ff35da;
         }
 
+        /* ------ 📱 Супер адаптация для мобильных ------ */
 
-        /* 📱 Мобильная адаптация */
         @media (max-width: 600px) {
+
+            body {
+                background: radial-gradient(circle at top, #4e0088, #180020 70%);
+            }
 
             .container {
                 width: 92%;
-                padding: 10px;
+                padding: 15px 0;
             }
 
             h1 {
-                font-size: 26px;
-                margin-bottom: 20px;
+                font-size: 24px;
+                margin-bottom: 18px;
             }
 
             .back {
-                font-size: 14px;
-                padding: 8px 16px;
+                font-size: 13px;
+                padding: 7px 14px;
             }
 
             .card {
-                padding: 18px;
-                margin: 12px 0;
-                border-radius: 16px;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 14px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.38);
             }
 
             .card h2 {
-                font-size: 20px;
+                font-size: 18.5px;
             }
 
             .card p {
-                font-size: 15px;
+                font-size: 14.5px;
             }
 
             .card a {
                 width: 100%;
                 text-align: center;
-                padding: 14px 0;
-                font-size: 16px;
+                padding: 13px 0;
+                font-size: 15px;
+                border-radius: 10px;
             }
         }
+
     </style>
 </head>
 
