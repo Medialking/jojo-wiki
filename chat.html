@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💬 Чат сервера JojoLand</title>
-    
-    <!-- Firebase (без auth) -->
+
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a0033, #330066, #1a0033);
@@ -23,7 +23,7 @@
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         /* Навигация */
         .chat-nav {
             display: flex;
@@ -31,7 +31,7 @@
             margin-bottom: 25px;
             flex-wrap: wrap;
         }
-        
+
         .chat-nav a {
             padding: 10px 20px;
             background: rgba(255,0,255,0.2);
@@ -42,12 +42,12 @@
             transition: 0.3s;
             font-weight: bold;
         }
-        
+
         .chat-nav a:hover {
             background: rgba(255,0,255,0.4);
             transform: translateY(-2px);
         }
-        
+
         /* Контейнер чата */
         .chat-container {
             max-width: 1000px;
@@ -58,7 +58,7 @@
             border: 3px solid #ff00ff;
             box-shadow: 0 0 40px rgba(255,0,255,0.4);
         }
-        
+
         /* Заголовок */
         .chat-header {
             text-align: center;
@@ -66,14 +66,14 @@
             border-bottom: 2px solid rgba(255,0,255,0.3);
             margin-bottom: 20px;
         }
-        
+
         .chat-header h1 {
             color: #ffb3ff;
             text-shadow: 0 0 15px #ff00ff;
             margin-bottom: 10px;
             font-size: 32px;
         }
-        
+
         .online-counter {
             display: inline-block;
             padding: 8px 20px;
@@ -82,7 +82,18 @@
             border: 1px solid #00ff00;
             font-size: 14px;
         }
-        
+
+        .moderator-badge {
+            background: linear-gradient(90deg, #ff9900, #ffcc00);
+            color: #333;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+            display: none;
+        }
+
         /* Панель эмодзи */
         .emoji-picker {
             display: flex;
@@ -94,7 +105,7 @@
             border-radius: 15px;
             justify-content: center;
         }
-        
+
         .emoji-btn {
             background: none;
             border: none;
@@ -109,12 +120,12 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .emoji-btn:hover {
             background: rgba(255,255,255,0.1);
             transform: scale(1.3);
         }
-        
+
         /* Сообщения */
         .messages-container {
             height: 500px;
@@ -127,7 +138,7 @@
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .message {
             padding: 15px;
             border-radius: 18px;
@@ -136,19 +147,19 @@
             animation: fadeIn 0.3s ease;
             position: relative;
         }
-        
+
         .message.user-message {
             background: linear-gradient(90deg, #cc00ff, #ff00ff);
             align-self: flex-end;
             border-bottom-right-radius: 5px;
         }
-        
+
         .message.other-message {
             background: linear-gradient(90deg, #0066cc, #0099ff);
             align-self: flex-start;
             border-bottom-left-radius: 5px;
         }
-        
+
         .message.system-message {
             background: rgba(255,255,255,0.1);
             align-self: center;
@@ -157,7 +168,7 @@
             border: 1px dashed rgba(255,255,255,0.3);
             font-style: italic;
         }
-        
+
         .message-header {
             display: flex;
             align-items: center;
@@ -165,32 +176,39 @@
             margin-bottom: 8px;
             flex-wrap: wrap;
         }
-        
-        .user-rank {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
-            font-weight: bold;
-        }
-        
+
         .message-sender {
             font-weight: bold;
             font-size: 14px;
         }
-        
+
         .message-text {
             font-size: 16px;
             line-height: 1.4;
             margin-bottom: 8px;
         }
-        
+
         .message-time {
             font-size: 11px;
             opacity: 0.7;
             text-align: right;
         }
-        
+
+        .message-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+
+        .delete-btn {
+            color: #ff4444;
+        }
+
         /* Форма ввода */
         .input-container {
             display: flex;
@@ -198,7 +216,7 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         #usernameInput {
             width: 150px;
             padding: 12px;
@@ -208,7 +226,7 @@
             color: white;
             font-weight: bold;
         }
-        
+
         #messageInput {
             flex: 1;
             min-width: 200px;
@@ -220,11 +238,7 @@
             font-size: 16px;
             outline: none;
         }
-        
-        #messageInput::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        
+
         .send-btn {
             padding: 15px 30px;
             border: none;
@@ -237,12 +251,7 @@
             transition: 0.3s;
             box-shadow: 0 0 15px rgba(255,0,204,0.5);
         }
-        
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px #ff00cc;
-        }
-        
+
         /* Кнопки действий */
         .action-buttons {
             display: flex;
@@ -250,7 +259,7 @@
             margin-top: 15px;
             flex-wrap: wrap;
         }
-        
+
         .action-btn {
             padding: 10px 20px;
             border: none;
@@ -259,139 +268,24 @@
             color: white;
             cursor: pointer;
             transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
         }
-        
-        .action-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-        }
-        
-        /* Кнопки модерации в сообщениях */
-        .message-btn {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.5);
-            cursor: pointer;
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 5px;
-            transition: 0.2s;
-        }
-        
-        .message-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        
-        .report-btn {
-            color: #ffa500;
-        }
-        
-        .delete-btn {
-            color: #ff4444;
-        }
-        
-        /* Панель модератора */
+
+        /* Панель модератора — позже дополним в части 2 */
         #modPanel {
+            display: none;
             background: rgba(255,0,0,0.1);
             padding: 20px;
             border-radius: 15px;
             margin: 30px 0;
             border: 2px solid #ff0000;
         }
-        
-        .mod-btn {
-            padding: 8px 15px;
-            background: rgba(255,0,0,0.2);
-            color: #ff6666;
-            border: 1px solid #ff6666;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 5px;
-            transition: 0.3s;
-        }
-        
-        .mod-btn:hover {
-            background: rgba(255,0,0,0.3);
-            transform: translateY(-2px);
-        }
-        
-        /* Рейтинг */
-        .leaderboard {
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 20px;
-            margin-top: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .leaderboard h3 {
-            color: #ffd700;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        
-        .player-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
-            margin: 5px 0;
-            border-radius: 10px;
-        }
-        
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Полоса прокрутки */
-        .messages-container::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        .messages-container::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-        
-        .messages-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #ff00ff, #cc00ff);
-            border-radius: 10px;
-        }
-        
-        /* Адаптация */
-        @media (max-width: 768px) {
-            .chat-container {
-                padding: 15px;
-            }
-            
-            .message {
-                max-width: 90%;
-            }
-            
-            .input-container {
-                flex-direction: column;
-            }
-            
-            #usernameInput, #messageInput, .send-btn {
-                width: 100%;
-            }
-            
-            .emoji-picker {
-                justify-content: flex-start;
-                overflow-x: auto;
-            }
-        }
+
+        /* Админ-панель — будет добавлена в следующей части */
     </style>
 </head>
+
 <body>
+
     <!-- Навигация -->
     <div class="chat-nav">
         <a href="index.html">🏠 Главная</a>
@@ -400,86 +294,102 @@
         <a href="zhaloba.html">⚠️ Жалоба</a>
         <a href="apel.html">🛡️ Апелляция</a>
     </div>
-    
-    <!-- Основной контейнер чата -->
+
+    <!-- ЧАТ -->
     <div class="chat-container">
-        <!-- Заголовок -->
+
         <div class="chat-header">
             <h1>💬 Чат сервера JojoLand</h1>
+
             <div class="online-counter">
                 🟢 Онлайн: <span id="onlineCount">1</span> игроков
+                <span id="moderatorBadge" class="moderator-badge">🛡️ МОДЕРАТОР</span>
             </div>
         </div>
-        
-        <!-- Панель эмодзи -->
-        <div class="emoji-picker" id="emojiPicker">
-            <!-- Эмодзи добавляются через JS -->
-        </div>
-        
-        <!-- Контейнер сообщений -->
+
+        <div class="emoji-picker" id="emojiPicker"></div>
+
         <div class="messages-container" id="messagesContainer">
             <div class="message system-message">
-                🎮 Добро пожаловать в чат сервера JojoLand!<br>
-                💬 Общайтесь, задавайте вопросы, знакомьтесь с игроками!
+                🎮 Добро пожаловать в чат сервера JojoLand!
             </div>
         </div>
-        
-        <!-- Форма ввода -->
+
         <div class="input-container">
-            <input type="text" 
-                   id="usernameInput" 
-                   placeholder="Твой ник"
-                   maxlength="20">
-            
-            <input type="text" 
-                   id="messageInput" 
-                   placeholder="Напиши сообщение..."
-                   maxlength="500">
-            
+            <input type="text" id="usernameInput" placeholder="Твой ник" maxlength="20">
+            <input type="text" id="messageInput" placeholder="Напиши сообщение..." maxlength="500">
             <button onclick="sendMessage()" class="send-btn">📨 Отправить</button>
         </div>
-        
-        <!-- Кнопки действий -->
+
         <div class="action-buttons">
-            <button onclick="toggleModPanel()" class="action-btn" id="modToggleBtn">
+            <button onclick="toggleModPanel()" class="action-btn" id="modToggleBtn" style="display:none;">
                 🛡️ Панель модератора
             </button>
+
+            <button onclick="toggleAdminPanel()" class="action-btn" id="adminToggleBtn" style="display:none;">
+                👑 Админ-панель
+            </button>
+
             <button onclick="reportProblem()" class="action-btn">
                 ⚠️ Пожаловаться
             </button>
         </div>
+
     </div>
-    
-    <!-- Панель модератора (скрыта по умолчанию) -->
-    <div id="modPanel" style="display: none;">
+    <!-- Панель модератора -->
+    <div id="modPanel">
         <h3 style="color: #ff6666; margin-bottom: 15px;">🛡️ Панель модератора</h3>
         <div class="mod-tools">
             <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                 <input type="text" id="modSearch" placeholder="Поиск по нику..." 
                        style="padding: 10px; border-radius: 10px; border: none; background: rgba(255,255,255,0.1); color: white; flex: 1;">
             </div>
-            
+
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-                <button onclick="banUser()" class="mod-btn">🚫 Забанить игрока</button>
+                <button onclick="deleteSelectedMessage()" class="mod-btn">🚫 Удалить выбранное</button>
                 <button onclick="muteUser()" class="mod-btn">🔇 Выдать мут</button>
+                <button onclick="banUser()" class="mod-btn">🗡️ Забанить игрока</button>
                 <button onclick="clearChat()" class="mod-btn">🗑️ Очистить чат</button>
-                <button onclick="deleteSelectedMessage()" class="mod-btn">✂️ Удалить выбранное</button>
             </div>
-            
+
             <div id="reportedMessages" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
                 <h4 style="color: #ffa500; margin-bottom: 10px;">📋 Последние жалобы:</h4>
                 <div id="reportsList" style="font-size: 14px; color: #ffcccc;">
                     Жалоб пока нет
                 </div>
             </div>
-            
+
             <div style="margin-top: 15px; font-size: 12px; color: #ff9999;">
-                <p>⚡ Для удаления сообщения нажмите на кнопку "🗑️" в сообщении</p>
+                <p>⚡ Для удаления сообщения нажмите на кнопку "🗑️" в сообщении или выберите сообщение</p>
                 <p>⚡ Выбранное сообщение: <span id="selectedMessageInfo">не выбрано</span></p>
             </div>
         </div>
     </div>
-    
+
+    <!-- Админ-панель (для суперадминов) -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <h3 style="color: #0066ff; margin-bottom: 15px;">👑 Админ-панель</h3>
+
+        <div style="margin-bottom: 20px;">
+            <h4>📋 Управление модераторами</h4>
+            <input type="text" id="userToPromote" placeholder="ID пользователя" class="admin-input">
+            <button onclick="promoteToModerator()" class="admin-btn">➕ Сделать модератором</button>
+            <button onclick="demoteModerator()" class="admin-btn">➖ Снять права</button>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h4>👥 Список модераторов</h4>
+            <div id="moderatorsList">Загрузка...</div>
+        </div>
+
+        <div>
+            <h4>🔧 Дополнительные функции</h4>
+            <button onclick="clearAllChat()" class="admin-btn">🗑️ Очистить весь чат</button>
+            <button onclick="exportChat()" class="admin-btn">📥 Экспорт чата</button>
+            <button onclick="showSystemInfo()" class="admin-btn">⚙️ Информация о системе</button>
+        </div>
+    </div>
+
     <!-- Рейтинг игроков -->
     <div class="leaderboard">
         <h3>🏆 Топ активных игроков</h3>
@@ -502,29 +412,33 @@
             messagingSenderId: "602788305122",
             appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
         };
-        
-        // Инициализация Firebase (БЕЗ АВТОРИЗАЦИИ)
+
+        // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        
+
         // ==================== ПЕРЕМЕННЫЕ ====================
-        // Генерируем постоянный ID для пользователя
         let userId = localStorage.getItem('jojoland_userId');
         if (!userId) {
             userId = 'user_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('jojoland_userId', userId);
         }
-        
-        // Загружаем сохраненный ник
-        let username = localStorage.getItem('jojoland_username') || 
+
+        let username = localStorage.getItem('jojoland_username') ||
                        `Игрок_${Math.floor(Math.random() * 1000)}`;
-        
+
         let selectedMessageId = null;
         let modMode = false;
-        
-        // Список модераторов (добавь сюда ID админов)
-        const moderators = ['админ_id_1', 'админ_id_2'];
-        
+        let isModerator = false;
+        let isSuperAdmin = false;
+
+        // ID суперадминов (замени на свои ID при развертывании)
+        const SUPER_ADMINS = [
+            'твой_user_id_1',
+            'твой_user_id_2'
+        ];
+
+        // Список модераторов (будет загружаться из БД)
         // ==================== СИСТЕМА РАНГОВ ====================
         const ranks = {
             newbie: { name: 'Новичок', color: '#AAAAAA', icon: '🥚', minMessages: 0 },
@@ -533,47 +447,48 @@
             veteran: { name: 'Ветеран', color: '#9C27B0', icon: '🏆', minMessages: 200 },
             legend: { name: 'Легенда', color: '#FF9800', icon: '👑', minMessages: 500 }
         };
-        
+
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         document.addEventListener('DOMContentLoaded', () => {
-            // Устанавливаем сохраненный ник
             document.getElementById('usernameInput').value = username;
-            
-            // Инициализируем эмодзи
             initEmojiPicker();
-            
-            // Добавляем в онлайн список
             addToOnlineList();
-            
-            // Загружаем рейтинг
             loadLeaderboard();
-            
-            // Проверяем права модератора
-            checkModeratorRights();
-            
-            // Обновляем рейтинг каждую минуту
+            checkUserRights(); // определит модератора/админа и покажет кнопки
+            // периодические обновления
             setInterval(loadLeaderboard, 60000);
-            
-            // Системные сообщения
             setInterval(sendSystemMessage, 300000);
-            
-            // Слушаем изменения ника
             document.getElementById('usernameInput').addEventListener('change', updateUsername);
-            
-            // Enter для отправки
             document.getElementById('messageInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     sendMessage();
                 }
             });
-            
-            // Фокус на поле ввода
-            setTimeout(() => {
-                document.getElementById('messageInput').focus();
-            }, 500);
         });
-        
+
+        // ==================== ЭМОДЗИ ====================
+        function initEmojiPicker() {
+            const emojis = ['😊', '😂', '🎮', '💎', '⚡', '🏆', '🛡️', '✨', '🔥', '❤️',
+                           '👍', '👎', '🎉', '😎', '🤔', '😡', '😢', '😍', '🤯', '🥳'];
+            const picker = document.getElementById('emojiPicker');
+
+            // очищаем (на случай повторной инициализации)
+            picker.innerHTML = '';
+
+            emojis.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-btn';
+                btn.textContent = emoji;
+                btn.onclick = () => {
+                    const input = document.getElementById('messageInput');
+                    input.value += emoji;
+                    input.focus();
+                };
+                picker.appendChild(btn);
+            });
+        }
+
         // ==================== ОНЛАЙН СТАТУС ====================
         function addToOnlineList() {
             const userOnlineRef = database.ref('online/' + userId);
@@ -582,80 +497,95 @@
                 lastSeen: Date.now(),
                 userId: userId
             });
-            
+
             userOnlineRef.onDisconnect().remove();
-            
+
             // Счетчик онлайн
             database.ref('online').on('value', (snapshot) => {
                 const onlineCount = snapshot.numChildren();
                 document.getElementById('onlineCount').textContent = onlineCount;
             });
         }
-        
+
         // ==================== ОБНОВЛЕНИЕ НИКА ====================
         function updateUsername() {
-            const newUsername = this.value.trim();
+            const newUsername = this.value.trim ? this.value.trim() : document.getElementById('usernameInput').value.trim();
             if (!newUsername) return;
-            
+
             username = newUsername;
             localStorage.setItem('jojoland_username', username);
-            
+
             // Обновляем в Firebase
             const updates = {};
             updates['online/' + userId + '/name'] = username;
             updates['user_stats/' + userId + '/username'] = username;
-            
+
             database.ref().update(updates);
         }
-        
-        // ==================== ПРОВЕРКА ПРАВ МОДЕРАТОРА ====================
-        function checkModeratorRights() {
-            // В реальном проекте здесь проверка ID пользователя
-            // Пока проверяем по нику (админы должны ввести специальный ник)
-            const adminNicks = ['admin', 'moderator', 'админ', 'модератор'];
-            
-            if (adminNicks.includes(username.toLowerCase())) {
-                // Показываем кнопку модератора
-                document.getElementById('modToggleBtn').style.display = 'flex';
-                modMode = true;
+
+        // ==================== ПРОВЕРКА ПРАВ (модератор/админ) ====================
+        async function checkUserRights() {
+            // Суперадмин по локальному списку
+            if (SUPER_ADMINS.includes(userId)) {
+                isSuperAdmin = true;
+                isModerator = true;
+                showAdminFeatures();
+                return;
+            }
+
+            try {
+                const snap = await database.ref('moderators/' + userId).once('value');
+                if (snap.exists()) {
+                    isModerator = true;
+                    showModeratorFeatures();
+                }
+            } catch (err) {
+                console.error('Ошибка проверки прав:', err);
             }
         }
-        
-        function toggleModPanel() {
-            const panel = document.getElementById('modPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            
-            // Если открываем панель, загружаем жалобы
-            if (panel.style.display === 'block') {
-                loadReports();
-            }
+
+        function showModeratorFeatures() {
+            document.getElementById('modToggleBtn').style.display = 'flex';
+            document.getElementById('moderatorBadge').style.display = 'inline-block';
+            modMode = true;
         }
-        
-        // ==================== ЭМОДЗИ ====================
-        function initEmojiPicker() {
-            const emojis = ['😊', '😂', '🎮', '💎', '⚡', '🏆', '🛡️', '✨', '🔥', '❤️', 
-                           '👍', '👎', '🎉', '😎', '🤔', '😡', '😢', '😍', '🤯', '🥳'];
-            const picker = document.getElementById('emojiPicker');
-            
-            emojis.forEach(emoji => {
-                const btn = document.createElement('button');
-                btn.className = 'emoji-btn';
-                btn.textContent = emoji;
-                btn.onclick = () => addEmoji(emoji);
-                picker.appendChild(btn);
+
+        function showAdminFeatures() {
+            showModeratorFeatures();
+            document.getElementById('adminToggleBtn').style.display = 'flex';
+            document.getElementById('adminPanel').style.display = 'none'; // скрыта по умолчанию
+            document.getElementById('moderatorBadge').innerHTML = '👑 АДМИН';
+        }
+
+        // ==================== ОТПРАВКА СООБЩЕНИЙ ====================
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+
+            if (!messageText) return;
+
+            if (messageText.length > 500) {
+                alert('Сообщение слишком длинное (максимум 500 символов)');
+                return;
+            }
+
+            database.ref('messages').push({
+                text: messageText,
+                user: username,
+                userId: userId,
+                timestamp: Date.now(),
+                server: 'JojoLand'
             });
+
+            updateUserStats();
+            messageInput.value = '';
+            messageInput.focus();
         }
-        
-        function addEmoji(emoji) {
-            const input = document.getElementById('messageInput');
-            input.value += emoji;
-            input.focus();
-        }
-        
+
         // ==================== СТАТИСТИКА И РАНГИ ====================
         function updateUserStats() {
             if (!userId) return;
-            
+
             const statsRef = database.ref('user_stats/' + userId);
             statsRef.transaction((current) => {
                 if (current) {
@@ -673,14 +603,14 @@
                 return current;
             });
         }
-        
+
         async function loadLeaderboard() {
             try {
                 const snapshot = await database.ref('user_stats')
                     .orderByChild('messages')
                     .limitToLast(10)
                     .once('value');
-                    
+
                 const players = [];
                 snapshot.forEach(childSnapshot => {
                     const data = childSnapshot.val();
@@ -691,21 +621,21 @@
                         });
                     }
                 });
-                
+
                 players.sort((a, b) => b.messages - a.messages);
-                
+
                 const container = document.getElementById('topPlayers');
                 if (players.length === 0) {
                     container.innerHTML = '<div class="player-item">Пока нет активных игроков</div>';
                     return;
                 }
-                
+
                 container.innerHTML = '';
-                
+
                 players.forEach((player, index) => {
                     const rank = getRankByMessages(player.messages);
                     const playerName = player.username || 'Игрок';
-                    
+
                     const div = document.createElement('div');
                     div.className = 'player-item';
                     div.innerHTML = `
@@ -719,308 +649,493 @@
                     `;
                     container.appendChild(div);
                 });
-                
+
             } catch (error) {
                 console.error('Ошибка загрузки рейтинга:', error);
             }
         }
-        
-        // ==================== ОТПРАВКА СООБЩЕНИЙ ====================
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const messageText = messageInput.value.trim();
-            
-            if (!messageText) return;
-            
-            if (messageText.length > 500) {
-                alert('Сообщение слишком длинное (максимум 500 символов)');
-                return;
-            }
-            
-            // Отправляем сообщение
-            database.ref('messages').push({
-                text: messageText,
-                user: username,
-                userId: userId,
-                timestamp: Date.now(),
-                server: 'JojoLand'
-            });
-            
-            // Обновляем статистику
-            updateUserStats();
-            
-            // Очищаем поле
-            messageInput.value = '';
-            messageInput.focus();
-        }
-        
+
         // ==================== ОТОБРАЖЕНИЕ СООБЩЕНИЙ ====================
         database.ref('messages').limitToLast(100).on('child_added', (snapshot) => {
             const message = snapshot.val();
             const messageId = snapshot.key;
-            
+
             displayMessage(message, messageId);
-            
-            // Авто-прокрутка
+
             const container = document.getElementById('messagesContainer');
             container.scrollTop = container.scrollHeight;
+
+            // Добавляем кнопки удаления если мы модератор
+            if (isModerator) {
+                setTimeout(addDeleteButtonsToMessages, 100);
+            }
         });
-        
+
         async function displayMessage(msg, messageId) {
             const container = document.getElementById('messagesContainer');
             const isCurrentUser = msg.userId === userId;
-            
-            // Получаем ранг пользователя
-            const rank = await getUserRank(msg.userId);
-            const rankInfo = ranks[rank];
-            
+
+            // Получаем ранг пользователя (асинхронно)
+            const rankKey = await getUserRank(msg.userId);
+            const rankInfo = ranks[rankKey] || ranks.newbie;
+
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isCurrentUser ? 'user-message' : 'other-message'}`;
             messageDiv.dataset.id = messageId;
             messageDiv.dataset.userId = msg.userId;
             messageDiv.dataset.username = msg.user;
-            
-            // Форматируем время
+
             const time = new Date(msg.timestamp);
             const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Кнопки действий (жалоба и удаление для модераторов)
+
+            // Кнопки действий
             let actionButtons = '';
             if (!isCurrentUser) {
-                actionButtons += `<button class="message-btn report-btn" onclick="reportMessage('${messageId}', '${msg.user}')" title="Пожаловаться">⚠️</button>`;
+                actionButtons += `<button class="message-btn report-btn" onclick="reportMessage('${messageId}', '${escapeHtml(msg.user)}')" title="Пожаловаться">⚠️</button>`;
             }
-            
-            // Кнопка удаления для модераторов
-            if (modMode) {
-                actionButtons += `<button class="message-btn delete-btn" onclick="selectMessage('${messageId}', '${msg.user}')" title="Удалить сообщение">🗑️</button>`;
+            if (isModerator) {
+                actionButtons += `<button class="message-btn delete-btn" onclick="selectMessage('${messageId}', '${escapeHtml(msg.user)}')" title="Удалить сообщение">🗑️</button>`;
             }
-            
+
             messageDiv.innerHTML = `
                 <div class="message-header">
-                    <span class="user-rank" style="color: ${rankInfo.color}; background: ${rankInfo.color}22">
+                    <span class="user-rank" style="color: ${rankInfo.color}; background: ${rankInfo.color}22; padding: 3px 8px; border-radius: 10px; font-size: 12px;">
                         ${rankInfo.icon} ${rankInfo.name}
                     </span>
-                    <strong class="message-sender">${msg.user}</strong>
+                    <strong class="message-sender">${escapeHtml(msg.user)}</strong>
                     ${actionButtons}
                 </div>
                 <div class="message-text">${formatMessageText(msg.text)}</div>
                 <div class="message-time">${timeString}</div>
             `;
-            
+
             container.appendChild(messageDiv);
         }
-        
-        // ==================== МОДЕРАЦИЯ ====================
+
+        // Вспомогательные функции (частично — продолжение в части 3)
+        function formatMessageText(text) {
+            if (!text) return '';
+            text = String(text).replace(/\n/g, '<br>');
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            text = text.replace(urlRegex, '<a href="$1" target="_blank" style="color: #6ab7ff;">$1</a>');
+            return escapeHtml(text);
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe && unsafe !== 0) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function getUserRank(userIdToCheck) {
+            try {
+                const snapshot = await database.ref('user_stats/' + userIdToCheck).once('value');
+                const stats = snapshot.val() || { messages: 0 };
+
+                // Определим наибольший подходящий ранг
+                let selectedKey = 'newbie';
+                for (const [key, rank] of Object.entries(ranks)) {
+                    if (stats.messages >= rank.minMessages) {
+                        selectedKey = key;
+                    }
+                }
+                return selectedKey;
+            } catch (error) {
+                return 'newbie';
+            }
+        }
+
+        function getRankByMessages(count) {
+            let selected = ranks.newbie;
+            for (const [key, rank] of Object.entries(ranks)) {
+                if (count >= rank.minMessages) {
+                    selected = rank;
+                }
+            }
+            return selected;
+        }
+
+        // Заготовки для модерации/админки (реализация в части 3)
         function selectMessage(messageId, username) {
             selectedMessageId = messageId;
-            document.getElementById('selectedMessageInfo').textContent = 
-                `Сообщение от ${username} (ID: ${messageId})`;
-            alert(`Сообщение от ${username} выбрано для модерации. Используйте кнопки в панели модератора.`);
+            document.getElementById('selectedMessageInfo').textContent = `Сообщение от ${username} (ID: ${messageId})`;
+            alert(`Сообщение от ${username} выбрано для модерации.`);
         }
-        
-        function deleteSelectedMessage() {
+
+        function addDeleteButtonsToMessages() {
+            // реализация в 3 части — здесь только чек на существование
+            document.querySelectorAll('.message:not(.system-message)').forEach(msg => {
+                if (!msg.querySelector('.delete-btn') && isModerator) {
+                    const header = msg.querySelector('.message-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'message-btn delete-btn';
+                        btn.innerHTML = '🗑️';
+                        btn.title = 'Удалить сообщение';
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            const messageId = msg.dataset.id;
+                            const messageUser = msg.dataset.username || 'пользователь';
+                            selectMessage(messageId, messageUser);
+                        };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        }
+    </script>
+    <script>
+        // ==================== МОДЕРАЦИЯ ====================
+        async function deleteSelectedMessage() {
             if (!selectedMessageId) {
-                alert('Сначала выберите сообщение, нажав на кнопку 🗑️ рядом с ним');
+                alert('Сначала выберите сообщение для удаления.');
                 return;
             }
-            
-            if (confirm('Удалить выбранное сообщение?')) {
-                database.ref('messages/' + selectedMessageId).remove();
-                
-                // Логируем действие
-                database.ref('mod_log').push({
+            if (!isModerator) {
+                alert('У вас нет прав модератора.');
+                return;
+            }
+            if (!confirm('Удалить выбранное сообщение? Это действие нельзя отменить.')) return;
+
+            try {
+                await database.ref('messages/' + selectedMessageId).remove();
+                await database.ref('mod_log').push({
                     action: 'delete_message',
                     moderator: username,
                     messageId: selectedMessageId,
                     timestamp: Date.now()
                 });
-                
                 selectedMessageId = null;
                 document.getElementById('selectedMessageInfo').textContent = 'не выбрано';
-                alert('Сообщение удалено');
+                alert('Сообщение удалено.');
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при удалении сообщения.');
             }
         }
-        
-        function banUser() {
-            const username = prompt('Ник игрока для бана:');
-            const reason = prompt('Причина бана:');
-            const duration = prompt('Длительность (в днях):', '7');
-            
-            if (username && reason && duration) {
-                database.ref('bans').push({
-                    username: username,
-                    reason: reason,
+
+        async function banUser() {
+            if (!isModerator) {
+                alert('У вас нет прав на бан!');
+                return;
+            }
+            const target = prompt('Ник игрока для бана:');
+            if (!target) return;
+            const reason = prompt('Причина бана:', 'Нарушение правил');
+            const durationDays = prompt('Длительность (в днях):', '7');
+            if (!durationDays) return;
+
+            try {
+                const durationMs = parseInt(durationDays, 10) * 24 * 60 * 60 * 1000;
+                await database.ref('bans').push({
+                    username: target,
+                    reason: reason || '',
                     moderator: username,
                     timestamp: Date.now(),
-                    duration: parseInt(duration) * 24 * 60 * 60 * 1000 // в миллисекундах
+                    duration: parseInt(durationDays, 10),
+                    expires: Date.now() + durationMs
                 });
-                
-                alert(`Игрок ${username} забанен на ${duration} дней. Причина: ${reason}`);
+                alert(`Игрок ${target} забанен на ${durationDays} дней.`);
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при выдаче бана.');
             }
         }
-        
-        function muteUser() {
-            const username = prompt('Ник игрока для мута:');
-            const duration = prompt('Длительность (в минутах):', '60');
-            
-            if (username && duration) {
-                database.ref('mutes').push({
-                    username: username,
-                    duration: parseInt(duration),
+
+        async function muteUser() {
+            if (!isModerator) {
+                alert('У вас нет прав на мут!');
+                return;
+            }
+            const target = prompt('Ник игрока для мута:');
+            if (!target) return;
+            const duration = prompt('Длительность мута (в минутах):', '60');
+            if (!duration) return;
+            const reason = prompt('Причина мута:', 'Нарушение правил');
+
+            try {
+                await database.ref('mutes').push({
+                    username: target,
+                    duration: parseInt(duration, 10),
+                    reason: reason || '',
                     moderator: username,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    expires: Date.now() + (parseInt(duration, 10) * 60 * 1000)
                 });
-                
-                alert(`Игрок ${username} получил мут на ${duration} минут`);
+                alert(`Игрок ${target} получил мут на ${duration} минут.`);
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при выдаче мута.');
             }
         }
-        
-        function clearChat() {
-            if (confirm('ВНИМАНИЕ! Вы уверены, что хотите очистить весь чат? Это действие нельзя отменить.')) {
-                database.ref('messages').remove();
-                
-                // Логируем действие
-                database.ref('mod_log').push({
+
+        async function clearChat() {
+            if (!isModerator) {
+                alert('У вас нет прав на очистку чата!');
+                return;
+            }
+            if (!confirm('Вы уверены? Это удалит все сообщения (только последние 100 при текущей модели).')) return;
+            try {
+                await database.ref('messages').remove();
+                await database.ref('mod_log').push({
                     action: 'clear_chat',
                     moderator: username,
                     timestamp: Date.now()
                 });
-                
-                alert('Чат очищен');
+                alert('Чат очищен.');
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при очистке чата.');
             }
         }
-        
+
+        // ==================== ЖАЛОБЫ ====================
         function reportMessage(messageId, reportedUser) {
             const reason = prompt(`Причина жалобы на сообщение от ${reportedUser}:`);
-            if (reason) {
-                database.ref('reports').push({
-                    reporter: username,
-                    reportedUser: reportedUser,
-                    messageId: messageId,
-                    reason: reason,
-                    timestamp: Date.now(),
-                    status: 'new'
+            if (!reason) return;
+            database.ref('reports').push({
+                reporter: username,
+                reportedUser: reportedUser,
+                messageId: messageId,
+                reason: reason,
+                timestamp: Date.now(),
+                status: 'new'
+            }).then(() => {
+                alert('Жалоба отправлена модераторам.');
+            }).catch(err => {
+                console.error(err);
+                alert('Ошибка при отправке жалобы.');
+            });
+        }
+
+        async function loadReports() {
+            try {
+                const snapshot = await database.ref('reports').orderByChild('timestamp').limitToLast(50).once('value');
+                const reportsList = document.getElementById('reportsList');
+                reportsList.innerHTML = '';
+                let has = false;
+                snapshot.forEach(child => {
+                    has = true;
+                    const rep = child.val();
+                    const id = child.key;
+                    const item = document.createElement('div');
+                    item.style.padding = '10px';
+                    item.style.margin = '6px 0';
+                    item.style.background = 'rgba(255,255,255,0.02)';
+                    item.style.borderRadius = '8px';
+                    const time = new Date(rep.timestamp).toLocaleString();
+                    item.innerHTML = `
+                        <strong>${escapeHtml(rep.reporter)}</strong> пожаловался на <strong>${escapeHtml(rep.reportedUser)}</strong> — ${time}<br>
+                        <small>Причина: ${escapeHtml(rep.reason)}</small><br>
+                        <div style="margin-top:6px;">
+                            <button class="mod-btn" onclick="handleReport('${id}', 'approve')">✅ Принять</button>
+                            <button class="mod-btn" onclick="handleReport('${id}', 'reject')">❌ Отклонить</button>
+                        </div>
+                    `;
+                    reportsList.appendChild(item);
                 });
-                alert('Жалоба отправлена модераторам. Спасибо!');
+                if (!has) reportsList.innerHTML = '<div style="text-align:center;color:#aaa;padding:10px;">Жалоб пока нет</div>';
+            } catch (err) {
+                console.error(err);
             }
         }
-        
-        function loadReports() {
-            database.ref('reports').orderByChild('timestamp').limitToLast(20).once('value')
-                .then(snapshot => {
-                    const reportsList = document.getElementById('reportsList');
-                    reportsList.innerHTML = '';
-                    
-                    let hasReports = false;
-                    
-                    snapshot.forEach(childSnapshot => {
-                        const report = childSnapshot.val();
-                        hasReports = true;
-                        
-                        const div = document.createElement('div');
-                        div.style.padding = '10px';
-                        div.style.margin = '5px 0';
-                        div.style.background = 'rgba(255,255,255,0.05)';
-                        div.style.borderRadius = '8px';
-                        
-                        const time = new Date(report.timestamp).toLocaleTimeString();
-                        
-                        div.innerHTML = `
-                            <strong>${time}</strong> - ${report.reporter} пожаловался на ${report.reportedUser}<br>
-                            <small>Причина: ${report.reason}</small><br>
-                            <button onclick="handleReport('${childSnapshot.key}', 'approve')" class="mod-btn" style="padding: 3px 8px; font-size: 11px;">✅ Принять</button>
-                            <button onclick="handleReport('${childSnapshot.key}', 'reject')" class="mod-btn" style="padding: 3px 8px; font-size: 11px;">❌ Отклонить</button>
-                        `;
-                        
-                        reportsList.appendChild(div);
-                    });
-                    
-                    if (!hasReports) {
-                        reportsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #aaa;">Жалоб пока нет</div>';
-                    }
-                });
-        }
-        
-        function handleReport(reportId, action) {
+
+        async function handleReport(reportId, action) {
+            if (!isModerator) {
+                alert('У вас нет прав для обработки жалоб.');
+                return;
+            }
             if (action === 'approve') {
-                if (confirm('Принять жалобу и удалить сообщение?')) {
-                    database.ref('reports/' + reportId).update({ status: 'approved' });
-                    alert('Жалоба принята');
-                    loadReports();
-                }
+                if (!confirm('Принять жалобу? (вы можете удалить сообщение вручную после подтверждения)')) return;
+                await database.ref('reports/' + reportId).update({ status: 'approved', handledBy: username, handledAt: Date.now() });
+                alert('Жалоба принята.');
+                loadReports();
             } else {
-                database.ref('reports/' + reportId).update({ status: 'rejected' });
-                alert('Жалоба отклонена');
+                await database.ref('reports/' + reportId).update({ status: 'rejected', handledBy: username, handledAt: Date.now() });
+                alert('Жалоба отклонена.');
                 loadReports();
             }
         }
-        
-        function reportProblem() {
-            const problem = prompt('Опишите проблему или нарушение в чате:');
-            if (problem) {
-                database.ref('problems').push({
-                    reporter: username,
-                    problem: problem,
+
+        // ==================== АДМИН-ФУНКЦИИ ====================
+        async function promoteToModerator() {
+            if (!isSuperAdmin) {
+                alert('Только суперадмин может назначать модераторов!');
+                return;
+            }
+            const targetUserId = document.getElementById('userToPromote').value.trim();
+            if (!targetUserId) {
+                alert('Введите ID пользователя.');
+                return;
+            }
+            try {
+                await database.ref('moderators/' + targetUserId).set({
+                    promotedBy: username,
+                    promotedAt: Date.now(),
+                    userId: targetUserId
+                });
+                await database.ref('admin_log').push({
+                    action: 'promote_moderator',
+                    admin: username,
+                    targetUserId,
                     timestamp: Date.now()
                 });
-                alert('Спасибо за сообщение! Администрация проверит проблему.');
+                alert(`Пользователь ${targetUserId} назначен модератором.`);
+                document.getElementById('userToPromote').value = '';
+                loadModeratorsList();
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при назначении модератора.');
             }
         }
-        
-        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        function formatMessageText(text) {
-            text = text.replace(/\n/g, '<br>');
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            text = text.replace(urlRegex, '<a href="$1" target="_blank" style="color: #6ab7ff;">$1</a>');
-            return text;
-        }
-        
-        async function getUserRank(userId) {
+
+        async function demoteModerator() {
+            if (!isSuperAdmin) {
+                alert('Только суперадмин может снимать права модератора!');
+                return;
+            }
+            const targetUserId = document.getElementById('userToPromote').value.trim();
+            if (!targetUserId) {
+                alert('Введите ID пользователя.');
+                return;
+            }
             try {
-                const snapshot = await database.ref('user_stats/' + userId).once('value');
-                const stats = snapshot.val() || { messages: 0 };
-                
-                for (const [key, rank] of Object.entries(ranks)) {
-                    if (stats.messages >= rank.minMessages) {
-                        return key;
-                    }
+                const snap = await database.ref('moderators/' + targetUserId).once('value');
+                if (!snap.exists()) {
+                    alert('Этот пользователь не является модератором.');
+                    return;
                 }
-                return 'newbie';
-            } catch (error) {
-                return 'newbie';
-            }
-        }
-        
-        function getRankByMessages(count) {
-            for (const [key, rank] of Object.entries(ranks)) {
-                if (count >= rank.minMessages) {
-                    return rank;
-                }
-            }
-            return ranks.newbie;
-        }
-        
-        function sendSystemMessage() {
-            const notices = [
-                "💎 Не забывайте про правила сервера!",
-                "🎮 Приятной игры на JojoLand!",
-                "⚡ Чат работает в реальном времени",
-                "🎁 Заходите ежедневно за наградами!",
-                "🛡️ Вопросы к админам? Пишите здесь!",
-                "🚫 За нарушения в чате - бан!"
-            ];
-            
-            if (Math.random() > 0.7) {
-                const randomNotice = notices[Math.floor(Math.random() * notices.length)];
-                database.ref('messages').push({
-                    text: randomNotice,
-                    user: "Система",
-                    userId: "system",
-                    timestamp: Date.now(),
-                    server: 'JojoLand'
+                await database.ref('moderators/' + targetUserId).remove();
+                await database.ref('admin_log').push({
+                    action: 'demote_moderator',
+                    admin: username,
+                    targetUserId,
+                    timestamp: Date.now()
                 });
+                alert(`Пользователь ${targetUserId} лишен прав модератора.`);
+                document.getElementById('userToPromote').value = '';
+                loadModeratorsList();
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при снятии прав модератора.');
             }
         }
+
+        async function loadModeratorsList() {
+            try {
+                const snap = await database.ref('moderators').once('value');
+                const listDiv = document.getElementById('moderatorsList');
+                listDiv.innerHTML = '';
+                if (!snap.exists()) {
+                    listDiv.innerHTML = '<div style="color:#aaa">Модераторов нет</div>';
+                    return;
+                }
+                snap.forEach(child => {
+                    const mod = child.val();
+                    const modId = child.key;
+                    const el = document.createElement('div');
+                    el.style.padding = '8px';
+                    el.style.margin = '6px 0';
+                    el.style.background = 'rgba(255,255,255,0.02)';
+                    el.style.borderRadius = '8px';
+                    el.innerHTML = `<strong>${escapeHtml(modId)}</strong><div style="font-size:12px;color:#aaa">
+                        Назначен: ${mod.promotedAt ? new Date(mod.promotedAt).toLocaleString() : 'неизвестно'}<br>
+                        Назначил: ${escapeHtml(mod.promotedBy || 'система')}
+                    </div>`;
+                    listDiv.appendChild(el);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function clearAllChat() {
+            if (!isSuperAdmin) {
+                alert('Только суперадмин может очищать весь чат!');
+                return;
+            }
+            if (!confirm('ВНИМАНИЕ! Удалить все сообщения в базе данных?')) return;
+            try {
+                await database.ref('messages').remove();
+                await database.ref('admin_log').push({
+                    action: 'clear_all_chat',
+                    admin: username,
+                    timestamp: Date.now()
+                });
+                alert('Весь чат удалён.');
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка при очистке чата.');
+            }
+        }
+
+        function exportChat() {
+            if (!isSuperAdmin) {
+                alert('Только суперадмин может экспортировать чат!');
+                return;
+            }
+            database.ref('messages').once('value').then(snapshot => {
+                const messages = [];
+                snapshot.forEach(child => {
+                    messages.push(child.val());
+                });
+                const dataStr = JSON.stringify(messages, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                const fileName = `jojoland_chat_export_${Date.now()}.json`;
+                const link = document.createElement('a');
+                link.setAttribute('href', dataUri);
+                link.setAttribute('download', fileName);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                alert('Чат экспортирован в JSON.');
+            }).catch(err => {
+                console.error(err);
+                alert('Ошибка при экспорте чата.');
+            });
+        }
+
+        function showSystemInfo() {
+            const info = `
+Ваш User ID: ${userId}
+Ваш ник: ${username}
+Статус: ${isSuperAdmin ? 'СУПЕРАДМИН' : isModerator ? 'Модератор' : 'Пользователь'}
+Онлайн: ${document.getElementById('onlineCount').textContent}
+            `;
+            alert(info);
+        }
+
+        // ==================== Утилиты для интерфейса ====================
+        // Кнопки показа/скрытия админ/мод панелей
+        function toggleModPanel() {
+            const panel = document.getElementById('modPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            if (panel.style.display === 'block') loadReports();
+        }
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            if (panel.style.display === 'block') loadModeratorsList();
+        }
+
+        // ==================== Автообновления и помощь ====================
+        // Обновлять список модов и жалоб при изменениях в БД (по возможности)
+        database.ref('moderators').on('value', () => {
+            if (document.getElementById('adminPanel').style.display === 'block') {
+                loadModeratorsList();
+            }
+        });
+        database.ref('reports').on('value', () => {
+            if (document.getElementById('modPanel').style.display === 'block') {
+                loadReports();
+            }
+        });
+
+        // ==================== Конец скрипта ====================
     </script>
 </body>
 </html>
