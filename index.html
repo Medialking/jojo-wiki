@@ -2,75 +2,147 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>JojoLand — Главная</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JojoLand — Официальный сайт</title>
 
     <style>
         body {
             margin: 0;
-            font-family: 'Trebuchet MS', sans-serif;
-            background: linear-gradient(135deg, #2a0040, #5c0080, #2a0040);
-            background-size: cover;
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #2b0037, #4d0061, #2b0037);
+            background-size: 400% 400%;
+            animation: bgMove 12s infinite alternate;
             color: white;
         }
 
-        /* Логотип */
-        .logo {
-            width: 180px;
-            display: block;
-            margin: 30px auto 10px auto;
-            filter: drop-shadow(0 0 10px #ff00ff);
+        @keyframes bgMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 100% 100%; }
         }
 
         header {
             text-align: center;
-            padding: 10px 20px;
-            font-size: 35px;
-            font-weight: bold;
+            padding: 40px 20px;
+        }
+
+        header h1 {
+            font-size: 38px;
+            margin: 0;
+            color: #ffb8ff;
             text-shadow: 0 0 15px #ff00ff;
         }
 
-        /* Меню */
-        .buttons {
-            text-align: center;
-            margin-top: 30px;
+        /* меню кнопок */
+        .menu {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 20px;
         }
 
-        .buttons a {
-            display: inline-block;
-            padding: 14px 35px;
-            margin: 12px;
-            background: rgba(150, 0, 190, 0.7);
-            color: white;
-            border-radius: 15px;
+        .menu a {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #ffe6ff;
             text-decoration: none;
+            border-radius: 14px;
             font-weight: bold;
-            font-size: 20px;
-            box-shadow: 0 0 18px #ff00ff;
-            transition: 0.25s;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.3);
         }
 
-        /* Лёгкий ховер (не нагружает) */
-        .buttons a:hover {
+        .menu a:hover {
             transform: scale(1.08);
-            background: rgba(200, 0, 255, 0.85);
-            box-shadow: 0 0 30px #ff55ff;
+            box-shadow: 0 0 18px #ff00ff;
         }
 
+        /* инфо блок */
+        .info-card {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.35);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            animation: fadeIn 1.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .info-card h2 {
+            color: #ff9aff;
+            font-size: 32px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .info-card p {
+            color: #e5c8ff;
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+
+        .info-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-btn {
+            padding: 12px 22px;
+            background: linear-gradient(135deg, #ff00ff, #7e00ff);
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+            transition: 0.3s;
+        }
+
+        .info-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        /* анимация */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Логотип -->
-    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/JoJo%27s_Bizarre_Adventure_logo.png/640px-JoJo%27s_Bizarre_Adventure_logo.png">
+<header>
+    <h1>💠 JojoLand — Официальный сайт</h1>
 
-    <header>🌌 JojoLand — Официальный сайт</header>
-
-    <div class="buttons">
-        <a href="rules.html">📜 Правила</a>
-        <a href="tgrules.html">📘 Правила ТГК</a>
-        <a href="roles.html">💠 Должности</a>
+    <div class="menu">
+        <a href="#">📜 Правила</a>
+        <a href="#">📘 Правила ТГК</a>
+        <a href="#">💼 Должности</a>
     </div>
+</header>
+
+<!-- Информационная панель -->
+<div class="info-card">
+    <h2>О сервере JojoLand</h2>
+    <p>
+        Добро пожаловать на официальный сайт сервера <b>JojoLand</b>!  
+        Здесь вы найдёте правила, важные ссылки и информацию о проекте.
+    </p>
+
+    <div class="info-links">
+        <a href="#" class="info-btn">📌 TGK чат</a>
+        <a href="#" class="info-btn">💬 Telegram группа</a>
+        <a href="#" class="info-btn">💎 Донат сайт</a>
+        <a href="#" class="info-btn">📘 Wiki / Гайды</a>
+    </div>
+</div>
 
 </body>
 </html>
