@@ -745,7 +745,7 @@
         
         // ID суперадминов (здесь твой ID)
         const SUPER_ADMINS = [
-            '1733590800000',  // ← ВСТАВЬ СВОЙ USER ID
+            'w51qspQCTJReZUvbOyUmII0wSvG3',  // ← ВСТАВЬ СВОЙ USER ID
             'admin_user_id_2'      // ← Другие админы
         ];
         
@@ -754,6 +754,7 @@
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     currentAdmin = user;
+                    alert("w51qspQCTJReZUvbOyUmII0wSvG3" + user.uid);
                     document.getElementById('adminName').textContent = user.displayName || 'Администратор';
                     
                     // Проверяем права
