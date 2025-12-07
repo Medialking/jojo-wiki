@@ -1,5 +1,39 @@
-body {
-    background: url('https://github.com/Medialking/jojo-wiki/blob/main/fon.png') no-repeat center center fixed;
-    background-size: cover;
-    background-color: #1a0025;
+/* ЛОГО В ЛЕВОМ ВЕРХНЕМ УГЛУ */
+.corner-logo {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.corner-logo img {
+    width: 80px;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+}
+
+/* КНОПКА ПОДДЕРЖКИ */
+.support-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #ff00ff, #9b00ff);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    transition: 0.3s;
+    z-index: 1000;
+}
+
+.support-button:hover {
+    transform: scale(1.12);
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
 }
