@@ -11,9 +11,6 @@
 </head>
 <body>
 
-<!-- ❄ СНЕЖИНКИ / ЧАСТИЦЫ -->
-<canvas id="snow"></canvas>
-
 <!-- АНИМАЦИЯ ЗАГРУЗКИ -->
 <div id="loader">
     <div class="spinner"></div>
@@ -46,6 +43,7 @@
     </div>
 </section>
 
+<!-- КНОПКА ТЕХПОДДЕРЖКИ -->
 <a class="chat-btn" href="https://t.me/jojolandpe_support_bot" target="_blank">💬</a>
 
 <footer>
@@ -61,54 +59,6 @@ window.onload = function() {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
     }, 400);
-};
-</script>
-
-<!-- ❄ СКРИПТ СНЕЖИНОК -->
-<script>
-const canvas = document.getElementById("snow");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let flakes = [];
-
-function createFlakes() {
-    for (let i = 0; i < 80; i++) {
-        flakes.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            r: Math.random() * 3 + 1,
-            d: Math.random() + 1
-        });
-    }
-}
-
-function drawFlakes() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.beginPath();
-
-    for (let f of flakes) ctx.moveTo(f.x, f.y), ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-
-    ctx.fill();
-    moveFlakes();
-}
-
-function moveFlakes() {
-    for (let f of flakes) {
-        f.y += Math.pow(f.d, 2) + 1;
-        if (f.y > canvas.height) f.y = -10;
-    }
-}
-
-setInterval(drawFlakes, 33);
-createFlakes();
-
-window.onresize = () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 };
 </script>
 
