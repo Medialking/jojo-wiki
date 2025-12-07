@@ -9,15 +9,8 @@
         body {
             margin: 0;
             font-family: "Segoe UI", sans-serif;
-            background: linear-gradient(135deg, #2b0037, #4d0061, #2b0037);
-            background-size: 400% 400%;
-            animation: bgMove 12s infinite alternate;
+            background: linear-gradient(135deg, #2b0037, #4d0061);
             color: white;
-        }
-
-        @keyframes bgMove {
-            0% { background-position: 0 0; }
-            100% { background-position: 100% 100%; }
         }
 
         header {
@@ -49,13 +42,13 @@
             border-radius: 14px;
             font-weight: bold;
             backdrop-filter: blur(5px);
-            transition: 0.3s;
-            box-shadow: 0 0 12px rgba(255, 0, 255, 0.3);
+            transition: 0.25s;
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.25);
         }
 
         .menu a:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 18px #ff00ff;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #ff00ff;
         }
 
         /* инфо блок */
@@ -63,13 +56,12 @@
             max-width: 900px;
             margin: 50px auto;
             padding: 30px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 18px;
-            box-shadow: 0 0 25px rgba(255, 0, 255, 0.35);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.25);
             backdrop-filter: blur(10px);
             text-align: center;
-            animation: fadeIn 1.5s ease;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .info-card h2 {
@@ -99,19 +91,13 @@
             color: white;
             font-weight: bold;
             text-decoration: none;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
-            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.35);
+            transition: 0.25s;
         }
 
         .info-btn:hover {
-            transform: scale(1.08);
+            transform: scale(1.05);
             box-shadow: 0 0 20px #ff00ff;
-        }
-
-        /* анимация */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
