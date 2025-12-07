@@ -3,324 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чат сервера JojoLand</title>
+    <title>Чат JojoLand</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a0033, #330066);
             color: white;
-            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
             padding: 20px;
         }
         
-        .chat-container {
+        .chat-box {
             max-width: 800px;
-            margin: 0 auto;
-            background: rgba(0,0,0,0.5);
+            margin: auto;
+            background: rgba(0,0,0,0.6);
             border-radius: 20px;
             padding: 25px;
-            box-shadow: 0 0 30px rgba(255,0,255,0.3);
             border: 2px solid #ff00ff;
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
+            box-shadow: 0 0 30px rgba(255,0,255,0.3);
         }
         
-        .chat-header {
+        .online-counter {
+            background: rgba(0,255,0,0.2);
+            padding: 10px;
+            border-radius: 10px;
             text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(255,0,255,0.3);
             margin-bottom: 20px;
+            border: 1px solid #00ff00;
         }
         
-        .chat-header h1 {
-            color: #ffb3ff;
-            text-shadow: 0 0 10px #ff00ff;
-            margin-bottom: 5px;
-        }
-        
-        .chat-header p {
-            color: #ccccff;
-            font-size: 14px;
-        }
-        
-        .chat-messages {
-            flex: 1;
+        #messages {
+            height: 500px;
             overflow-y: auto;
             padding: 15px;
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
             margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
         }
         
         .message {
-            padding: 12px 15px;
+            margin: 10px 0;
+            padding: 10px 15px;
             border-radius: 15px;
-            max-width: 70%;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.3s;
         }
         
         .message.user {
             background: linear-gradient(90deg, #9900cc, #cc00ff);
-            align-self: flex-end;
-            border-bottom-right-radius: 5px;
+            margin-left: 20%;
         }
         
-        .message.bot {
+        .message.other {
             background: linear-gradient(90deg, #003366, #0066cc);
-            align-self: flex-start;
-            border-bottom-left-radius: 5px;
+            margin-right: 20%;
         }
         
         .message.system {
             background: rgba(255,255,255,0.1);
-            align-self: center;
             text-align: center;
             font-style: italic;
-            font-size: 14px;
-            max-width: 90%;
         }
         
-        .message .sender {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .message .time {
-            font-size: 11px;
-            opacity: 0.6;
-            text-align: right;
-            margin-top: 5px;
-        }
-        
-        .chat-input {
+        .input-area {
             display: flex;
             gap: 10px;
         }
         
-        #messageInput {
-            flex: 1;
+        input, button {
             padding: 15px;
-            border: none;
             border-radius: 25px;
-            background: rgba(255,255,255,0.1);
-            color: white;
+            border: none;
             font-size: 16px;
-            outline: none;
         }
         
-        #messageInput::placeholder {
-            color: rgba(255,255,255,0.5);
+        #messageInput {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            color: white;
         }
         
         #sendButton {
-            padding: 0 30px;
-            border: none;
-            border-radius: 25px;
             background: linear-gradient(90deg, #ff00cc, #ff00ff);
             color: white;
             font-weight: bold;
-            font-size: 16px;
             cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        #sendButton:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #ff00ff;
         }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Полоса прокрутки */
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #ff00ff, #cc00ff);
-            border-radius: 10px;
-        }
-        
-        /* Адаптация для мобильных */
-        @media (max-width: 768px) {
-            .chat-container {
-                height: 85vh;
-                padding: 15px;
-            }
-            
-            .message {
-                max-width: 85%;
-            }
-            
-            .chat-input {
-                flex-direction: column;
-            }
-            
-            #sendButton {
-                padding: 15px;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>💬 Чат сервера JojoLand</h1>
-            <p>Общайся с игроками, задавай вопросы админам</p>
+    <div class="chat-box">
+        <div class="online-counter">
+            🟢 Онлайн в чате: <span id="onlineCount">1</span> игроков
         </div>
         
-        <div class="chat-messages" id="chatMessages">
-            <!-- Сообщения будут здесь -->
+        <div id="messages">
             <div class="message system">
                 Добро пожаловать в чат сервера JojoLand! 🎮
             </div>
-            <div class="message bot">
-                <div class="sender">Администратор</div>
-                Привет! Задавайте вопросы по игре
-                <div class="time">14:30</div>
-            </div>
         </div>
         
-        <div class="chat-input">
-            <input type="text" 
-                   id="messageInput" 
-                   placeholder="Напишите сообщение..."
-                   maxlength="200">
-            <button id="sendButton">Отправить</button>
+        <div class="input-area">
+            <input type="text" id="username" placeholder="Твой ник" value="Гость_${Math.floor(Math.random()*1000)}">
+            <input type="text" id="messageInput" placeholder="Сообщение...">
+            <button id="sendButton" onclick="sendMessage()">📨</button>
         </div>
     </div>
 
     <script>
-        // Эмулятор чата
-        class ChatSimulator {
-            constructor() {
-                this.messages = JSON.parse(localStorage.getItem('jojoland_chat')) || [
-                    { text: "Привет! Задавайте вопросы по игре", sender: "Администратор", type: "bot", time: "14:30" },
-                    { text: "Когда будет ивент PvP?", sender: "Игрок123", type: "user", time: "14:35" },
-                    { text: "В субботу в 20:00", sender: "Администратор", type: "bot", time: "14:36" }
-                ];
-                this.botResponses = [
-                    "Отличный вопрос!",
-                    "Спасибо за обращение!",
-                    "Админ скоро ответит",
-                    "Проверим информацию...",
-                    "Это хорошая идея!",
-                    "Записал в список предложений",
-                    "Спасибо за участие в чате! 🎮"
-                ];
-                this.admins = ["Администратор", "Модератор", "Helper"];
-                this.init();
-            }
+        // 🔥 ЗАМЕНИ ЭТИ ДАННЫЕ НА СВОИ ОТ FIREBASE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Инициализация
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        // Отправка сообщения
+        function sendMessage() {
+            const user = document.getElementById('username').value;
+            const text = document.getElementById('messageInput').value.trim();
             
-            init() {
-                this.renderMessages();
-                this.setupEventListeners();
-                this.startBotActivity();
-            }
+            if (!text) return;
             
-            renderMessages() {
-                const container = document.getElementById('chatMessages');
-                container.innerHTML = '<div class="message system">Добро пожаловать в чат сервера JojoLand! 🎮</div>';
-                
-                this.messages.forEach(msg => {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${msg.type}`;
-                    messageDiv.innerHTML = `
-                        ${msg.sender ? `<div class="sender">${msg.sender}</div>` : ''}
-                        ${msg.text}
-                        <div class="time">${msg.time}</div>
-                    `;
-                    container.appendChild(messageDiv);
-                });
-                
-                container.scrollTop = container.scrollHeight;
-            }
+            db.ref('messages').push({
+                user: user,
+                text: text,
+                time: Date.now(),
+                server: 'JojoLand'
+            });
             
-            addMessage(text, sender = "Вы", type = "user") {
-                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const message = { text, sender, type, time };
-                
-                this.messages.push(message);
-                localStorage.setItem('jojoland_chat', JSON.stringify(this.messages));
-                
-                this.renderMessages();
-                
-                // Ответ бота через 1-3 секунды
-                if (type === 'user') {
-                    setTimeout(() => this.botResponse(), 1000 + Math.random() * 2000);
-                }
-            }
-            
-            botResponse() {
-                const randomResponse = this.botResponses[Math.floor(Math.random() * this.botResponses.length)];
-                const botName = this.admins[Math.floor(Math.random() * this.admins.length)];
-                this.addMessage(randomResponse, botName, "bot");
-            }
-            
-            setupEventListeners() {
-                const input = document.getElementById('messageInput');
-                const button = document.getElementById('sendButton');
-                
-                const sendMessage = () => {
-                    const text = input.value.trim();
-                    if (text) {
-                        this.addMessage(text, "Вы", "user");
-                        input.value = '';
-                    }
-                };
-                
-                button.addEventListener('click', sendMessage);
-                
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                });
-            }
-            
-            startBotActivity() {
-                // Авто-сообщения каждые 2-5 минут
-                setInterval(() => {
-                    if (Math.random() > 0.7) { // 30% шанс
-                        const activities = [
-                            "🎯 Не забывайте про правила сервера!",
-                            "⚡ Ивент PvP начнется через 1 час",
-                            "💎 Новые привилегии в магазине!",
-                            "🎁 Каждый день заходи за ежедневной наградой!",
-                            "🛡️ Вопросы к админам? Пишите здесь!"
-                        ];
-                        const randomMsg = activities[Math.floor(Math.random() * activities.length)];
-                        const randomAdmin = this.admins[Math.floor(Math.random() * this.admins.length)];
-                        this.addMessage(randomMsg, randomAdmin, "bot");
-                    }
-                }, 120000); // 2 минуты
-            }
+            document.getElementById('messageInput').value = '';
         }
         
-        // Запуск чата
-        document.addEventListener('DOMContentLoaded', () => {
-            new ChatSimulator();
+        // Получение сообщений
+        db.ref('messages').limitToLast(50).on('child_added', (snapshot) => {
+            const msg = snapshot.val();
+            const isCurrentUser = msg.user === document.getElementById('username').value;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isCurrentUser ? 'user' : 'other'}`;
+            msgDiv.innerHTML = `
+                <strong>${msg.user}</strong>: ${msg.text}
+                <small>${new Date(msg.time).toLocaleTimeString()}</small>
+            `;
+            
+            document.getElementById('messages').appendChild(msgDiv);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        });
+        
+        // Счетчик онлайн
+        const userRef = db.ref('online/' + Math.random().toString(36).substr(2, 9));
+        userRef.set({
+            name: document.getElementById('username').value,
+            lastSeen: Date.now()
+        });
+        
+        userRef.onDisconnect().remove();
+        
+        db.ref('online').on('value', (snapshot) => {
+            const count = snapshot.numChildren();
+            document.getElementById('onlineCount').textContent = count;
+        });
+        
+        // Enter для отправки
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
         });
     </script>
 </body>
