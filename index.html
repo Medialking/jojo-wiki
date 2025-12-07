@@ -9,45 +9,93 @@
             margin: 0;
             font-family: 'Trebuchet MS', sans-serif;
             background: linear-gradient(135deg, #200030, #4a0066, #200030);
-            background-size: cover;
+            background-size: 300% 300%;
+            animation: gradientMove 12s ease infinite;
             color: white;
+        }
+
+        /* Анимация заднего фона */
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Логотип */
+        .logo {
+            width: 180px;
+            display: block;
+            margin: 30px auto 10px auto;
+            filter: drop-shadow(0 0 15px #ff00ff);
+            animation: pulse 2.5s infinite ease-in-out;
+        }
+
+        /* Плавная пульсация */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.07); }
+            100% { transform: scale(1); }
         }
 
         header {
             text-align: center;
-            padding: 40px 20px;
-            font-size: 32px;
+            padding: 10px 20px;
+            font-size: 35px;
             font-weight: bold;
-            text-shadow: 0 0 10px #c800ff;
+            text-shadow: 0 0 15px #ff00ff;
+            animation: glow 3s infinite linear;
         }
 
+        /* Анимация сияния текста */
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #ff00ff; }
+            50% { text-shadow: 0 0 30px #ff40ff; }
+            100% { text-shadow: 0 0 10px #ff00ff; }
+        }
+
+        /* Меню */
         .buttons {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         .buttons a {
             display: inline-block;
-            padding: 12px 25px;
-            margin: 10px;
-            background: #6a0080;
+            padding: 14px 35px;
+            margin: 12px;
+            background: rgba(150, 0, 190, 0.7);
             color: white;
-            border-radius: 10px;
+            border-radius: 15px;
             text-decoration: none;
             font-weight: bold;
-            box-shadow: 0 0 12px #c300ff;
-            transition: 0.25s;
+            font-size: 20px;
+            box-shadow: 0 0 20px #ff00ff;
+            backdrop-filter: blur(4px);
+            transition: 0.3s;
+            animation: menuGlow 4s infinite ease-in-out;
         }
 
+        /* Меню светится волнами */
+        @keyframes menuGlow {
+            0% { box-shadow: 0 0 15px #ff00ff; }
+            50% { box-shadow: 0 0 28px #ff55ff; }
+            100% { box-shadow: 0 0 15px #ff00ff; }
+        }
+
+        /* Ховер эффект */
         .buttons a:hover {
-            background: #8e00c5;
-            box-shadow: 0 0 25px #ff00ff;
-            transform: scale(1.05);
+            transform: scale(1.12);
+            background: rgba(200, 0, 255, 0.85);
+            box-shadow: 0 0 35px #ff66ff;
         }
     </style>
 </head>
 
 <body>
+
+    <!-- Логотип -->
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/JoJo%27s_Bizarre_Adventure_logo.png/640px-JoJo%27s_Bizarre_Adventure_logo.png">
+
     <header>🌌 JojoLand — Официальный сайт</header>
 
     <div class="buttons">
@@ -55,5 +103,6 @@
         <a href="tgrules.html">📘 Правила ТГК</a>
         <a href="roles.html">💠 Должности</a>
     </div>
+
 </body>
 </html>
