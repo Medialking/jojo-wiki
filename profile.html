@@ -113,10 +113,6 @@
             border-left-color: #ff9900;
         }
         
-        .stat-card:nth-child(4) {
-            border-left-color: #ff0066;
-        }
-        
         .stat-icon {
             font-size: 24px;
             margin-bottom: 10px;
@@ -331,19 +327,13 @@
             </div>
         </div>
 
-        <!-- СТАТИСТИКА -->
+        <!-- СТАТИСТИКА (ТЕПЕРЬ 3 КАРТОЧКИ) -->
         <h3 class="section-title">📊 Статистика</h3>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">📅</div>
                 <div class="stat-title">Дата регистрации</div>
                 <div class="stat-value" id="register-date">--.--.----</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">🔢</div>
-                <div class="stat-title">Всего посещений</div>
-                <div class="stat-value" id="visits-count">0</div>
             </div>
             
             <div class="stat-card">
@@ -432,20 +422,39 @@ function createParticles() {
 
 // ФОРМАТИРОВАНИЕ ДАТЫ
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+    if (!dateString) return '--.--.----';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '--.--.----';
+        
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    } catch (error) {
+        console.error('Ошибка форматирования даты:', error);
+        return '--.--.----';
+    }
 }
 
 function formatTime(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    if (!dateString) return '--:--';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '--:--';
+        
+        return date.toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    } catch (error) {
+        console.error('Ошибка форматирования времени:', error);
+        return '--:--';
+    }
 }
 
 // ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
@@ -455,7 +464,10 @@ async function loadUserProfile() {
     
     if (!nickname || !userId) {
         // Если нет данных, перенаправляем на главную
-        window.location.href = 'index.html';
+        showError('Сначала нужно ввести ник на главной странице');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 3000);
         return;
     }
     
@@ -465,7 +477,8 @@ async function loadUserProfile() {
         
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            displayUserData(userData, userId);
+            console.log('Данные пользователя:', userData); // Для отладки
+            displayUserData(userData, userId, nickname);
             
             // Обновляем последний визит
             await updateLastVisit(userId, userData);
@@ -473,30 +486,35 @@ async function loadUserProfile() {
             // Если пользователь не найден в БД
             document.getElementById('user-nickname').textContent = nickname;
             document.getElementById('user-id').textContent = `ID: ${userId}`;
-            showError('Данные пользователя не найдены в базе');
+            showError('Данные пользователя не найдены в базе. Создайте новый аккаунт на главной странице.');
         }
     } catch (error) {
         console.error('Ошибка загрузки профиля:', error);
-        showError('Ошибка загрузки профиля');
+        showError('Ошибка загрузки профиля: ' + error.message);
     }
 }
 
 // ОБНОВЛЕНИЕ ПОСЛЕДНЕГО ВИЗИТА
 async function updateLastVisit(userId, userData) {
     try {
+        const currentTime = new Date().toISOString();
+        const visitsCount = (userData.visitsCount || 0) + 1;
+        
         await database.ref('users/' + userId).update({
-            lastVisit: new Date().toISOString(),
-            visitsCount: (userData.visitsCount || 1) + 1
+            lastVisit: currentTime,
+            visitsCount: visitsCount
         });
+        
+        console.log('Визит обновлен:', { lastVisit: currentTime, visitsCount }); // Для отладки
     } catch (error) {
         console.error('Ошибка обновления визита:', error);
     }
 }
 
 // ОТОБРАЖЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
-function displayUserData(userData, userId) {
+function displayUserData(userData, userId, nickname) {
     // Основная информация
-    document.getElementById('user-nickname').textContent = userData.nickname;
+    document.getElementById('user-nickname').textContent = nickname || userData.nickname || 'Игрок';
     document.getElementById('user-id').textContent = `ID: ${userId}`;
     
     // Аватар (если есть)
@@ -504,34 +522,40 @@ function displayUserData(userData, userId) {
         document.getElementById('user-avatar').textContent = userData.avatar;
     }
     
-    // Статистика
-    document.getElementById('register-date').textContent = formatDate(userData.createdAt);
-    document.getElementById('visits-count').textContent = userData.visitsCount || 1;
-    document.getElementById('last-visit').textContent = formatTime(userData.lastVisit || userData.createdAt);
+    // Статистика - ИСПРАВЛЕНО!
+    const createdAt = userData.createdAt || userData.createdat || userData.registeredAt;
+    const lastVisit = userData.lastVisit || userData.lastvisit || createdAt;
     
-    // Уровень активности
-    const visits = userData.visitsCount || 1;
+    document.getElementById('register-date').textContent = formatDate(createdAt);
+    document.getElementById('last-visit').textContent = formatTime(lastVisit);
+    
+    // Уровень активности (на основе visitsCount)
+    const visits = userData.visitsCount || userData.visitscount || 1;
     let activityLevel = 'Новичок';
-    if (visits > 10) activityLevel = 'Активный';
+    if (visits > 5) activityLevel = 'Активный';
+    if (visits > 15) activityLevel = 'Опытный';
     if (visits > 30) activityLevel = 'Ветеран';
     if (visits > 50) activityLevel = 'Легенда';
     document.getElementById('activity-level').textContent = activityLevel;
     
     // Новогодние очки
-    const points = userData.holidayPoints?.current || 0;
+    const points = userData.holidayPoints?.current || 
+                   userData.holidaypoints?.current || 
+                   userData.points || 
+                   0;
     document.getElementById('holiday-points').textContent = points;
     
     // Бейджи
-    displayBadges(userData);
+    displayBadges(userData, visits);
     
     // Достижения
-    displayAchievements(userData);
+    displayAchievements(userData, visits, points);
 }
 
 // ОТОБРАЖЕНИЕ БЕЙДЖЕЙ
-function displayBadges(userData) {
+function displayBadges(userData, visits) {
     const badgesContainer = document.getElementById('user-badges');
-    const visits = userData.visitsCount || 1;
+    const points = userData.holidayPoints?.current || userData.points || 0;
     
     const badges = [];
     
@@ -539,16 +563,20 @@ function displayBadges(userData) {
         badges.push({ icon: '🎯', text: 'Первый визит' });
     }
     
-    if (visits >= 5) {
-        badges.push({ icon: '🔥', text: '5 посещений' });
+    if (visits >= 3) {
+        badges.push({ icon: '🔥', text: 'Активный' });
     }
     
     if (visits >= 10) {
-        badges.push({ icon: '⭐', text: '10 посещений' });
+        badges.push({ icon: '⭐', text: 'Постоянный' });
     }
     
-    if (userData.holidayPoints?.current > 0) {
+    if (points > 0) {
         badges.push({ icon: '🎄', text: 'Новый год' });
+    }
+    
+    if (points >= 50) {
+        badges.push({ icon: '🏆', text: 'Собиратель' });
     }
     
     if (badges.length === 0) {
@@ -564,24 +592,70 @@ function displayBadges(userData) {
 }
 
 // ОТОБРАЖЕНИЕ ДОСТИЖЕНИЙ
-function displayAchievements(userData) {
+function displayAchievements(userData, visits, points) {
     const achievementsContainer = document.getElementById('achievements-container');
-    const visits = userData.visitsCount || 1;
-    const points = userData.holidayPoints?.current || 0;
     
     const achievements = [
-        { id: 'first_visit', icon: '🎯', name: 'Первый раз', desc: 'Посетить сайт впервые', earned: visits >= 1 },
-        { id: 'regular', icon: '📅', name: 'Постоянный гость', desc: '5 посещений сайта', earned: visits >= 5 },
-        { id: 'veteran', icon: '⭐', name: 'Ветеран', desc: '10 посещений сайта', earned: visits >= 10 },
-        { id: 'new_year_start', icon: '🎄', name: 'Новогодний дух', desc: 'Начать новогодний ивент', earned: points >= 1 },
-        { id: 'collector', icon: '🏆', name: 'Коллекционер', desc: '50 новогодних очков', earned: points >= 50 },
-        { id: 'wiki_reader', icon: '📘', name: 'Читатель', desc: 'Посетить Wiki', earned: false },
-        { id: 'social', icon: '💬', name: 'Общительный', desc: 'Вступить в TG', earned: false },
-        { id: 'donator', icon: '💎', name: 'Поддержка', desc: 'Посетить донат сайт', earned: false }
+        { 
+            id: 'first_visit', 
+            icon: '🎯', 
+            name: 'Первый раз', 
+            desc: 'Посетить сайт впервые', 
+            earned: visits >= 1 
+        },
+        { 
+            id: 'regular', 
+            icon: '📅', 
+            name: 'Постоянный гость', 
+            desc: '3 посещения сайта', 
+            earned: visits >= 3 
+        },
+        { 
+            id: 'veteran', 
+            icon: '⭐', 
+            name: 'Ветеран', 
+            desc: '10 посещений сайта', 
+            earned: visits >= 10 
+        },
+        { 
+            id: 'legend', 
+            icon: '👑', 
+            name: 'Легенда', 
+            desc: '30 посещений сайта', 
+            earned: visits >= 30 
+        },
+        { 
+            id: 'new_year_start', 
+            icon: '🎄', 
+            name: 'Новогодний дух', 
+            desc: 'Получить новогодние очки', 
+            earned: points >= 1 
+        },
+        { 
+            id: 'collector', 
+            icon: '🏆', 
+            name: 'Коллекционер', 
+            desc: '50 новогодних очков', 
+            earned: points >= 50 
+        },
+        { 
+            id: 'rich', 
+            icon: '💰', 
+            name: 'Богатый', 
+            desc: '100 новогодних очков', 
+            earned: points >= 100 
+        },
+        { 
+            id: 'explorer', 
+            icon: '🧭', 
+            name: 'Исследователь', 
+            desc: 'Посетить все разделы', 
+            earned: false 
+        }
     ];
     
     achievementsContainer.innerHTML = achievements.map(ach => `
-        <div class="achievement-card ${ach.earned ? '' : 'locked'}">
+        <div class="achievement-card ${ach.earned ? '' : 'locked'}" title="${ach.earned ? 'Получено' : 'Не получено'}">
             <div class="achievement-icon">${ach.icon}</div>
             <div class="achievement-name">${ach.name}</div>
             <div class="achievement-desc">${ach.desc}</div>
@@ -601,11 +675,30 @@ function showError(message) {
         margin: 20px 0;
         text-align: center;
         color: #ffaaaa;
+        font-size: 14px;
     `;
-    errorDiv.textContent = message;
+    errorDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">⚠️ Ошибка</div>
+        <div>${message}</div>
+    `;
     
     const container = document.querySelector('.profile-container');
-    container.insertBefore(errorDiv, container.firstChild);
+    if (container.firstChild) {
+        container.insertBefore(errorDiv, container.firstChild);
+    } else {
+        container.appendChild(errorDiv);
+    }
+    
+    // Автоматически скрыть через 5 секунд
+    setTimeout(() => {
+        errorDiv.style.opacity = '0';
+        errorDiv.style.transition = 'opacity 0.5s';
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 500);
+    }, 5000);
 }
 
 // ВЫХОД ИЗ АККАУНТА
@@ -613,7 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
-            if (confirm('Вы уверены, что хотите сменить аккаунт?')) {
+            if (confirm('Вы уверены, что хотите сменить аккаунт?\nВаш текущий ник будет удален из этого браузера.')) {
                 localStorage.removeItem('jojoland_nickname');
                 localStorage.removeItem('jojoland_userId');
                 window.location.href = 'index.html';
@@ -636,6 +729,12 @@ window.onload = async function() {
         loadUserProfile();
     }, 400);
 };
+
+// ДЛЯ ОТЛАДКИ - показать все данные в консоли
+console.log('Профиль загружен. Данные из localStorage:', {
+    nickname: localStorage.getItem('jojoland_nickname'),
+    userId: localStorage.getItem('jojoland_userId')
+});
 </script>
 
 </body>
