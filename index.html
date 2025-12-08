@@ -275,15 +275,17 @@ function createParticles() {
     }
 }
 
-window.onload = function() {
+window.addEventListener('load', function() {
     createParticles();
 
-    document.getElementById("loader").style.opacity = "0";
+    const loader = document.getElementById("loader");
+    if (loader) loader.style.opacity = "0";
     setTimeout(() => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
+        if (loader) loader.style.display = "none";
+        const content = document.getElementById("content");
+        if (content) content.style.opacity = "1";
     }, 400);
-};
+});
 </script>
 
 </body>
