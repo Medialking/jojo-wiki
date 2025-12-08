@@ -1,0 +1,372 @@
+<style>
+/* Рейтинг игроков */
+.rating-container {
+    background: linear-gradient(135deg, rgba(10, 10, 40, 0.9), rgba(20, 20, 60, 0.9));
+    border-radius: 20px;
+    padding: 30px;
+    margin: 30px 0;
+    border: 2px solid rgba(0, 102, 255, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 100, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.rating-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff00ff, #0066ff, #00ffcc);
+}
+
+.rating-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.rating-title {
+    font-size: 28px;
+    background: linear-gradient(90deg, #ff00ff, #0066ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: bold;
+}
+
+.rating-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.rating-tab {
+    padding: 10px 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: #ccccff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.rating-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.rating-tab.active {
+    background: linear-gradient(90deg, #0066ff, #0099ff);
+    color: white;
+    box-shadow: 0 5px 20px rgba(0, 100, 255, 0.5);
+}
+
+.rating-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rating-table th {
+    background: rgba(0, 100, 255, 0.2);
+    color: #6ab7ff;
+    padding: 20px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 2px solid rgba(0, 100, 255, 0.5);
+}
+
+.rating-table td {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #ccccff;
+}
+
+.rating-row {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.rating-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: scale(1.01);
+}
+
+.rating-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    transition: 0.3s;
+}
+
+.rating-row:hover::before {
+    background: linear-gradient(180deg, #ff00ff, #0066ff);
+}
+
+.medal {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.medal-1 { background: linear-gradient(135deg, #ffd700, #ff9900); color: #664400; }
+.medal-2 { background: linear-gradient(135deg, #c0c0c0, #999999); color: #333333; }
+.medal-3 { background: linear-gradient(135deg, #cd7f32, #a0522d); color: #331100; }
+
+.player-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0066ff, #00ccff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 15px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+}
+
+.player-clan {
+    color: #ff9900;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.rating-score {
+    font-size: 22px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #00ff00, #00cc00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.rating-change {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.change-up { background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+.change-down { background: rgba(255, 0, 0, 0.2); color: #ff0000; }
+.change-neutral { background: rgba(255, 255, 0, 0.2); color: #ffff00; }
+
+.trend-icon {
+    margin-left: 10px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+</style>
+
+<div class="rating-container">
+    <div class="rating-header">
+        <div class="rating-title">🏆 Рейтинг игроков</div>
+        <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+            <div style="color: #aaa; font-size: 14px;">Обновлено: 2 мин назад</div>
+            <button onclick="refreshRating()" style="padding: 10px 20px; background: rgba(0,100,255,0.3); border: 1px solid #0066ff; border-radius: 25px; color: #6ab7ff; cursor: pointer;">
+                🔄 Обновить
+            </button>
+        </div>
+    </div>
+    
+    <div class="rating-tabs">
+        <button class="rating-tab active" onclick="changeRatingTab('weekly')">📅 Неделя</button>
+        <button class="rating-tab" onclick="changeRatingTab('monthly')">🗓️ Месяц</button>
+        <button class="rating-tab" onclick="changeRatingTab('alltime')">🏆 Все время</button>
+        <button class="rating-tab" onclick="changeRatingTab('clans')">⚔️ Кланы</button>
+    </div>
+    
+    <table class="rating-table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">#</th>
+                <th>Игрок</th>
+                <th style="text-align: center;">Рейтинг</th>
+                <th style="text-align: center;">Победы</th>
+                <th style="text-align: center;">Изменение</th>
+                <th style="text-align: center;">Онлайн</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Место 1 -->
+            <tr class="rating-row">
+                <td>
+                    <div class="medal medal-1">🥇</div>
+                </td>
+                <td>
+                    <div class="player-info">
+                        <div class="player-avatar">👑</div>
+                        <div>
+                            <div class="player-name">ProGamer_X</div>
+                            <div class="player-clan">[DragonSlayers]</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-score">2450</div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ff00; font-weight: bold;">156</div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-change change-up">
+                        +125 <span class="trend-icon">📈</span>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ff00;">🟢 Сейчас</div>
+                </td>
+            </tr>
+            
+            <!-- Место 2 -->
+            <tr class="rating-row">
+                <td>
+                    <div class="medal medal-2">🥈</div>
+                </td>
+                <td>
+                    <div class="player-info">
+                        <div class="player-avatar">⚔️</div>
+                        <div>
+                            <div class="player-name">NinjaShadow</div>
+                            <div class="player-clan">[ShadowGuild]</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-score">2380</div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ff00; font-weight: bold;">142</div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-change change-up">
+                        +85 <span class="trend-icon">📈</span>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #ff9900;">🟡 5 мин назад</div>
+                </td>
+            </tr>
+            
+            <!-- Место 3 -->
+            <tr class="rating-row">
+                <td>
+                    <div class="medal medal-3">🥉</div>
+                </td>
+                <td>
+                    <div class="player-info">
+                        <div class="player-avatar">🔥</div>
+                        <div>
+                            <div class="player-name">FireMaster</div>
+                            <div class="player-clan">[Phoenix]</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-score">2315</div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ff00; font-weight: bold;">128</div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-change change-down">
+                        -15 <span class="trend-icon">📉</span>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ff00;">🟢 Сейчас</div>
+                </td>
+            </tr>
+            
+            <!-- Места 4-10 -->
+            <tr class="rating-row">
+                <td style="font-size: 18px; font-weight: bold; color: #6ab7ff;">4</td>
+                <td>
+                    <div class="player-info">
+                        <div class="player-avatar">🎯</div>
+                        <div>
+                            <div class="player-name">SniperElite</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ccff; font-weight: bold;">2250</div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #00ff00; font-weight: bold;">115</div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="rating-change change-up">
+                        +45 <span class="trend-icon">📈</span>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div style="color: #ff6666;">🔴 2 часа назад</div>
+                </td>
+            </tr>
+            
+            <!-- Еще 6 строк... -->
+        </tbody>
+    </table>
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="color: #aaa; font-size: 14px;">
+            Всего игроков: <span style="color: white; font-weight: bold;">1,245</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="prevPage()" style="padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 25px; color: white; cursor: pointer;">
+                ← Назад
+            </button>
+            <button onclick="nextPage()" style="padding: 10px 20px; background: linear-gradient(90deg, #0066ff, #0099ff); border: none; border-radius: 25px; color: white; cursor: pointer; font-weight: bold;">
+                Далее →
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function changeRatingTab(tab) {
+    document.querySelectorAll('.rating-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Здесь будет загрузка данных для выбранной вкладки
+    console.log('Загружаем рейтинг для:', tab);
+}
+
+function refreshRating() {
+    alert('🔄 Обновление рейтинга...');
+    // Здесь будет запрос к серверу
+}
+</script>
