@@ -279,12 +279,12 @@ function logout() {
     }
 }
 
-// Автоматическая проверка при загрузке страницы
-window.onload = function() {
-    // Показываем виджет через 3 секунды после загрузки
+// Автоматическая проверка при загрузке страницы — безопасно, не перезаписывает другие onload
+window.addEventListener('load', function() {
     setTimeout(() => {
         if (localStorage.getItem('jojoland_username')) {
-            document.getElementById('pointsWidget').style.display = 'block';
+            const w = document.getElementById('pointsWidget');
+            if (w) w.style.display = 'block';
         }
     }, 3000);
-};
+});
