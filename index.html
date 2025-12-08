@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* ПАДАЮЩИЕ СНЕЖИНКИ */
+        /* ПАДАЮЩИЕ СНЕЖИНКИ С НОВОГОДНИМИ ЭЛЕМЕНТАМИ */
         .snowflakes {
             position: fixed;
             top: 0;
@@ -33,26 +33,8 @@
         }
         
         /* Разные снежинки с разной скоростью */
-        .snowflake:nth-child(1) { left: 10%; animation-duration: 10s; animation-delay: 0s; }
-        .snowflake:nth-child(2) { left: 20%; animation-duration: 12s; animation-delay: 1s; }
-        .snowflake:nth-child(3) { left: 30%; animation-duration: 15s; animation-delay: 2s; }
-        .snowflake:nth-child(4) { left: 40%; animation-duration: 8s; animation-delay: 3s; }
-        .snowflake:nth-child(5) { left: 50%; animation-duration: 11s; animation-delay: 4s; }
-        .snowflake:nth-child(6) { left: 60%; animation-duration: 9s; animation-delay: 5s; }
-        .snowflake:nth-child(7) { left: 70%; animation-duration: 13s; animation-delay: 6s; }
-        .snowflake:nth-child(8) { left: 80%; animation-duration: 14s; animation-delay: 7s; }
-        .snowflake:nth-child(9) { left: 90%; animation-duration: 10s; animation-delay: 8s; }
-        .snowflake:nth-child(10) { left: 5%; animation-duration: 12s; animation-delay: 9s; }
-        .snowflake:nth-child(11) { left: 15%; animation-duration: 9s; animation-delay: 10s; }
-        .snowflake:nth-child(12) { left: 25%; animation-duration: 11s; animation-delay: 11s; }
-        .snowflake:nth-child(13) { left: 35%; animation-duration: 14s; animation-delay: 12s; }
-        .snowflake:nth-child(14) { left: 45%; animation-duration: 8s; animation-delay: 13s; }
-        .snowflake:nth-child(15) { left: 55%; animation-duration: 13s; animation-delay: 14s; }
-        .snowflake:nth-child(16) { left: 65%; animation-duration: 10s; animation-delay: 15s; }
-        .snowflake:nth-child(17) { left: 75%; animation-duration: 12s; animation-delay: 16s; }
-        .snowflake:nth-child(18) { left: 85%; animation-duration: 9s; animation-delay: 17s; }
-        .snowflake:nth-child(19) { left: 95%; animation-duration: 11s; animation-delay: 18s; }
-        .snowflake:nth-child(20) { left: 3%; animation-duration: 15s; animation-delay: 19s; }
+        .snowflake:nth-child(odd) { animation-duration: 10s; }
+        .snowflake:nth-child(even) { animation-duration: 14s; }
         
         @keyframes snowfall {
             0% {
@@ -70,6 +52,30 @@
                 opacity: 0;
             }
         }
+        
+        /* НОВОГОДНИЕ ГИРЛЯНДЫ */
+        .garland {
+            position: fixed;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            z-index: 9997;
+            pointer-events: none;
+        }
+        
+        .light {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: twinkle 1.5s infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -80,42 +86,124 @@
     <p>Загрузка...</p>
 </div>
 
-<!-- СНЕЖИНКИ (ДОБАВИЛ ЗДЕСЬ) -->
+<!-- НОВОГОДНИЕ ГИРЛЯНДЫ -->
+<div class="garland" id="garlandTop"></div>
+<div class="garland" id="garlandBottom" style="top: auto; bottom: 10px;"></div>
+
+<!-- СНЕЖИНКИ -->
 <div class="snowflakes" id="snowflakesContainer">
     <!-- Снежинки будут созданы через JavaScript -->
 </div>
 
-<!-- ГЛАВНОЕ СОДЕРЖИМОЕ -->
+<!-- ОСНОВНОЙ КОНТЕНТ -->
 <div id="content">
 
 <header>
-    <img src="images/logo.png" class="logo" alt="">
-    <h1>JL</h1>
+    <div class="logo-container">
+        <div class="christmas-lights"></div>
+        <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+        <div class="christmas-lights"></div>
+    </div>
+    <h1 class="new-year-title">🎄 JojoLand 🎄</h1>
+    <p class="new-year-subtitle">С Новым 2025 Годом!</p>
 
     <nav>
-        <a href="rules.html">📜 Правила</a>
-        <a href="tgk.html">📘 Правила ТГК</a>
-        <a href="obzhalovanie.html">🔐 Обжалование</a>
+        <a href="rules.html" class="nav-btn">📜 Правила сервера</a>
+        <a href="tgk.html" class="nav-btn">📘 TGK & Сообщества</a>
+        <a href="obzhalovanie.html" class="nav-btn">🔐 Обжалование бана</a>
+        <a href="wiki.html" class="nav-btn">🌟 Новогодние ивенты</a>
     </nav>
 </header>
 
-<section class="main-block">
-    <h2>О сервере JojoLand</h2>
-    <p>Добро пожаловать на официальный сайт сервера <b>JojoLand!</b> Здесь вы найдёте правила, важные ссылки и информацию о проекте.</p>
-
-    <div class="btn-row">
-        <a class="btn" href="https://t.me/+18-ycRRnOTgxZTgy">📌 TGK чат</a>
-        <a class="btn" href="https://t.me/Jojolandpe">💬 Telegram группа</a>
-        <a class="btn" href="http://pay.jojoland.ru/">💎 Донат сайт</a>
-        <a class="btn" href="wiki.html">📘 Wiki / Гайды</a>
+<main class="main-content">
+    <!-- ПРАЗДНИЧНЫЙ БАННЕР -->
+    <div class="holiday-banner">
+        <div class="banner-content">
+            <h2>🎁 Новогодний сезон на JojoLand!</h2>
+            <p>Особые ивенты, эксклюзивные награды и праздничная атмосфера ждут вас!</p>
+            <span class="banner-glow"></span>
+        </div>
     </div>
-</section>
+
+    <!-- ОСНОВНЫЕ КНОПКИ В КРУГОВОМ РАСПОЛОЖЕНИИ -->
+    <div class="circular-menu">
+        <div class="center-circle">
+            <div class="center-text">
+                <span>JojoLand</span>
+                <small>Зимнее обновление</small>
+            </div>
+        </div>
+        
+        <a href="https://t.me/+18-ycRRnOTgxZTgy" class="circular-btn btn-1">
+            <div class="btn-icon">📌</div>
+            <span>TGK чат</span>
+        </a>
+        
+        <a href="https://t.me/Jojolandpe" class="circular-btn btn-2">
+            <div class="btn-icon">💬</div>
+            <span>Telegram</span>
+        </a>
+        
+        <a href="http://pay.jojoland.ru/" class="circular-btn btn-3">
+            <div class="btn-icon">💎</div>
+            <span>Донат сайт</span>
+        </a>
+        
+        <a href="wiki.html" class="circular-btn btn-4">
+            <div class="btn-icon">📘</div>
+            <span>Wiki / Гайды</span>
+        </a>
+        
+        <a href="events.html" class="circular-btn btn-5">
+            <div class="btn-icon">🎁</div>
+            <span>Новогодние квесты</span>
+        </a>
+        
+        <a href="shop.html" class="circular-btn btn-6">
+            <div class="btn-icon">🛍️</div>
+            <span>Праздничный магазин</span>
+        </a>
+    </div>
+
+    <!-- ИНФОРМАЦИОННЫЕ КАРТОЧКИ -->
+    <div class="info-cards">
+        <div class="card">
+            <div class="card-icon">❄️</div>
+            <h3>Зимний ивент 2025</h3>
+            <p>Соберите снежинки, откройте подарки и получите эксклюзивные новогодние скины!</p>
+            <a href="#" class="card-btn">Участвовать</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">⭐</div>
+            <h3>Топ игроков декабря</h3>
+            <p>Лидеры сервера получат специальные награды и статусы к Новому году!</p>
+            <a href="#" class="card-btn">Смотреть топ</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">🎅</div>
+            <h3>Новогодний Discord</h3>
+            <p>Присоединяйтесь к нашему Discord-серверу с праздничным оформлением!</p>
+            <a href="#" class="card-btn">Присоединиться</a>
+        </div>
+    </div>
+</main>
 
 <!-- КНОПКА ТЕХПОДДЕРЖКИ -->
-<a class="chat-btn" href="chat.html" target="_blank">💬</a>
+<a class="chat-btn" href="chat.html" target="_blank">
+    <div class="chat-icon">🎄</div>
+    <span>Поддержка</span>
+</a>
 
 <footer>
-    <p>© 2025 JojoLand • Все права защищены</p>
+    <div class="footer-content">
+        <p>© 2025 JojoLand • Все права защищены</p>
+        <p class="footer-holiday">🎉 Счастливого Нового Года! 🎉</p>
+        <div class="footer-lights">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+    </div>
 </footer>
 
 </div> <!-- /content -->
@@ -125,10 +213,13 @@
 function createSnowflakes() {
     const snowflakesContainer = document.getElementById('snowflakesContainer');
     
-    // Создаем 20 снежинок
-    for (let i = 0; i < 20; i++) {
+    // Создаем 50 снежинок
+    for (let i = 0; i < 50; i++) {
         const snowflake = document.createElement('div');
         snowflake.className = 'snowflake';
+        
+        // Случайное положение
+        snowflake.style.left = `${Math.random() * 100}%`;
         
         // Случайный размер
         const size = Math.random() * 1.5 + 0.8;
@@ -139,17 +230,44 @@ function createSnowflakes() {
         snowflake.style.opacity = opacity;
         
         // Случайные символы снежинок
-        const symbols = ['❄', '❅', '❆', '･'];
+        const symbols = ['❄', '❅', '❆', '･', '🎄', '🎁', '⭐'];
         snowflake.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        
+        // Случайная скорость
+        const duration = Math.random() * 10 + 8;
+        snowflake.style.animationDuration = `${duration}s`;
+        snowflake.style.animationDelay = `${Math.random() * 5}s`;
         
         snowflakesContainer.appendChild(snowflake);
     }
 }
 
+// СОЗДАНИЕ ГИРЛЯНД
+function createGarlands() {
+    const garlandTop = document.getElementById('garlandTop');
+    const garlandBottom = document.getElementById('garlandBottom');
+    const colors = ['#ff0000', '#00ff00', '#ffff00', '#ff00ff', '#00ffff'];
+    
+    for (let i = 0; i < 50; i++) {
+        const lightTop = document.createElement('div');
+        const lightBottom = document.createElement('div');
+        
+        lightTop.className = lightBottom.className = 'light';
+        lightTop.style.left = lightBottom.style.left = `${i * 2}%`;
+        lightTop.style.backgroundColor = lightBottom.style.backgroundColor = colors[i % colors.length];
+        lightTop.style.animationDelay = `${i * 0.1}s`;
+        lightBottom.style.animationDelay = `${i * 0.1 + 0.5}s`;
+        
+        garlandTop.appendChild(lightTop);
+        garlandBottom.appendChild(lightBottom);
+    }
+}
+
 // Загрузка страницы
 window.onload = function() {
-    // Создаем снежинки
+    // Создаем снежинки и гирлянды
     createSnowflakes();
+    createGarlands();
     
     // Анимация загрузки
     document.getElementById("loader").style.opacity = "0";
@@ -158,24 +276,25 @@ window.onload = function() {
         document.getElementById("content").style.opacity = "1";
     }, 400);
     
-    // Обновляем снежинки каждые 2 минуты
+    // Обновляем снежинки каждую минуту
     setInterval(() => {
         const snowflakes = document.querySelectorAll('.snowflake');
-        if (snowflakes.length > 30) {
+        if (snowflakes.length > 70) {
             snowflakes[0].remove();
-            // Добавляем новую снежинку
-            const newSnowflake = document.createElement('div');
-            newSnowflake.className = 'snowflake';
-            newSnowflake.style.left = `${Math.random() * 100}%`;
-            newSnowflake.style.fontSize = `${Math.random() * 1.5 + 0.8}em`;
-            newSnowflake.style.opacity = Math.random() * 0.7 + 0.3;
-            newSnowflake.style.animationDuration = `${Math.random() * 7 + 8}s`;
-            newSnowflake.style.animationDelay = `${Math.random() * 5}s`;
-            const symbols = ['❄', '❅', '❆', '･'];
-            newSnowflake.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-            document.getElementById('snowflakesContainer').appendChild(newSnowflake);
         }
-    }, 120000);
+        
+        // Добавляем новую снежинку
+        const newSnowflake = document.createElement('div');
+        newSnowflake.className = 'snowflake';
+        newSnowflake.style.left = `${Math.random() * 100}%`;
+        newSnowflake.style.fontSize = `${Math.random() * 1.5 + 0.8}em`;
+        newSnowflake.style.opacity = Math.random() * 0.7 + 0.3;
+        newSnowflake.style.animationDuration = `${Math.random() * 7 + 8}s`;
+        newSnowflake.style.animationDelay = `${Math.random() * 5}s`;
+        const symbols = ['❄', '❅', '❆', '･', '🎄', '🎁'];
+        newSnowflake.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        document.getElementById('snowflakesContainer').appendChild(newSnowflake);
+    }, 60000);
 };
 </script>
 
