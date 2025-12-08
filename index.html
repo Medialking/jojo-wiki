@@ -57,6 +57,52 @@
     <p>Загрузка...</p>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО ВВОДА НИКА -->
+<div id="nickname-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Добро пожаловать в JojoLand!</h2>
+            <p>Для продолжения введите свой игровой никнейм</p>
+        </div>
+        
+        <div class="modal-body">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="nickname-input" 
+                    placeholder="Ваш ник (3-16 символов)" 
+                    maxlength="16"
+                    autocomplete="off"
+                >
+                <div class="input-hint">
+                    <span id="char-count">0/16</span>
+                </div>
+                <div class="error-message" id="error-message"></div>
+            </div>
+            
+            <div class="requirements">
+                <h4>Требования к нику:</h4>
+                <ul>
+                    <li id="req-length" class="invalid">✓ 3-16 символов</li>
+                    <li id="req-format" class="invalid">✓ Только буквы, цифры и _</li>
+                    <li id="req-unique" class="valid">✓ Проверка уникальности...</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button id="submit-nickname" class="submit-btn" disabled>
+                Сохранить и продолжить
+            </button>
+            <p class="modal-note">Этот ник будет использоваться для идентификации на сайте</p>
+        </div>
+        
+        <div class="server-info-small">
+            <span>IP сервера: <strong>play.jojoland.ru</strong></span>
+        </div>
+    </div>
+</div>
+
 <!-- ФОНОВЫЕ ЭФФЕКТЫ -->
 <div class="background-effects" id="particles"></div>
 
@@ -173,7 +219,26 @@
 
 </div> <!-- /content -->
 
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
 <script>
+// Инициализация Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+    authDomain: "jojoland-chat.firebaseapp.com",
+    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+    projectId: "jojoland-chat",
+    storageBucket: "jojoland-chat.firebasestorage.app",
+    messagingSenderId: "602788305122",
+    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+};
+
+// Инициализируем Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
@@ -204,8 +269,138 @@ function createParticles() {
     }
 }
 
+// Функции для работы с ником
+function isValidNickname(nickname) {
+    // Проверяем длину
+    if (nickname.length < 3 || nickname.length > 16) {
+        return false;
+    }
+    
+    // Проверяем разрешенные символы: буквы (латиница и кириллица), цифры, подчеркивание
+    const regex = /^[a-zA-Zа-яА-ЯёЁ0-9_]+$/;
+    return regex.test(nickname);
+}
+
+// Проверка уникальности ника
+async function isNicknameUnique(nickname) {
+    try {
+        const snapshot = await database.ref('users/' + nickname.toLowerCase()).once('value');
+        return !snapshot.exists();
+    } catch (error) {
+        console.error('Ошибка проверки ника:', error);
+        return false;
+    }
+}
+
+// Сохранение ника в Firebase
+async function saveNickname(nickname) {
+    try {
+        const userData = {
+            nickname: nickname,
+            createdAt: new Date().toISOString(),
+            lastVisit: new Date().toISOString(),
+            visitsCount: 1
+        };
+        
+        await database.ref('users/' + nickname.toLowerCase()).set(userData);
+        return true;
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        return false;
+    }
+}
+
+// Обновляем подсчет символов
+function updateCharCount() {
+    const input = document.getElementById('nickname-input');
+    const charCount = document.getElementById('char-count');
+    const length = input.value.length;
+    charCount.textContent = `${length}/16`;
+    
+    // Меняем цвет в зависимости от длины
+    if (length < 3) {
+        charCount.style.color = '#ff4444';
+    } else if (length > 16) {
+        charCount.style.color = '#ff4444';
+    } else {
+        charCount.style.color = '#00cc66';
+    }
+}
+
+// Проверяем валидность и уникальность в реальном времени
+let checkTimeout;
+async function validateNicknameInRealTime() {
+    const nickname = document.getElementById('nickname-input').value;
+    const submitBtn = document.getElementById('submit-nickname');
+    const errorMsg = document.getElementById('error-message');
+    const reqLength = document.getElementById('req-length');
+    const reqFormat = document.getElementById('req-format');
+    const reqUnique = document.getElementById('req-unique');
+    
+    // Сбрасываем состояние
+    errorMsg.textContent = '';
+    submitBtn.disabled = true;
+    
+    // Проверка длины
+    if (nickname.length >= 3 && nickname.length <= 16) {
+        reqLength.className = 'valid';
+    } else {
+        reqLength.className = 'invalid';
+    }
+    
+    // Проверка формата
+    if (isValidNickname(nickname)) {
+        reqFormat.className = 'valid';
+    } else {
+        reqFormat.className = 'invalid';
+    }
+    
+    // Если обе базовые проверки пройдены, проверяем уникальность
+    if (nickname.length >= 3 && nickname.length <= 16 && isValidNickname(nickname)) {
+        reqUnique.textContent = '✓ Проверка уникальности...';
+        
+        // Делаем задержку для избежания частых запросов
+        clearTimeout(checkTimeout);
+        checkTimeout = setTimeout(async () => {
+            const isUnique = await isNicknameUnique(nickname);
+            
+            if (isUnique) {
+                reqUnique.className = 'valid';
+                reqUnique.textContent = '✓ Ник свободен';
+                submitBtn.disabled = false;
+            } else {
+                reqUnique.className = 'invalid';
+                reqUnique.textContent = '✗ Ник уже занят';
+                errorMsg.textContent = 'Этот никнейм уже используется другим игроком';
+            }
+        }, 500);
+    } else {
+        reqUnique.className = 'invalid';
+        reqUnique.textContent = '✗ Введите корректный ник';
+        
+        if (nickname.length > 0) {
+            if (nickname.length < 3) {
+                errorMsg.textContent = 'Ник должен содержать минимум 3 символа';
+            } else if (nickname.length > 16) {
+                errorMsg.textContent = 'Ник не может быть длиннее 16 символов';
+            } else if (!isValidNickname(nickname)) {
+                errorMsg.textContent = 'Разрешены только буквы, цифры и символ _';
+            }
+        }
+    }
+}
+
+// Проверяем, есть ли уже сохраненный ник
+function hasSavedNickname() {
+    return localStorage.getItem('jojoland_nickname') !== null;
+}
+
+function getSavedNickname() {
+    return localStorage.getItem('jojoland_nickname');
+}
+
 // Загрузка страницы
-window.onload = function() {
+window.onload = async function() {
     // Создаем частицы
     createParticles();
     
@@ -214,8 +409,130 @@ window.onload = function() {
     setTimeout(() => {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
+        
+        // Проверяем, есть ли сохраненный ник
+        if (!hasSavedNickname()) {
+            // Показываем модальное окно
+            document.getElementById('nickname-modal').style.display = 'flex';
+            
+            // Настройка событий для ввода ника
+            const nicknameInput = document.getElementById('nickname-input');
+            const submitBtn = document.getElementById('submit-nickname');
+            
+            // Обновляем счетчик символов
+            nicknameInput.addEventListener('input', () => {
+                updateCharCount();
+                validateNicknameInRealTime();
+            });
+            
+            // Обработчик отправки
+            submitBtn.addEventListener('click', async () => {
+                const nickname = nicknameInput.value.trim();
+                
+                if (isValidNickname(nickname) && !submitBtn.disabled) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Сохранение...';
+                    
+                    const saved = await saveNickname(nickname);
+                    
+                    if (saved) {
+                        // Сохраняем в localStorage
+                        localStorage.setItem('jojoland_nickname', nickname);
+                        
+                        // Показываем успешное сообщение
+                        submitBtn.textContent = '✓ Успешно сохранено!';
+                        submitBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
+                        
+                        // Закрываем модальное окно через 1 секунду
+                        setTimeout(() => {
+                            document.getElementById('nickname-modal').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('nickname-modal').style.display = 'none';
+                                // Можно добавить приветственное сообщение
+                                showWelcomeMessage(nickname);
+                            }, 300);
+                        }, 1000);
+                    } else {
+                        submitBtn.textContent = 'Ошибка сохранения';
+                        submitBtn.style.background = 'linear-gradient(90deg, #ff4444, #ff8888)';
+                        setTimeout(() => {
+                            submitBtn.textContent = 'Сохранить и продолжить';
+                            submitBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
+                            validateNicknameInRealTime();
+                        }, 2000);
+                    }
+                }
+            });
+            
+            // Обработка нажатия Enter
+            nicknameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !submitBtn.disabled) {
+                    submitBtn.click();
+                }
+            });
+            
+            // Фокусируемся на поле ввода
+            setTimeout(() => {
+                nicknameInput.focus();
+            }, 300);
+        } else {
+            // Если ник уже сохранен, можно показать приветствие
+            const nickname = getSavedNickname();
+            showWelcomeMessage(nickname);
+        }
     }, 400);
 };
+
+// Функция для показа приветственного сообщения (опционально)
+function showWelcomeMessage(nickname) {
+    // Создаем временное уведомление
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(90deg, #6200ff, #ff00ff);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 5px 20px rgba(98, 0, 255, 0.5);
+        max-width: 300px;
+    `;
+    
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">Добро пожаловать, ${nickname}!</div>
+        <div style="font-size: 12px; opacity: 0.9;">Приятной игры на сервере</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Анимация для уведомления
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 
 </body>
