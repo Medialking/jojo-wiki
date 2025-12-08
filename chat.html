@@ -383,314 +383,444 @@
     </div>
 
     <script>
-        // ==================== FIREBASE КОНФИГ ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-            authDomain: "jojoland-chat.firebaseapp.com",
-            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
-            projectId: "jojoland-chat",
-            storageBucket: "jojoland-chat.firebasestorage.app",
-            messagingSenderId: "602788305122",
-            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    // ==================== FIREBASE КОНФИГ ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+        authDomain: "jojoland-chat.firebaseapp.com",
+        databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+        projectId: "jojoland-chat",
+        storageBucket: "jojoland-chat.firebasestorage.app",
+        messagingSenderId: "602788305122",
+        appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
+    // ==================== ПЕРЕМЕННЫЕ ====================
+    let userId = localStorage.getItem('jojoland_userId');
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('jojoland_userId', userId);
+    }
+    
+    let username = localStorage.getItem('jojoland_username') || 
+                   `Игрок_${Math.floor(Math.random() * 1000)}`;
+    
+    // ==================== ВЫБОР ТИПА ОБРАЩЕНИЯ ====================
+    function selectType(type) {
+        // Убираем активный класс у всех карточек
+        document.querySelectorAll('.type-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        
+        // Добавляем активный класс выбранной карточке
+        document.querySelector(`[data-type="${type}"]`).classList.add('active');
+        
+        // Скрываем все формы
+        document.querySelectorAll('.form-container').forEach(form => {
+            form.classList.remove('active');
+        });
+        
+        // Показываем выбранную форму
+        document.getElementById(`${type}Form`).classList.add('active');
+        
+        // Скрываем статус сообщения
+        document.getElementById('statusMessage').style.display = 'none';
+        
+        // Заполняем ник автоматически
+        fillNicknameFields();
+    }
+    
+    function fillNicknameFields() {
+        document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
+            if (!input.value) {
+                input.value = username;
+            }
+        });
+    }
+    
+    // ==================== ОТПРАВКА ЖАЛОБЫ ====================
+    async function submitComplaint() {
+        // Собираем данные
+        const complaintData = {
+            type: 'complaint',
+            userNickname: document.getElementById('complaintNickname').value.trim(),
+            violatorNickname: document.getElementById('violatorNickname').value.trim(),
+            violationTime: document.getElementById('violationTime').value.trim(),
+            description: document.getElementById('violationDescription').value.trim(),
+            proof: document.getElementById('complaintProof').value.trim(),
+            userId: userId,
+            username: username,
+            timestamp: Date.now(),
+            status: 'new',
+            ticketId: generateTicketId('COMP')
         };
         
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Валидация
+        if (!validateComplaint(complaintData)) return;
         
-        // ==================== ПЕРЕМЕННЫЕ ====================
-        let userId = localStorage.getItem('jojoland_userId');
-        if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('jojoland_userId', userId);
+        try {
+            await database.ref('support_tickets').push(complaintData);
+            showStatus('success', '✅ Жалоба отправлена! Администрация рассмотрит её в течение 24 часов.');
+            clearForm('complaint');
+            loadUserRequests();
+        } catch (error) {
+            console.error('Ошибка отправки:', error);
+            showStatus('error', '❌ Ошибка отправки. Проверьте подключение к интернету.');
+        }
+    }
+    
+    // ==================== ОТПРАВКА АПЕЛЛЯЦИИ ====================
+    async function submitAppeal() {
+        const appealData = {
+            type: 'appeal',
+            userNickname: document.getElementById('appealNickname').value.trim(),
+            punishmentType: document.getElementById('punishmentType').value,
+            punishmentDate: document.getElementById('punishmentDate').value.trim(),
+            reason: document.getElementById('appealReason').value.trim(),
+            proof: document.getElementById('appealProof').value.trim(),
+            userId: userId,
+            username: username,
+            timestamp: Date.now(),
+            status: 'new',
+            ticketId: generateTicketId('APL')
+        };
+        
+        if (!validateAppeal(appealData)) return;
+        
+        try {
+            await database.ref('support_tickets').push(appealData);
+            showStatus('success', '✅ Апелляция отправлена! Рассмотрение обычно занимает 1-3 дня.');
+            clearForm('appeal');
+            loadUserRequests();
+        } catch (error) {
+            console.error('Ошибка отправки:', error);
+            showStatus('error', '❌ Ошибка отправки. Проверьте подключение к интернету.');
+        }
+    }
+    
+    // ==================== ОТПРАВКА В ПОДДЕРЖКУ ====================
+    async function submitSupport() {
+        const supportData = {
+            type: 'support',
+            userNickname: document.getElementById('supportNickname').value.trim(),
+            category: document.getElementById('supportCategory').value,
+            description: document.getElementById('supportDescription').value.trim(),
+            additionalInfo: document.getElementById('supportProof').value.trim(),
+            userId: userId,
+            username: username,
+            timestamp: Date.now(),
+            status: 'new',
+            ticketId: generateTicketId('SUP')
+        };
+        
+        if (!validateSupport(supportData)) return;
+        
+        try {
+            await database.ref('support_tickets').push(supportData);
+            showStatus('success', '✅ Обращение отправлено! Ответим в течение 12 часов.');
+            clearForm('support');
+            loadUserRequests();
+        } catch (error) {
+            console.error('Ошибка отправки:', error);
+            showStatus('error', '❌ Ошибка отправки. Проверьте подключение к интернету.');
+        }
+    }
+    
+    // ==================== ВАЛИДАЦИЯ ====================
+    function validateComplaint(data) {
+        // Проверяем обязательные поля
+        if (!data.userNickname || data.userNickname.trim() === '') {
+            showStatus('error', '❌ Введите ваш игровой ник!');
+            return false;
         }
         
-        let username = localStorage.getItem('jojoland_username') || 
-                       `Игрок_${Math.floor(Math.random() * 1000)}`;
+        if (!data.violatorNickname || data.violatorNickname.trim() === '') {
+            showStatus('error', '❌ Введите ник нарушителя!');
+            return false;
+        }
         
-        // ==================== ВЫБОР ТИПА ОБРАЩЕНИЯ ====================
-        function selectType(type) {
-            // Убираем активный класс у всех карточек
-            document.querySelectorAll('.type-card').forEach(card => {
-                card.classList.remove('active');
+        if (!data.violationTime || data.violationTime.trim() === '') {
+            showStatus('error', '❌ Укажите время нарушения!');
+            return false;
+        }
+        
+        if (!data.description || data.description.trim() === '') {
+            showStatus('error', '❌ Опишите нарушение!');
+            return false;
+        }
+        
+        if (data.description.length < 20) {
+            showStatus('error', '❌ Описание должно быть подробным (минимум 20 символов)');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function validateAppeal(data) {
+        if (!data.userNickname || data.userNickname.trim() === '') {
+            showStatus('error', '❌ Введите ваш игровой ник!');
+            return false;
+        }
+        
+        if (!data.punishmentType || data.punishmentType.trim() === '') {
+            showStatus('error', '❌ Выберите тип наказания!');
+            return false;
+        }
+        
+        if (!data.punishmentDate || data.punishmentDate.trim() === '') {
+            showStatus('error', '❌ Укажите дату наказания!');
+            return false;
+        }
+        
+        if (!data.reason || data.reason.trim() === '') {
+            showStatus('error', '❌ Объясните, почему наказание несправедливо!');
+            return false;
+        }
+        
+        if (data.reason.length < 20) {
+            showStatus('error', '❌ Объяснение должно быть подробным (минимум 20 символов)');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function validateSupport(data) {
+        if (!data.userNickname || data.userNickname.trim() === '') {
+            showStatus('error', '❌ Введите ваш игровой ник!');
+            return false;
+        }
+        
+        if (!data.category || data.category.trim() === '') {
+            showStatus('error', '❌ Выберите категорию проблемы!');
+            return false;
+        }
+        
+        if (!data.description || data.description.trim() === '') {
+            showStatus('error', '❌ Опишите проблему!');
+            return false;
+        }
+        
+        if (data.description.length < 10) {
+            showStatus('error', '❌ Описание проблемы должно быть подробным (минимум 10 символов)');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // ==================== ПОКАЗ СТАТУСА ====================
+    function showStatus(type, message) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.className = `status-message ${type}`;
+        statusDiv.innerHTML = message;
+        statusDiv.style.display = 'block';
+        
+        // Прокручиваем к статусу
+        statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 5000);
+    }
+    
+    // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ПОЛЬЗОВАТЕЛЯ ====================
+    async function loadUserRequests() {
+        try {
+            const snapshot = await database.ref('support_tickets')
+                .orderByChild('userId')
+                .equalTo(userId)
+                .once('value');
+            
+            const requestsList = document.getElementById('requestsList');
+            
+            if (!snapshot.exists()) {
+                requestsList.innerHTML = '<p style="text-align: center; color: #aaa;">У вас пока нет обращений</p>';
+                return;
+            }
+            
+            let html = '';
+            const requests = [];
+            
+            snapshot.forEach(childSnapshot => {
+                const request = childSnapshot.val();
+                // Добавляем ID для проверки данных
+                request.id = childSnapshot.key;
+                requests.push(request);
             });
             
-            // Добавляем активный класс выбранной карточке
-            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            // Сортируем по дате (новые сверху)
+            requests.sort((a, b) => b.timestamp - a.timestamp);
             
-            // Скрываем все формы
-            document.querySelectorAll('.form-container').forEach(form => {
-                form.classList.remove('active');
-            });
-            
-            // Показываем выбранную форму
-            document.getElementById(`${type}Form`).classList.add('active');
-            
-            // Скрываем статус сообщения
-            document.getElementById('statusMessage').style.display = 'none';
-            
-            // Заполняем ник автоматически
-            fillNicknameFields();
-        }
-        
-        function fillNicknameFields() {
-            document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
-                if (!input.value) {
-                    input.value = username;
-                }
-            });
-        }
-        
-        // ==================== ОТПРАВКА ЖАЛОБЫ ====================
-        async function submitComplaint() {
-            const complaintData = {
-                type: 'complaint',
-                userNickname: document.getElementById('complaintNickname').value.trim(),
-                violatorNickname: document.getElementById('violatorNickname').value.trim(),
-                violationTime: document.getElementById('violationTime').value.trim(),
-                description: document.getElementById('violationDescription').value.trim(),
-                proof: document.getElementById('complaintProof').value.trim(),
-                userId: userId,
-                username: username,
-                timestamp: Date.now(),
-                status: 'new',
-                ticketId: generateTicketId('COMP')
-            };
-            
-            if (!validateForm(complaintData)) return;
-            
-            try {
-                await database.ref('support_tickets').push(complaintData);
-                showStatus('success', '✅ Жалоба отправлена! Администрация рассмотрит её в течение 24 часов.');
-                clearForm('complaint');
-                loadUserRequests();
-            } catch (error) {
-                showStatus('error', '❌ Ошибка отправки. Попробуйте еще раз.');
-            }
-        }
-        
-        // ==================== ОТПРАВКА АПЕЛЛЯЦИИ ====================
-        async function submitAppeal() {
-            const appealData = {
-                type: 'appeal',
-                userNickname: document.getElementById('appealNickname').value.trim(),
-                punishmentType: document.getElementById('punishmentType').value,
-                punishmentDate: document.getElementById('punishmentDate').value.trim(),
-                reason: document.getElementById('appealReason').value.trim(),
-                proof: document.getElementById('appealProof').value.trim(),
-                userId: userId,
-                username: username,
-                timestamp: Date.now(),
-                status: 'new',
-                ticketId: generateTicketId('APL')
-            };
-            
-            if (!validateForm(appealData)) return;
-            
-            try {
-                await database.ref('support_tickets').push(appealData);
-                showStatus('success', '✅ Апелляция отправлена! Рассмотрение обычно занимает 1-3 дня.');
-                clearForm('appeal');
-                loadUserRequests();
-            } catch (error) {
-                showStatus('error', '❌ Ошибка отправки. Попробуйте еще раз.');
-            }
-        }
-        
-        // ==================== ОТПРАВКА В ПОДДЕРЖКУ ====================
-        async function submitSupport() {
-            const supportData = {
-                type: 'support',
-                userNickname: document.getElementById('supportNickname').value.trim(),
-                category: document.getElementById('supportCategory').value,
-                description: document.getElementById('supportDescription').value.trim(),
-                additionalInfo: document.getElementById('supportProof').value.trim(),
-                userId: userId,
-                username: username,
-                timestamp: Date.now(),
-                status: 'new',
-                ticketId: generateTicketId('SUP')
-            };
-            
-            if (!validateForm(supportData)) return;
-            
-            try {
-                await database.ref('support_tickets').push(supportData);
-                showStatus('success', '✅ Обращение отправлено! Ответим в течение 12 часов.');
-                clearForm('support');
-                loadUserRequests();
-            } catch (error) {
-                showStatus('error', '❌ Ошибка отправки. Попробуйте еще раз.');
-            }
-        }
-        
-        // ==================== ВАЛИДАЦИЯ ====================
-        function validateForm(data) {
-            // Проверяем обязательные поля
-            for (const [key, value] of Object.entries(data)) {
-                if (key !== 'proof' && key !== 'additionalInfo' && 
-                    key !== 'ticketId' && key !== 'status' && 
-                    key !== 'userId' && key !== 'timestamp' &&
-                    (!value || value.trim() === '')) {
-                    
-                    showStatus('error', `❌ Заполните все обязательные поля!`);
-                    return false;
-                }
+            if (requests.length === 0) {
+                requestsList.innerHTML = '<p style="text-align: center; color: #aaa;">У вас пока нет обращений</p>';
+                return;
             }
             
-            // Проверяем длину описания
-            if (data.description && data.description.length < 20) {
-                showStatus('error', '❌ Описание должно быть подробным (минимум 20 символов)');
-                return false;
-            }
-            
-            return true;
-        }
-        
-        // ==================== ПОКАЗ СТАТУСА ====================
-        function showStatus(type, message) {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.className = `status-message ${type}`;
-            statusDiv.innerHTML = message;
-            statusDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ПОЛЬЗОВАТЕЛЯ ====================
-        async function loadUserRequests() {
-            try {
-                const snapshot = await database.ref('support_tickets')
-                    .orderByChild('userId')
-                    .equalTo(userId)
-                    .once('value');
+            requests.forEach(request => {
+                const date = new Date(request.timestamp);
+                const dateStr = date.toLocaleDateString('ru-RU') + ' ' + 
+                              date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
                 
-                const requestsList = document.getElementById('requestsList');
+                const typeText = request.type === 'complaint' ? 'Жалоба' : 
+                                request.type === 'appeal' ? 'Апелляция' : 'Поддержка';
                 
-                if (!snapshot.exists()) {
-                    requestsList.innerHTML = '<p style="text-align: center; color: #aaa;">У вас пока нет обращений</p>';
-                    return;
-                }
+                const typeClass = request.type === 'complaint' ? 'badge-complaint' : 
+                                 request.type === 'appeal' ? 'badge-appeal' : 'badge-support';
                 
-                let html = '';
-                const requests = [];
+                const statusText = request.status === 'new' ? '🆕 Новое' : 
+                                  request.status === 'read' ? '👁️ Прочитано' : 
+                                  request.status === 'answered' ? '📨 Ответ получен' : '✅ Закрыто';
                 
-                snapshot.forEach(childSnapshot => {
-                    requests.push({
-                        id: childSnapshot.key,
-                        ...childSnapshot.val()
-                    });
-                });
+                const statusClass = request.status === 'new' ? 'status-new' : 
+                                   request.status === 'read' ? 'status-read' : 'status-closed';
                 
-                // Сортируем по дате (новые сверху)
-                requests.sort((a, b) => b.timestamp - a.timestamp);
+                // Текст обращения
+                const requestText = request.description || request.reason || 'Без описания';
                 
-                requests.forEach(request => {
-                    const date = new Date(request.timestamp);
-                    const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    
-                    const typeText = request.type === 'complaint' ? 'Жалоба' : 
-                                    request.type === 'appeal' ? 'Апелляция' : 'Поддержка';
-                    
-                    const typeClass = request.type === 'complaint' ? 'badge-complaint' : 
-                                     request.type === 'appeal' ? 'badge-appeal' : 'badge-support';
-                    
-                    const statusText = request.status === 'new' ? 'Новое' : 
-                                      request.status === 'read' ? 'Прочитано' : 
-                                      request.status === 'answered' ? 'Ответ получен' : 'Закрыто';
-                    
-                    const statusClass = request.status === 'new' ? 'status-new' : 
-                                       request.status === 'read' ? 'status-read' : 'status-closed';
-                    
-                    html += `
-                        <div class="request-item ${request.type}">
-                            <div class="request-header">
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    <span class="request-type-badge ${typeClass}">${typeText}</span>
-                                    <strong>${request.ticketId}</strong>
-                                </div>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    <span class="request-status ${statusClass}">${statusText}</span>
-                                    <small style="color: #aaa;">${dateStr}</small>
-                                </div>
+                html += `
+                    <div class="request-item ${request.type}">
+                        <div class="request-header">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <span class="request-type-badge ${typeClass}">${typeText}</span>
+                                <strong style="color: #6ab7ff;">${request.ticketId || request.id}</strong>
                             </div>
-                            <div style="margin-top: 10px;">
-                                <p style="color: #ccccff;">${truncateText(request.description || request.reason, 100)}</p>
-                                ${request.adminAnswer ? `
-                                    <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                                        <strong style="color: #00ff00;">📨 Ответ администрации:</strong>
-                                        <p style="color: #ccffcc; margin-top: 5px;">${request.adminAnswer}</p>
-                                    </div>
-                                ` : ''}
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <span class="request-status ${statusClass}">${statusText}</span>
+                                <small style="color: #aaa; font-size: 12px;">${dateStr}</small>
                             </div>
                         </div>
-                    `;
-                });
-                
-                requestsList.innerHTML = html;
-                
-            } catch (error) {
-                console.error('Ошибка загрузки обращений:', error);
-            }
-        }
-        
-        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        function generateTicketId(prefix) {
-            const random = Math.random().toString(36).substr(2, 6).toUpperCase();
-            const date = new Date();
-            const dateStr = date.getDate().toString().padStart(2, '0') + 
-                          (date.getMonth() + 1).toString().padStart(2, '0') + 
-                          date.getFullYear().toString().substr(2, 2);
-            return `${prefix}-${dateStr}-${random}`;
-        }
-        
-        function truncateText(text, maxLength) {
-            if (text.length <= maxLength) return text;
-            return text.substr(0, maxLength) + '...';
-        }
-        
-        function clearForm(type) {
-            const form = document.getElementById(`${type}Form`);
-            form.querySelectorAll('input, textarea, select').forEach(element => {
-                if (element.id.includes('Nickname')) return; // Не очищаем ник
-                element.value = '';
-            });
-        }
-        
-        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            // Автоматически заполняем ник во всех формах
-            fillNicknameFields();
-            
-            // Загружаем обращения пользователя
-            loadUserRequests();
-            
-            // Показываем ник в заголовке
-            document.getElementById('complaintNickname').value = username;
-            document.getElementById('appealNickname').value = username;
-            document.getElementById('supportNickname').value = username;
-            
-            // Проверяем, есть ли сохраненный ник в localStorage
-            const savedNick = localStorage.getItem('jojoland_username');
-            if (savedNick) {
-                username = savedNick;
-                document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
-                    input.value = username;
-                });
-            }
-            
-            // Сохраняем ник при изменении
-            document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
-                input.addEventListener('change', function() {
-                    username = this.value.trim();
-                    localStorage.setItem('jojoland_username', username);
-                });
+                        <div style="margin-top: 15px;">
+                            <p style="color: #ccccff; line-height: 1.5; word-break: break-word;">
+                                ${truncateText(requestText, 150)}
+                            </p>
+                            ${request.adminAnswer ? `
+                                <div style="margin-top: 15px; padding: 12px; background: rgba(0,255,0,0.1); border-radius: 10px; border-left: 3px solid #00ff00;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                        <span style="color: #00ff00; font-weight: bold;">📨 Ответ администрации</span>
+                                        <small style="color: #aaa;">
+                                            ${request.adminName || 'Администратор'}
+                                        </small>
+                                    </div>
+                                    <p style="color: #ccffcc; line-height: 1.5; word-break: break-word;">
+                                        ${request.adminAnswer}
+                                    </p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
             });
             
-            // Выбираем первую форму по умолчанию
-            selectType('complaint');
+            requestsList.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки обращений:', error);
+            document.getElementById('requestsList').innerHTML = 
+                '<p style="text-align: center; color: #ff6666;">Ошибка загрузки. Обновите страницу.</p>';
+        }
+    }
+    
+    // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+    function generateTicketId(prefix) {
+        const random = Math.random().toString(36).substr(2, 6).toUpperCase();
+        const date = new Date();
+        const dateStr = date.getDate().toString().padStart(2, '0') + 
+                      (date.getMonth() + 1).toString().padStart(2, '0') + 
+                      date.getFullYear().toString().substr(2, 2);
+        return `${prefix}-${dateStr}-${random}`;
+    }
+    
+    function truncateText(text, maxLength) {
+        if (!text) return 'Нет описания';
+        if (text.length <= maxLength) return text;
+        return text.substr(0, maxLength) + '...';
+    }
+    
+    function clearForm(type) {
+        const form = document.getElementById(`${type}Form`);
+        form.querySelectorAll('input:not([id$="Nickname"]), textarea, select').forEach(element => {
+            element.value = '';
         });
-    </script>
+    }
+    
+    // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        // Автоматически заполняем ник во всех формах
+        fillNicknameFields();
+        
+        // Загружаем обращения пользователя
+        loadUserRequests();
+        
+        // Показываем ник в заголовке
+        document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
+            input.value = username;
+        });
+        
+        // Сохраняем ник при изменении
+        document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const newUsername = this.value.trim();
+                if (newUsername) {
+                    username = newUsername;
+                    localStorage.setItem('jojoland_username', username);
+                    
+                    // Обновляем во всех полях
+                    document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(field => {
+                        field.value = username;
+                    });
+                }
+            });
+        });
+        
+        // Выбираем первую форму по умолчанию
+        selectType('complaint');
+        
+        // Добавляем кнопку сброса никнейма
+        addResetUsernameButton();
+    });
+    
+    function addResetUsernameButton() {
+        // Добавляем кнопку в каждую форму
+        const forms = ['complaint', 'appeal', 'support'];
+        forms.forEach(type => {
+            const form = document.getElementById(`${type}Form`);
+            const nicknameField = form.querySelector('input[type="text"][id$="Nickname"]');
+            
+            if (nicknameField) {
+                const resetBtn = document.createElement('button');
+                resetBtn.type = 'button';
+                resetBtn.textContent = '🔄 Сбросить';
+                resetBtn.style.cssText = `
+                    margin-left: 10px;
+                    padding: 5px 10px;
+                    background: rgba(255,255,255,0.1);
+                    border: 1px solid rgba(255,255,255,0.3);
+                    border-radius: 10px;
+                    color: #ffb3ff;
+                    cursor: pointer;
+                    font-size: 12px;
+                `;
+                resetBtn.onclick = function() {
+                    const newUsername = `Игрок_${Math.floor(Math.random() * 1000)}`;
+                    username = newUsername;
+                    localStorage.setItem('jojoland_username', newUsername);
+                    
+                    // Обновляем во всех полях
+                    document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(field => {
+                        field.value = newUsername;
+                    });
+                    
+                    alert(`Никнейм сброшен на: ${newUsername}`);
+                };
+                
+                nicknameField.parentNode.appendChild(resetBtn);
+            }
+        });
+    }
+</script>
 </body>
 </html>
