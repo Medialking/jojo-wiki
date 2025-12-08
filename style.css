@@ -1,30 +1,11 @@
-/* ОБЩИЙ ФОН С НОВОГОДНИМ ГРАДИЕНТОМ */
+/* ОБЩИЙ ФОН */
 body {
     margin: 0;
-    background: linear-gradient(180deg, #0a0015 0%, #1a0030 30%, #2a0040 70%, #0a0015 100%);
+    background: linear-gradient(180deg, #0a0015 0%, #1a0030 50%, #0a0015 100%);
     font-family: 'Orbitron', sans-serif;
     color: #fff;
     overflow-x: hidden;
-    position: relative;
-}
-
-/* ЗВЁЗДНЫЙ ФОН */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-        radial-gradient(2px 2px at 40px 70px, #fff, transparent),
-        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-        radial-gradient(2px 2px at 130px 80px, #fff, transparent);
-    background-repeat: repeat;
-    background-size: 200px 200px;
-    opacity: 0.3;
-    z-index: -1;
+    min-height: 100vh;
 }
 
 /* АНИМАЦИЯ ЗАГРУЗКИ */
@@ -44,11 +25,10 @@ body::before {
 .spinner {
     width: 60px;
     height: 60px;
-    border: 6px solid #ff00ff;
+    border: 6px solid #6200ff;
     border-top-color: transparent;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
-    box-shadow: 0 0 20px #ff00ff;
 }
 
 @keyframes spin {
@@ -64,537 +44,385 @@ body::before {
 /* ХЕДЕР */
 header {
     text-align: center;
-    padding-top: 20px;
-    position: relative;
+    padding: 20px 20px 10px;
 }
 
-/* КОНТЕЙНЕР ЛОГОТИПА */
-.logo-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.christmas-lights {
-    width: 40px;
-    height: 100px;
-    background: linear-gradient(45deg, #ff0000, #00ff00, #ffff00, #ff00ff);
-    border-radius: 20px;
-    animation: colorChange 3s infinite alternate;
-    box-shadow: 0 0 15px currentColor;
-}
-
-@keyframes colorChange {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
-}
-
-/* 3D ЛОГО С НОВОГОДНИМ СВЕЧЕНИЕМ */
+/* ЛОГОТИП */
 .logo {
-    width: 140px;
-    height: 140px;
-    border-radius: 25px;
+    width: 120px;
+    height: 120px;
+    border-radius: 20px;
     animation: logoFloat 4s ease-in-out infinite;
-    filter: drop-shadow(0 0 25px #ff00ff) 
-            drop-shadow(0 0 40px #00ffff)
-            drop-shadow(0 0 60px #ff0000);
-    border: 2px solid transparent;
-    background: linear-gradient(45deg, #ff00ff, #00ffff, #ff0000) border-box;
-    padding: 3px;
+    filter: drop-shadow(0 0 20px #7b00ff);
+    margin-bottom: 15px;
 }
 
 @keyframes logoFloat {
-    0%   { transform: translateY(0) rotateX(0deg) scale(1); }
-    50%  { transform: translateY(-15px) rotateX(10deg) scale(1.05); }
-    100% { transform: translateY(0) rotateX(0deg) scale(1); }
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
 }
 
-.new-year-title {
-    font-size: 48px;
-    margin: 10px 0 5px;
-    letter-spacing: 6px;
-    background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #ff00ff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    animation: titleGlow 2s infinite alternate;
+h1 {
+    font-size: 36px;
+    margin: 0 0 5px;
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px #ff00ff;
 }
 
-@keyframes titleGlow {
-    0% { filter: brightness(1); }
-    100% { filter: brightness(1.3); }
-}
-
-.new-year-subtitle {
-    font-size: 18px;
-    color: #ffcc00;
-    margin-bottom: 30px;
-    text-shadow: 0 0 10px #ff9900;
-    animation: subtitleFloat 3s ease-in-out infinite;
-}
-
-@keyframes subtitleFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+.subtitle {
+    color: #aaaaff;
+    margin-bottom: 25px;
+    font-size: 14px;
 }
 
 /* МЕНЮ */
 nav {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
     flex-wrap: wrap;
-    max-width: 900px;
-    margin: 0 auto 40px;
+    max-width: 500px;
+    margin: 0 auto 30px;
+    padding: 0 15px;
 }
 
 .nav-btn {
-    padding: 12px 25px;
-    background: linear-gradient(135deg, rgba(255, 0, 170, 0.2), rgba(0, 170, 255, 0.2));
-    border-radius: 15px;
+    padding: 10px 20px;
+    background: rgba(255, 0, 170, 0.15);
+    border-radius: 12px;
     color: #ffbaff;
     text-decoration: none;
-    transition: all 0.3s;
-    box-shadow: 0 0 15px rgba(177, 0, 255, 0.5);
-    border: 1px solid transparent;
-    background-clip: padding-box;
-    position: relative;
-    overflow: hidden;
-}
-
-.nav-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: 0.5s;
-}
-
-.nav-btn:hover::before {
-    left: 100%;
+    transition: all 0.25s;
+    box-shadow: 0 0 10px #b100ff50;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 .nav-btn:hover {
-    background: linear-gradient(135deg, #ff00c8, #00c3ff);
-    box-shadow: 0 0 30px #ff00ee;
-    transform: translateY(-3px) scale(1.05);
-    color: white;
+    background: rgba(255, 0, 200, 0.3);
+    box-shadow: 0 0 20px #ff00ee;
+    transform: translateY(-2px);
 }
 
-/* ПРАЗДНИЧНЫЙ БАННЕР */
-.holiday-banner {
-    background: linear-gradient(90deg, #ff0066, #ff9900, #00cc66, #0099ff, #9966ff);
-    background-size: 400% 400%;
-    animation: gradientShift 8s ease infinite;
-    border-radius: 20px;
-    padding: 3px;
-    margin: 30px auto;
-    max-width: 800px;
+/* ОСНОВНОЙ КОНТЕНТ */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+}
+
+/* ИНФОРМАЦИОННЫЙ БЛОК */
+.info-block {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.info-block h2 {
+    color: #ffcc00;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.info-block p {
+    color: #aaaaff;
+    font-size: 14px;
+}
+
+/* СЕТКА КНОПОК */
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.main-btn {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    padding: 20px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
 }
 
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.banner-content {
-    background: rgba(10, 0, 30, 0.9);
-    border-radius: 18px;
-    padding: 25px;
-    text-align: center;
-    position: relative;
-}
-
-.banner-content h2 {
-    margin: 0 0 10px;
-    color: #ffffff;
-    text-shadow: 0 0 15px #00ffff;
-}
-
-.banner-content p {
-    color: #ccccff;
-    margin: 0;
-    font-size: 16px;
-}
-
-.banner-glow {
+.main-btn::before {
+    content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: rotateGlow 10s linear infinite;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    transition: width 0.3s;
 }
 
-@keyframes rotateGlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.main-btn:hover::before {
+    width: 100%;
+    opacity: 0.1;
 }
 
-/* КРУГОВОЕ МЕНЮ */
-.circular-menu {
-    position: relative;
-    width: 500px;
-    height: 500px;
-    margin: 50px auto;
+.main-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-.center-circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, #ff00ff, #b300ff);
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 2;
-    box-shadow: 0 0 40px #ff00ff,
-                inset 0 0 20px rgba(255, 255, 255, 0.3);
-    animation: pulse 2s infinite alternate;
-}
+.tgk-btn::before { background: #ff0066; }
+.tg-btn::before { background: #0088cc; }
+.donate-btn::before { background: #ff9900; }
+.wiki-btn::before { background: #00cc66; }
+.server-btn::before { background: #9966ff; }
+.support-btn::before { background: #00ccff; }
 
-@keyframes pulse {
-    0% { transform: translate(-50%, -50%) scale(1); }
-    100% { transform: translate(-50%, -50%) scale(1.05); }
-}
-
-.center-text {
-    text-align: center;
-    color: white;
-    font-weight: bold;
-    text-shadow: 0 0 10px #000;
-}
-
-.center-text span {
-    display: block;
-    font-size: 18px;
-}
-
-.center-text small {
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-.circular-btn {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, var(--btn-color-1), var(--btn-color-2));
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    color: white;
-    transform-origin: center;
-    transition: all 0.3s;
-    box-shadow: 0 0 25px var(--btn-color-1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    z-index: 1;
-}
-
-.circular-btn:hover {
-    transform: scale(1.15) rotate(5deg);
-    box-shadow: 0 0 40px var(--btn-color-2);
-    z-index: 3;
+.main-btn:hover .btn-icon {
+    transform: scale(1.2);
 }
 
 .btn-icon {
     font-size: 32px;
-    margin-bottom: 5px;
-    filter: drop-shadow(0 0 5px white);
-}
-
-.circular-btn span {
-    font-size: 14px;
+    margin-right: 20px;
+    transition: transform 0.3s;
+    width: 50px;
     text-align: center;
-    text-shadow: 0 0 5px #000;
 }
 
-/* Позиционирование кнопок по кругу */
-.btn-1 { --btn-color-1: #ff0066; --btn-color-2: #ff9900; top: 10%; left: 30%; }
-.btn-2 { --btn-color-1: #00cc66; --btn-color-2: #00ffcc; top: 10%; right: 30%; }
-.btn-3 { --btn-color-1: #0099ff; --btn-color-2: #0066ff; top: 40%; left: 5%; }
-.btn-4 { --btn-color-1: #9966ff; --btn-color-2: #cc33ff; top: 40%; right: 5%; }
-.btn-5 { --btn-color-1: #ff9900; --btn-color-2: #ffcc00; bottom: 10%; left: 30%; }
-.btn-6 { --btn-color-1: #ff0066; --btn-color-2: #ff3399; bottom: 10%; right: 30%; }
+.btn-content {
+    flex: 1;
+}
 
-/* КАРТОЧКИ */
-.info-cards {
+.btn-content h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    color: #ffffff;
+}
+
+.btn-content p {
+    margin: 0;
+    font-size: 13px;
+    color: #aaaaff;
+    opacity: 0.8;
+}
+
+/* БЫСТРЫЕ ССЫЛКИ */
+.quick-links {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.quick-links h3 {
+    color: #ffcc00;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.link-buttons {
     display: flex;
     justify-content: center;
-    gap: 30px;
+    gap: 15px;
     flex-wrap: wrap;
-    max-width: 1200px;
-    margin: 60px auto;
-    padding: 0 20px;
 }
 
-.card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+.quick-btn {
+    padding: 10px 25px;
+    background: rgba(98, 0, 255, 0.2);
+    border-radius: 10px;
+    color: #ccccff;
+    text-decoration: none;
+    transition: all 0.25s;
+    font-size: 14px;
+    border: 1px solid rgba(98, 0, 255, 0.3);
+}
+
+.quick-btn:hover {
+    background: rgba(98, 0, 255, 0.4);
+    transform: translateY(-2px);
+    color: white;
+}
+
+/* ИНФОРМАЦИЯ О СЕРВЕРЕ */
+.server-info {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
     padding: 25px;
-    width: 300px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
+    margin-top: 30px;
+    border-left: 4px solid #ff00ff;
 }
 
-.card::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #ff00ff, #00ffff, #ff9900);
-    z-index: -1;
-    border-radius: 22px;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.card:hover::before {
-    opacity: 1;
-}
-
-.card:hover {
-    transform: translateY(-10px) scale(1.03);
-    box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
-}
-
-.card-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-    filter: drop-shadow(0 0 10px currentColor);
-}
-
-.card h3 {
+.server-info h3 {
     color: #ffcc00;
     margin-bottom: 15px;
+    font-size: 20px;
 }
 
-.card p {
+.server-info p {
     color: #ccccff;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 20px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 15px;
 }
 
-.card-btn {
-    display: inline-block;
-    padding: 10px 25px;
-    background: linear-gradient(90deg, #ff0066, #ff9900);
-    border-radius: 10px;
-    color: white;
-    text-decoration: none;
-    transition: all 0.3s;
+.server-info strong {
+    color: #ff99ff;
 }
 
-.card-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px #ff9900;
-}
-
-/* КНОПКА ЧАТА */
-.chat-btn {
+/* КНОПКА ПОМОЩИ */
+.help-btn {
     position: fixed;
-    right: 30px;
-    bottom: 30px;
-    background: linear-gradient(135deg, #ff0066, #ff9900);
-    padding: 20px;
-    border-radius: 50%;
+    right: 20px;
+    bottom: 20px;
+    background: linear-gradient(135deg, #6200ff, #ff00ff);
+    border-radius: 50px;
+    padding: 15px 25px;
     text-decoration: none;
-    color: #fff;
-    box-shadow: 0 0 30px #ff0066;
+    color: white;
+    box-shadow: 0 5px 20px rgba(98, 0, 255, 0.5);
     transition: all 0.3s;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
     z-index: 100;
+    font-size: 14px;
 }
 
-.chat-btn:hover {
-    transform: scale(1.2) rotate(10deg);
-    box-shadow: 0 0 50px #ff9900;
+.help-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 30px rgba(98, 0, 255, 0.7);
 }
 
-.chat-icon {
-    font-size: 32px;
-    margin-bottom: 5px;
-}
-
-.chat-btn span {
-    font-size: 12px;
-    font-weight: bold;
+.help-icon {
+    font-size: 24px;
+    margin-right: 10px;
 }
 
 /* ФУТЕР */
 footer {
-    padding: 30px;
+    padding: 25px 20px;
     text-align: center;
-    margin-top: 50px;
-    position: relative;
-    overflow: hidden;
+    margin-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-content {
-    position: relative;
-    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.footer-holiday {
-    color: #ffcc00;
-    font-size: 18px;
-    margin: 10px 0;
-    text-shadow: 0 0 10px #ff9900;
-    animation: holidayText 2s infinite alternate;
+.footer-content p {
+    margin: 5px 0;
+    color: #aaaaff;
+    font-size: 14px;
 }
 
-@keyframes holidayText {
-    0% { opacity: 0.8; }
-    100% { opacity: 1; }
-}
-
-.footer-lights {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.footer-lights span {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #ff0066;
-    animation: lightTwinkle 1.5s infinite alternate;
-}
-
-.footer-lights span:nth-child(2) { background: #00ff00; animation-delay: 0.2s; }
-.footer-lights span:nth-child(3) { background: #ffff00; animation-delay: 0.4s; }
-.footer-lights span:nth-child(4) { background: #00ffff; animation-delay: 0.6s; }
-.footer-lights span:nth-child(5) { background: #ff00ff; animation-delay: 0.8s; }
-
-@keyframes lightTwinkle {
-    0% { opacity: 0.3; transform: scale(0.8); }
-    100% { opacity: 1; transform: scale(1.2); }
+.footer-ip {
+    color: #ffcc00 !important;
+    font-weight: bold;
+    font-size: 16px !important;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
 }
 
 /* АДАПТИВНОСТЬ */
-@media (max-width: 1024px) {
-    .circular-menu {
-        width: 400px;
-        height: 400px;
-    }
-    
-    .circular-btn {
-        width: 85px;
-        height: 85px;
-    }
-}
-
 @media (max-width: 768px) {
-    .circular-menu {
-        width: 300px;
-        height: 300px;
-    }
-    
-    .circular-btn {
-        width: 70px;
-        height: 70px;
-    }
-    
-    .btn-icon {
-        font-size: 24px;
-    }
-    
-    .circular-btn span {
-        font-size: 10px;
-    }
-    
-    .info-cards {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .card {
-        width: 90%;
-    }
-}
-
-@media (max-width: 600px) {
-    .logo-container {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .christmas-lights {
-        width: 100px;
-        height: 20px;
-    }
-    
     .logo {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
     }
     
-    .new-year-title {
-        font-size: 32px;
-        letter-spacing: 3px;
+    h1 {
+        font-size: 28px;
     }
     
-    nav {
-        flex-direction: column;
-        align-items: center;
+    .button-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
     
-    .nav-btn {
-        width: 90%;
-        margin-bottom: 10px;
-    }
-    
-    .circular-menu {
-        width: 250px;
-        height: 250px;
-    }
-    
-    .circular-btn {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .chat-btn {
-        right: 15px;
-        bottom: 15px;
-        width: 60px;
-        height: 60px;
+    .main-btn {
         padding: 15px;
     }
     
-    .chat-icon {
+    .btn-icon {
+        font-size: 28px;
+        margin-right: 15px;
+        width: 40px;
+    }
+    
+    .btn-content h3 {
+        font-size: 16px;
+    }
+    
+    .btn-content p {
+        font-size: 12px;
+    }
+    
+    .link-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .quick-btn {
+        width: 90%;
+        max-width: 250px;
+    }
+    
+    .help-btn {
+        right: 15px;
+        bottom: 15px;
+        padding: 12px 20px;
+    }
+    
+    .help-icon {
+        font-size: 20px;
+        margin-right: 8px;
+    }
+    
+    .help-btn span {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    nav {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .nav-btn {
+        width: 100%;
+        max-width: 250px;
+        text-align: center;
+    }
+    
+    .logo {
+        width: 80px;
+        height: 80px;
+    }
+    
+    h1 {
         font-size: 24px;
+    }
+    
+    .subtitle {
+        font-size: 12px;
+    }
+    
+    .help-btn {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+    
+    .help-btn span {
+        display: none;
+    }
+    
+    .help-icon {
+        margin-right: 0;
+        font-size: 22px;
     }
 }
