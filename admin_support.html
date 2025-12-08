@@ -226,6 +226,7 @@
             cursor: pointer;
             transition: 0.3s;
             border: 2px solid transparent;
+            position: relative;
         }
         
         .ticket-item:hover {
@@ -294,6 +295,25 @@
             font-size: 12px;
             color: #888;
             text-align: right;
+        }
+        
+        /* Таймер удаления */
+        .ticket-timer {
+            color: #ff9900;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 8px;
+            background: rgba(255,153,0,0.1);
+            border-radius: 10px;
+            display: inline-block;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
         
         /* Детали тикета */
@@ -455,26 +475,6 @@
             font-weight: bold;
         }
         
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        /* Полосы прокрутки */
-        .tickets-list::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .tickets-list::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-        
-        .tickets-list::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #0066ff, #0099ff);
-            border-radius: 10px;
-        }
-        
         /* Стили для модального окна входа */
         .login-modal {
             display: none;
@@ -567,6 +567,11 @@
             min-height: 20px;
         }
         
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
         @keyframes modalAppear {
             from {
                 opacity: 0;
@@ -576,6 +581,21 @@
                 opacity: 1;
                 transform: scale(1);
             }
+        }
+        
+        /* Полосы прокрутки */
+        .tickets-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .tickets-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .tickets-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #0066ff, #0099ff);
+            border-radius: 10px;
         }
         
         /* Адаптация */
@@ -854,6 +874,7 @@
         const ADMIN_PASSWORD = "Jojoland2024!"; // ← ИЗМЕНИТЕ ЭТОТ ПАРОЛЬ!
         const BLOCK_TIME = 30; // секунд блокировки при ошибке
         const MAX_ATTEMPTS = 3; // максимальное количество попыток
+        const AUTO_DELETE_DELAY = 5 * 60 * 1000; // 5 минут в миллисекундах
         
         // ==================== FIREBASE КОНФИГ ====================
         const firebaseConfig = {
@@ -901,17 +922,14 @@
             }
             
             if (password === ADMIN_PASSWORD) {
-                // Успешный вход
                 loginSuccess();
             } else {
-                // Неправильный пароль
                 failedAttempts++;
                 
                 if (failedAttempts >= MAX_ATTEMPTS) {
                     isBlocked = true;
                     blockUntil = Date.now() + (BLOCK_TIME * 1000);
                     
-                    // Таймер разблокировки
                     setTimeout(() => {
                         isBlocked = false;
                         failedAttempts = 0;
@@ -920,7 +938,6 @@
                         errorElement.textContent = '';
                     }, BLOCK_TIME * 1000);
                     
-                    // Заблокировать поле ввода
                     document.getElementById('passwordInput').disabled = true;
                     document.getElementById('passwordInput').placeholder = `Заблокировано на ${BLOCK_TIME} секунд`;
                     
@@ -943,46 +960,34 @@
             const errorElement = document.getElementById('errorMessage');
             errorElement.textContent = message;
             
-            // Автоочистка через 3 секунды
             setTimeout(() => {
                 errorElement.textContent = '';
             }, 3000);
         }
         
         async function loginSuccess() {
-            // Получаем IP админа
             const adminIP = await getIP();
             currentAdmin.ip = adminIP;
             
-            // Сохраняем время входа
             const loginTime = new Date();
             localStorage.setItem('adminLastLogin', loginTime.toISOString());
             localStorage.setItem('adminSession', 'active');
             
-            // Скрываем модальное окно
             document.getElementById('loginModal').classList.remove('active');
-            
-            // Показываем админ-панель
             document.getElementById('adminContent').style.display = 'block';
             
-            // Устанавливаем имя админа
             const savedName = localStorage.getItem('adminName');
             if (savedName) {
                 document.getElementById('adminName').textContent = savedName;
                 currentAdmin.name = savedName;
             }
             
-            // Показываем время последнего входа
             const lastLogin = document.getElementById('lastLogin');
             lastLogin.textContent = `Вход: ${loginTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
             
-            // Инициализируем панель
             initAdminPanel();
-            
-            // Записываем в базу данных факт входа
             logAdminAction('login', 'Вход в админ-панель');
             
-            // Фокус на поиске
             setTimeout(() => {
                 document.getElementById('searchInput').focus();
             }, 500);
@@ -991,25 +996,17 @@
         // ==================== ВЫХОД ====================
         function logout() {
             if (confirm('Выйти из админ-панели?')) {
-                // Записываем в базу данных факт выхода
                 logAdminAction('logout', 'Выход из админ-панель');
-                
-                // Очищаем localStorage
                 localStorage.removeItem('adminSession');
                 
-                // Показываем окно входа
                 document.getElementById('adminContent').style.display = 'none';
                 document.getElementById('loginModal').classList.add('active');
                 
-                // Сбрасываем поле пароля
                 document.getElementById('passwordInput').value = '';
                 document.getElementById('passwordInput').focus();
                 
-                // Сбрасываем попытки
                 failedAttempts = 0;
                 isBlocked = false;
-                
-                // Сбрасываем выбранный тикет
                 selectedTicketId = null;
                 selectedTicketData = null;
                 document.getElementById('ticketDetails').classList.remove('active');
@@ -1041,26 +1038,82 @@
             }
         }
         
-        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
-        function initAdminPanel() {
-            // Загружаем все обращения
-            loadAllTickets();
-            
-            // Обновляем статистику каждые 30 секунд
-            setInterval(updateStats, 30000);
-            
-            // Проверяем автологин при обновлении страницы
-            const sessionActive = localStorage.getItem('adminSession');
-            if (sessionActive === 'active') {
-                console.log('Сессия восстановлена');
+        // ==================== АВТОМАТИЧЕСКОЕ УДАЛЕНИЕ ====================
+        async function setupAutoDelete(ticketId, ticketData) {
+            if (ticketData.status === 'answered' || ticketData.status === 'closed') {
+                setTimeout(async () => {
+                    try {
+                        await autoDeleteTicket(ticketId, ticketData);
+                    } catch (error) {
+                        console.error('Ошибка автоматического удаления:', error);
+                    }
+                }, AUTO_DELETE_DELAY);
             }
-            
-            // Показываем подсказку
-            setTimeout(() => {
-                if (allTickets.length === 0) {
-                    alert('💡 Совет: Для теста создайте обращение с главной страницы сайта, затем обновите эту страницу.');
+        }
+        
+        async function autoDeleteTicket(ticketId, ticketData) {
+            try {
+                if (!ticketData.adminAnswer) {
+                    console.log(`❌ Тикет ${ticketId} не удален - нет ответа админа`);
+                    return;
                 }
-            }, 2000);
+
+                const answerTime = ticketData.answerTime || ticketData.timestamp;
+                const timeSinceAnswer = Date.now() - answerTime;
+                
+                if (timeSinceAnswer < AUTO_DELETE_DELAY) {
+                    console.log(`⏳ Тикет ${ticketId} еще не готов к удалению`);
+                    return;
+                }
+
+                await logAction('auto_delete', `Автоматически удалил обращение ${ticketData.ticketId}`);
+
+                await database.ref(`support_tickets/${ticketId}`).remove();
+                await database.ref(`ticket_answers/${ticketId}`).remove();
+                await database.ref(`ticket_logs/${ticketId}`).remove();
+
+                console.log(`✅ Тикет ${ticketId} автоматически удален`);
+
+                allTickets = allTickets.filter(t => t.id !== ticketId);
+                
+                if (selectedTicketId === ticketId) {
+                    selectedTicketId = null;
+                    selectedTicketData = null;
+                    document.getElementById('ticketDetails').classList.remove('active');
+                }
+                
+                updateTicketsList();
+                updateStats();
+
+            } catch (error) {
+                console.error('❌ Ошибка автоматического удаления тикета:', error);
+            }
+        }
+        
+        // ==================== ПРОВЕРКА СТАРЫХ ТИКЕТОВ ====================
+        async function checkOldTickets() {
+            try {
+                const now = Date.now();
+                const deleteTime = now - AUTO_DELETE_DELAY;
+                
+                const ticketsToDelete = allTickets.filter(ticket => {
+                    const answerTime = ticket.answerTime || ticket.closedTime || ticket.timestamp;
+                    return ticket.adminAnswer && 
+                           (ticket.status === 'answered' || ticket.status === 'closed') &&
+                           answerTime < deleteTime;
+                });
+
+                for (const ticket of ticketsToDelete) {
+                    await autoDeleteTicket(ticket.id, ticket);
+                }
+
+                if (ticketsToDelete.length > 0) {
+                    console.log(`🗑️ Автоматически удалено ${ticketsToDelete.length} старых тикетов`);
+                }
+
+            } catch (error) {
+                console.error('Ошибка проверки старых тикетов:', error);
+            }
         }
         
         // ==================== ЗАГРУЗКА ДАННЫХ ====================
@@ -1083,13 +1136,14 @@
                         id: childSnapshot.key,
                         ...childSnapshot.val()
                     };
-                    allTickets.unshift(ticket); // Новые сверху
+                    allTickets.unshift(ticket);
+                    
+                    checkAndDeleteOldTicket(ticket);
                 });
                 
                 updateTicketsList();
                 updateStats();
                 
-                // Автоматически выбираем первый новый тикет
                 const newTicket = allTickets.find(t => t.status === 'new');
                 if (newTicket) {
                     selectTicket(newTicket.id);
@@ -1101,51 +1155,70 @@
             }
         }
         
+        async function checkAndDeleteOldTicket(ticket) {
+            if (ticket.adminAnswer && (ticket.status === 'answered' || ticket.status === 'closed')) {
+                const answerTime = ticket.answerTime || ticket.closedTime || ticket.timestamp;
+                const timeSinceAnswer = Date.now() - answerTime;
+                
+                if (timeSinceAnswer > AUTO_DELETE_DELAY) {
+                    await autoDeleteTicket(ticket.id, ticket);
+                } else {
+                    const timeLeft = AUTO_DELETE_DELAY - timeSinceAnswer;
+                    setTimeout(async () => {
+                        await autoDeleteTicket(ticket.id, ticket);
+                    }, timeLeft);
+                }
+            }
+        }
+        
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        function initAdminPanel() {
+            loadAllTickets();
+            setInterval(updateStats, 30000);
+            setInterval(checkOldTickets, 60000);
+            
+            window.addEventListener('beforeunload', () => {
+                localStorage.setItem('adminSessionActive', 'true');
+            });
+            
+            setTimeout(() => {
+                if (allTickets.length === 0) {
+                    alert('💡 Совет: Для теста создайте обращение с главной страницы сайта, затем обновите эту страницу.');
+                }
+            }, 2000);
+        }
+        
         // ==================== ФИЛЬТРАЦИЯ ====================
         function filterTickets(type) {
             currentFilter = type;
-            
-            // Обновляем активные кнопки
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
             updateTicketsList();
         }
         
         function filterByStatus(status) {
             currentStatusFilter = status;
-            
-            // Обновляем активные кнопки
             document.querySelectorAll('.filter-section:nth-child(3) .filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
             updateTicketsList();
         }
         
         function updateTicketsList() {
-            // Фильтруем тикеты
             filteredTickets = allTickets.filter(ticket => {
-                // Фильтр по типу
                 if (currentFilter !== 'all' && ticket.type !== currentFilter) {
                     return false;
                 }
-                
-                // Фильтр по статусу
                 if (currentStatusFilter && ticket.status !== currentStatusFilter) {
                     return false;
                 }
-                
                 return true;
             });
             
-            // Обновляем счетчики
             updateFilterCounts();
-            
-            // Отображаем список
             const ticketsList = document.getElementById('ticketsList');
             
             if (filteredTickets.length === 0) {
@@ -1180,12 +1253,26 @@
                 
                 const isSelected = ticket.id === selectedTicketId ? 'selected' : '';
                 
+                // Таймер удаления
+                let timerHtml = '';
+                if (ticket.adminAnswer && (ticket.status === 'answered' || ticket.status === 'closed')) {
+                    const answerTime = ticket.answerTime || ticket.timestamp;
+                    const timeLeft = AUTO_DELETE_DELAY - (Date.now() - answerTime);
+                    
+                    if (timeLeft > 0) {
+                        const minutes = Math.floor(timeLeft / 60000);
+                        const seconds = Math.floor((timeLeft % 60000) / 1000);
+                        timerHtml = `<span class="ticket-timer">🗑️ ${minutes}:${seconds.toString().padStart(2, '0')}</span>`;
+                    }
+                }
+                
                 html += `
                     <div class="ticket-item ${isSelected}" onclick="selectTicket('${ticket.id}')">
                         <div class="ticket-header">
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <span class="ticket-id">${ticket.ticketId || ticket.id}</span>
                                 <span class="ticket-type ${typeClass}">${typeText}</span>
+                                ${timerHtml}
                             </div>
                             <span class="ticket-status ${statusClass}">${statusText}</span>
                         </div>
@@ -1204,7 +1291,6 @@
         }
         
         function updateFilterCounts() {
-            // Считаем по типам
             const counts = {
                 all: allTickets.length,
                 complaint: allTickets.filter(t => t.type === 'complaint').length,
@@ -1216,7 +1302,6 @@
                 closed: allTickets.filter(t => t.status === 'closed').length
             };
             
-            // Обновляем счетчики
             document.getElementById('countAll').textContent = counts.all;
             document.getElementById('countComplaints').textContent = counts.complaint;
             document.getElementById('countAppeals').textContent = counts.appeal;
@@ -1226,11 +1311,9 @@
             document.getElementById('countAnswered').textContent = counts.answered;
             document.getElementById('countClosed').textContent = counts.closed;
             
-            // Обновляем статистику вверху
             document.getElementById('newTickets').textContent = counts.new;
             document.getElementById('totalTickets').textContent = counts.all;
             
-            // Считаем сегодняшние
             const today = new Date().setHours(0,0,0,0);
             const todayCount = allTickets.filter(t => new Date(t.timestamp) >= today).length;
             document.getElementById('todayTickets').textContent = todayCount;
@@ -1243,26 +1326,17 @@
             
             if (!selectedTicketData) return;
             
-            // Обновляем список (подсвечиваем выбранный)
             updateTicketsList();
             
-            // Помечаем как прочитанный
             if (selectedTicketData.status === 'new') {
                 await database.ref(`support_tickets/${ticketId}/status`).set('read');
                 selectedTicketData.status = 'read';
                 updateStats();
-                
-                // Логируем действие
                 logAction('read', `Просмотрел обращение ${selectedTicketData.ticketId}`);
             }
             
-            // Показываем детали
             showTicketDetails();
-            
-            // Загружаем историю ответов
             loadTicketAnswers(ticketId);
-            
-            // Загружаем журнал действий
             loadActionLog(ticketId);
         }
         
@@ -1275,20 +1349,17 @@
             const dateStr = date.toLocaleDateString() + ' ' + 
                            date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
-            // Основная информация
             document.getElementById('detailTicketId').textContent = ticket.ticketId || ticket.id;
             document.getElementById('detailUser').textContent = ticket.userNickname || ticket.username || 'Неизвестно';
             document.getElementById('detailUserId').textContent = ticket.userId || 'Нет ID';
             document.getElementById('detailDate').textContent = dateStr;
             
-            // Время в работе
             const timeOpen = Date.now() - ticket.timestamp;
             const hours = Math.floor(timeOpen / (1000 * 60 * 60));
             const minutes = Math.floor((timeOpen % (1000 * 60 * 60)) / (1000 * 60));
             document.getElementById('detailTimeOpen').textContent = 
                 `${hours}ч ${minutes}м`;
             
-            // Тип и статус
             const typeText = ticket.type === 'complaint' ? '⚠️ Жалоба' : 
                             ticket.type === 'appeal' ? '⚖️ Апелляция' : '💬 Поддержка';
             const typeClass = ticket.type === 'complaint' ? 'type-complaint' : 
@@ -1307,11 +1378,9 @@
             document.getElementById('detailStatus').textContent = statusText;
             document.getElementById('detailStatus').className = `ticket-status ${statusClass}`;
             
-            // Сообщение
             document.getElementById('detailMessage').textContent = 
                 ticket.description || ticket.reason || 'Нет описания';
             
-            // Дополнительная информация
             const extraInfo = document.getElementById('extraInfo');
             extraInfo.innerHTML = '';
             
@@ -1329,11 +1398,9 @@
                     </div>
                 `;
                 
-                // Показываем доказательства
                 if (ticket.proof) {
                     document.getElementById('proofSection').style.display = 'block';
-                    document.getElementById('detailProof').innerHTML = 
-                        formatLinks(ticket.proof);
+                    document.getElementById('detailProof').innerHTML = formatLinks(ticket.proof);
                 } else {
                     document.getElementById('proofSection').style.display = 'none';
                 }
@@ -1354,8 +1421,7 @@
                 
                 if (ticket.proof) {
                     document.getElementById('proofSection').style.display = 'block';
-                    document.getElementById('detailProof').innerHTML = 
-                        formatLinks(ticket.proof);
+                    document.getElementById('detailProof').innerHTML = formatLinks(ticket.proof);
                 } else {
                     document.getElementById('proofSection').style.display = 'none';
                 }
@@ -1376,7 +1442,6 @@
                 }
             }
             
-            // Фокус на поле ответа
             setTimeout(() => {
                 document.getElementById('responseText').focus();
             }, 100);
@@ -1399,14 +1464,12 @@
             try {
                 const adminName = currentAdmin.name;
                 
-                // Сохраняем ответ
                 await database.ref(`support_tickets/${selectedTicketId}/adminAnswer`).set(responseText);
                 await database.ref(`support_tickets/${selectedTicketId}/adminName`).set(adminName);
                 await database.ref(`support_tickets/${selectedTicketId}/adminIP`).set(currentAdmin.ip);
                 await database.ref(`support_tickets/${selectedTicketId}/answerTime`).set(Date.now());
                 await database.ref(`support_tickets/${selectedTicketId}/status`).set('answered');
                 
-                // Сохраняем в историю ответов
                 const answerRef = database.ref(`ticket_answers/${selectedTicketId}`).push();
                 await answerRef.set({
                     text: responseText,
@@ -1415,19 +1478,18 @@
                     timestamp: Date.now()
                 });
                 
-                // Логируем действие
                 await logAction('answer', `Ответил на обращение ${selectedTicketData.ticketId}`);
                 
-                // Обновляем данные
                 selectedTicketData.adminAnswer = responseText;
                 selectedTicketData.adminName = adminName;
                 selectedTicketData.status = 'answered';
+                selectedTicketData.answerTime = Date.now();
                 
-                // Обновляем интерфейс
-                showMessage('✅ Ответ отправлен игроку!', 'success');
+                setupAutoDelete(selectedTicketId, selectedTicketData);
+                
+                showMessage('✅ Ответ отправлен игроку! Тикет будет удален через 5 минут.', 'success');
                 document.getElementById('responseText').value = '';
                 
-                // Показываем ответ в истории
                 loadTicketAnswers(selectedTicketId);
                 updateTicketsList();
                 updateStats();
@@ -1444,7 +1506,7 @@
                 return;
             }
             
-            if (confirm('Закрыть это обращение?')) {
+            if (confirm('Закрыть это обращение? Оно будет удалено через 5 минут.')) {
                 try {
                     await database.ref(`support_tickets/${selectedTicketId}/status`).set('closed');
                     await database.ref(`support_tickets/${selectedTicketId}/closedBy`).set(currentAdmin.name);
@@ -1453,8 +1515,11 @@
                     await logAction('close', `Закрыл обращение ${selectedTicketData.ticketId}`);
                     
                     selectedTicketData.status = 'closed';
+                    selectedTicketData.closedTime = Date.now();
                     
-                    showMessage('✅ Обращение закрыто!', 'success');
+                    setupAutoDelete(selectedTicketId, selectedTicketData);
+                    
+                    showMessage('✅ Обращение закрыто! Будет удалено через 5 минут.', 'success');
                     updateTicketsList();
                     updateStats();
                     
@@ -1476,16 +1541,13 @@
                     await database.ref(`support_tickets/${selectedTicketId}`).remove();
                     await logAction('delete', `Удалил обращение ${selectedTicketData.ticketId}`);
                     
-                    // Удаляем из локального массива
                     allTickets = allTickets.filter(t => t.id !== selectedTicketId);
                     
                     showMessage('✅ Обращение удалено!', 'success');
                     
-                    // Сбрасываем выбранный тикет
                     selectedTicketId = null;
                     selectedTicketData = null;
                     
-                    // Обновляем интерфейс
                     document.getElementById('ticketDetails').classList.remove('active');
                     updateTicketsList();
                     updateStats();
@@ -1498,7 +1560,6 @@
         }
         
         function skipTicket() {
-            // Ищем следующий тикет
             const currentIndex = filteredTickets.findIndex(t => t.id === selectedTicketId);
             if (currentIndex < filteredTickets.length - 1) {
                 selectTicket(filteredTickets[currentIndex + 1].id);
@@ -1530,7 +1591,6 @@
                     });
                 });
                 
-                // Сортируем по времени (старые сверху)
                 answers.sort((a, b) => a.timestamp - b.timestamp);
                 
                 answers.forEach(answer => {
@@ -1579,7 +1639,6 @@
                     logs.push(childSnapshot.val());
                 });
                 
-                // Сортируем по времени (новые сверху)
                 logs.sort((a, b) => b.timestamp - a.timestamp);
                 
                 logs.forEach(log => {
@@ -1611,7 +1670,6 @@
                     timestamp: Date.now()
                 });
                 
-                // Также логируем в общий журнал
                 await database.ref('admin_log').push({
                     ticketId: selectedTicketData.ticketId,
                     action: action,
@@ -1709,7 +1767,6 @@
             
             const todayCount = allTickets.filter(t => new Date(t.timestamp) >= today).length;
             
-            // Обновляем среднее время ответа в интерфейсе
             document.getElementById('responseTime').textContent = avgResponseTime;
             
             return {
@@ -1772,8 +1829,6 @@
         
         function formatLinks(text) {
             if (!text) return 'Нет доказательств';
-            
-            // Ищем ссылки и делаем их кликабельными
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             return text.replace(urlRegex, url => {
                 return `<a href="${url}" target="_blank" style="color: #6ab7ff;">${url}</a>`;
@@ -1781,32 +1836,22 @@
         }
         
         function showMessage(message, type = 'info') {
-            const colors = {
-                success: '#00ff00',
-                error: '#ff3333',
-                info: '#0066ff'
-            };
-            
             alert(`[${type.toUpperCase()}] ${message}`);
         }
         
         // ==================== ЗАПУСК ====================
         document.addEventListener('DOMContentLoaded', () => {
-            // Проверяем сессию
             const sessionActive = localStorage.getItem('adminSession');
             if (sessionActive === 'active') {
-                // Автоматический вход
                 loginSuccess();
             }
             
-            // Поиск по Enter
             document.getElementById('searchInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     searchTickets();
                 }
             });
             
-            // Фокус на поле пароля при загрузке
             document.getElementById('passwordInput').focus();
         });
     </script>
