@@ -304,8 +304,8 @@
             <div id="complaintForm" class="form-container">
                 <h2 style="color: #ff9900; margin-bottom: 20px;">⚠️ Форма жалобы</h2>
                 <div class="form-group">
-                    <label for="complaintNickname">Ваш игровой ник:</label>
-                    <input type="text" id="complaintNickname" placeholder="Например: Player123" required>
+                    <label for="complaintUserNickname">Ваш игровой ник:</label>
+                    <input type="text" id="complaintUserNickname" placeholder="Например: Player123" required>
                 </div>
                 <div class="form-group">
                     <label for="violatorNickname">Ник нарушителя:</label>
@@ -330,8 +330,8 @@
             <div id="appealForm" class="form-container">
                 <h2 style="color: #0099ff; margin-bottom: 20px;">⚖️ Форма апелляции</h2>
                 <div class="form-group">
-                    <label for="appealNickname">Ваш игровой ник:</label>
-                    <input type="text" id="appealNickname" placeholder="Например: Player123" required>
+                    <label for="appealUserNickname">Ваш игровой ник:</label>
+                    <input type="text" id="appealUserNickname" placeholder="Например: Player123" required>
                 </div>
                 <div class="form-group">
                     <label for="punishmentType">Тип наказания:</label>
@@ -363,8 +363,8 @@
             <div id="supportForm" class="form-container">
                 <h2 style="color: #00cc99; margin-bottom: 20px;">💬 Форма поддержки</h2>
                 <div class="form-group">
-                    <label for="supportNickname">Ваш игровой ник:</label>
-                    <input type="text" id="supportNickname" placeholder="Например: Player123" required>
+                    <label for="supportUserNickname">Ваш игровой ник:</label>
+                    <input type="text" id="supportUserNickname" placeholder="Например: Player123" required>
                 </div>
                 <div class="form-group">
                     <label for="supportCategory">Категория проблемы:</label>
@@ -450,16 +450,17 @@
             // Скрываем статус сообщения
             document.getElementById('statusMessage').style.display = 'none';
             
-            // Заполняем ник автоматически
-            fillNicknameFields();
+            // Заполняем ник автоматически ТОЛЬКО для поля "Ваш ник"
+            fillNicknameField(type);
         }
         
-        function fillNicknameFields() {
-            document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
-                if (!input.value) {
-                    input.value = username;
-                }
-            });
+        function fillNicknameField(type) {
+            const form = document.getElementById(`${type}Form`);
+            const userNicknameField = form.querySelector('input[id$="UserNickname"]');
+            
+            if (userNicknameField && !userNicknameField.value) {
+                userNicknameField.value = username;
+            }
         }
         
         // ==================== ОТПРАВКА ЖАЛОБЫ ====================
@@ -467,7 +468,7 @@
             // Собираем данные
             const complaintData = {
                 type: 'complaint',
-                userNickname: document.getElementById('complaintNickname').value.trim(),
+                userNickname: document.getElementById('complaintUserNickname').value.trim(),
                 violatorNickname: document.getElementById('violatorNickname').value.trim(),
                 violationTime: document.getElementById('violationTime').value.trim(),
                 description: document.getElementById('violationDescription').value.trim(),
@@ -497,7 +498,7 @@
         async function submitAppeal() {
             const appealData = {
                 type: 'appeal',
-                userNickname: document.getElementById('appealNickname').value.trim(),
+                userNickname: document.getElementById('appealUserNickname').value.trim(),
                 punishmentType: document.getElementById('punishmentType').value,
                 punishmentDate: document.getElementById('punishmentDate').value.trim(),
                 reason: document.getElementById('appealReason').value.trim(),
@@ -526,7 +527,7 @@
         async function submitSupport() {
             const supportData = {
                 type: 'support',
-                userNickname: document.getElementById('supportNickname').value.trim(),
+                userNickname: document.getElementById('supportUserNickname').value.trim(),
                 category: document.getElementById('supportCategory').value,
                 description: document.getElementById('supportDescription').value.trim(),
                 additionalInfo: document.getElementById('supportProof').value.trim(),
@@ -836,39 +837,48 @@
         
         function clearForm(type) {
             const form = document.getElementById(`${type}Form`);
-            form.querySelectorAll('input:not([id$="Nickname"]), textarea, select').forEach(element => {
+            form.querySelectorAll('input:not([id$="UserNickname"]), textarea, select').forEach(element => {
                 element.value = '';
             });
         }
         
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         document.addEventListener('DOMContentLoaded', () => {
-            // Автоматически заполняем ник во всех формах
-            fillNicknameFields();
+            // Автоматически заполняем ник только для полей "Ваш ник"
+            const userNicknameFields = [
+                'complaintUserNickname',
+                'appealUserNickname',
+                'supportUserNickname'
+            ];
             
-            // Загружаем обращения пользователя
-            loadUserRequests();
-            
-            // Показываем ник в заголовке
-            document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
-                input.value = username;
-            });
-            
-            // Сохраняем ник при изменении
-            document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(input => {
-                input.addEventListener('change', function() {
+            userNicknameFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field && !field.value) {
+                    field.value = username;
+                }
+                
+                // Сохраняем ник при изменении
+                field.addEventListener('change', function() {
                     const newUsername = this.value.trim();
                     if (newUsername) {
                         username = newUsername;
                         localStorage.setItem('jojoland_username', username);
                         
-                        // Обновляем во всех полях
-                        document.querySelectorAll('input[type="text"][id$="Nickname"]').forEach(field => {
-                            field.value = username;
+                        // Обновляем только поля "Ваш ник" во всех формах
+                        userNicknameFields.forEach(otherFieldId => {
+                            if (otherFieldId !== fieldId) {
+                                const otherField = document.getElementById(otherFieldId);
+                                if (otherField) {
+                                    otherField.value = username;
+                                }
+                            }
                         });
                     }
                 });
             });
+            
+            // Загружаем обращения пользователя
+            loadUserRequests();
             
             // Выбираем первую форму по умолчанию
             selectType('complaint');
