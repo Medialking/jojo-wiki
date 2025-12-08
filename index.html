@@ -3,220 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JojoLand — Новогодние очки 2025</title>
-
+    <title>JojoLand — Официальный сайт</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- Игровой шрифт -->
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase будет подключён в points-system.js -->
-    <script type="module" src="points-system.js"></script>
+    <style>
+        /* ПРОСТЫЕ ЭФФЕКТЫ ФОНА */
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- ===================================================== -->
-<!-- АВТОРИЗАЦИОННОЕ ОКНО (ПОЯВЛЯЕТСЯ ОДИН РАЗ) -->
-<!-- ===================================================== -->
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
 
-<div id="authModal" class="modal">
-    <div class="modal-content auth-box">
-        <div class="modal-header">
-            <h2>🎄 Новогодние очки 2025</h2>
-            <p>Введите ваш ник Minecraft</p>
-        </div>
+<!-- ФОНОВЫЕ ЧАСТИЦЫ -->
+<div class="background-effects" id="particles"></div>
 
-        <div class="modal-body">
-            <input type="text" id="usernameInput" class="auth-input" placeholder="Ваш ник" maxlength="16">
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<div id="content">
 
-            <p class="auth-note">Будет сохранён навсегда в браузере</p>
+<header>
+    <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+    <h1>JojoLand</h1>
+    <p class="subtitle">Официальный сайт сервера</p>
 
-            <button onclick="saveUsername()" class="auth-btn">Начать участие</button>
+    <nav>
+        <a href="rules.html" class="nav-btn">📜 Правила</a>
+        <a href="tgk.html" class="nav-btn">📘 TGK</a>
+        <a href="obzhalovanie.html" class="nav-btn">🔐 Обжалование</a>
+    </nav>
+</header>
 
-            <div class="auth-info">
-                <h4>Как работает событие:</h4>
-                <ul>
-                    <li>🎁 Получай награду раз в 24 часа</li>
-                    <li>✨ Случайно 1–10 очков</li>
-                    <li>🏆 Топ-3 игроков получают призы</li>
-                    <li>🎉 Итоги: 1 января 2025</li>
-                </ul>
+<main class="main-content">
+    <div class="info-block">
+        <h2>Главные ресурсы сервера</h2>
+        <p>Все важные ссылки для комфортной игры на нашем сервере</p>
+    </div>
+
+    <div class="button-grid">
+        <a href="https://t.me/+18-ycRRnOTgxZTgy" class="main-btn tgk-btn">
+            <div class="btn-icon">📌</div>
+            <div class="btn-content">
+                <h3>TGK чат</h3>
+                <p>Основной чат для игроков</p>
+            </div>
+        </a>
+
+        <a href="https://t.me/Jojolandpe" class="main-btn tg-btn">
+            <div class="btn-icon">💬</div>
+            <div class="btn-content">
+                <h3>Telegram группа</h3>
+                <p>Официальный Telegram-канал</p>
+            </div>
+        </a>
+
+        <a href="http://pay.jojoland.ru/" class="main-btn donate-btn">
+            <div class="btn-icon">💎</div>
+            <div class="btn-content">
+                <h3>Донат сайт</h3>
+                <p>Покупка привилегий</p>
+            </div>
+        </a>
+
+        <a href="wiki.html" class="main-btn wiki-btn">
+            <div class="btn-icon">📘</div>
+            <div class="btn-content">
+                <h3>Wiki / Гайды</h3>
+                <p>Полезная информация</p>
+            </div>
+        </a>
+
+        <a href="points-info.html" class="main-btn points-btn">
+            <div class="btn-icon">🎁</div>
+            <div class="btn-content">
+                <h3>Новогодние очки</h3>
+                <p>Собери праздничные очки</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="quick-links">
+        <h3>Частые вопросы:</h3>
+
+        <div class="faq-items">
+            <div class="faq-item">
+                <h4>Как получить привилегию?</h4>
+                <p>Купите её на нашем <a href="http://pay.jojoland.ru/">донат сайте</a></p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Как вступить в TGK?</h4>
+                <p>Нажмите на кнопку "TGK чат" выше</p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Что такое новогодние очки?</h4>
+                <p>Специальная валюта для получения праздничных предметов</p>
             </div>
         </div>
     </div>
+
+    <div class="server-info">
+        <h3>О сервере JojoLand</h3>
+        <p>Добро пожаловать на официальный сайт сервера <strong>JojoLand</strong>! Здесь вы найдёте всю информацию для комфортной игры.</p>
+
+        <p>Сервер работает на последней версии Minecraft с множеством интересных режимов и плагинов.</p>
+
+        <div class="holiday-info">
+            <h4>🎄 Новогоднее событие 2025</h4>
+            <p>Собирайте <strong>новогодние очки</strong>, участвуйте в активностях и получайте награды!</p>
+            <a href="points-info.html" class="holiday-btn">Подробнее о новогодних очках →</a>
+        </div>
+    </div>
+</main>
+
+<a class="help-btn" href="chat.html" target="_blank">
+    <div class="help-icon">💬</div>
+    <span>Помощь</span>
+</a>
+
+<footer>
+    <div class="footer-content">
+        <p>© 2025 JojoLand • Все права защищены</p>
+        <p class="footer-ip">IP: play.jojoland.ru</p>
+    </div>
+</footer>
+
+</div> <!-- END content -->
+
+<!-- 🎁 ВИДЖЕТ НОВОГОДНИХ ОЧКОВ -->
+<div id="pointsWidget" style="
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 15px 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 220px;
+    font-family: 'Orbitron', sans-serif;
+    display: none;
+    z-index: 999;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong id="currentUser">Игрок</strong>
+        <span id="userRank">#-</span>
+    </div>
+
+    <p style="margin: 8px 0 5px;">Очки: <strong id="userPoints">0</strong></p>
+
+    <div id="dailyReward" style="display:none; flex-direction:column; align-items:center; gap:10px;">
+        <span id="rewardStatus" style="color:#00ff99;">Доступно!</span>
+        <button id="claimBtn" onclick="claimDailyReward()" style="
+            padding: 8px 18px;
+            background: #ff0077;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        ">Забрать</button>
+    </div>
+
+    <div id="timerContainer" style="display:none; flex-direction:column; align-items:center;">
+        <span>Следующая награда через:</span>
+        <strong id="countdownTimer" style="font-size:18px;">00:00:00</strong>
+    </div>
+
+    <a href="points-info.html" style="color:#77aaff; font-size:12px; text-decoration:none; margin-top:10px; display:block; text-align:center;">
+        Подробнее об очках →
+    </a>
 </div>
 
+<!-- 🧍 ОКНО ВВОДА НИКА -->
+<div id="authModal" style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+">
+    <div style="
+        background: #1a0030;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        width: 300px;
+        border: 2px solid #8800ff;
+        box-shadow: 0 0 20px #aa00ff;
+    ">
+        <h2 style="margin-bottom: 10px;">Введите ник</h2>
+        <p style="font-size:14px; margin-bottom:15px; color:#ccc;">Это нужно для участия в событии</p>
 
-<!-- ===================================================== -->
-<!-- ВИДЖЕТ СБОРА ОЧКОВ -->
-<!-- ===================================================== -->
+        <input id="usernameInput" type="text" placeholder="Ваш ник" style="
+            width:100%;
+            padding:10px;
+            border-radius:10px;
+            border:none;
+            outline:none;
+            text-align:center;
+            margin-bottom:15px;
+        ">
 
-<div id="pointsWidget" class="points-widget" style="display: none;">
-    <div class="widget-container">
-
-        <div class="widget-header">
-            <span class="widget-title">🎁 Новогодние очки</span>
-            <button class="widget-close" onclick="closeWidget()">×</button>
-        </div>
-
-        <div class="widget-body">
-
-            <div class="points-info">
-                <div class="points-row">
-                    <span>Ваши очки:</span>
-                    <span id="userPoints" class="points-value">0</span>
-                </div>
-
-                <div class="points-row">
-                    <span>Место:</span>
-                    <span id="userRank">—</span>
-                </div>
-            </div>
-
-            <div class="daily-reward" id="dailyReward">
-                <div class="gift-icon">🎁</div>
-                <div>
-                    <h4>Ежедневная награда</h4>
-                    <p id="rewardStatus">Доступно!</p>
-                </div>
-                <button class="claim-btn" onclick="claimDailyReward()">Забрать</button>
-            </div>
-
-            <div id="timerContainer" class="timer-container" style="display: none;">
-                <div class="timer-icon">⏰</div>
-                <div>
-                    <h4>Следующая награда через:</h4>
-                    <div id="countdownTimer" class="countdown">00:00:00</div>
-                </div>
-            </div>
-
-            <div class="widget-buttons">
-                <button onclick="window.location.href='leaderboard.html'" class="btn-view-top">🏆 Топ игроков</button>
-                <button onclick="window.location.href='points-info.html'" class="btn-more-info">📖 Подробнее</button>
-            </div>
-
-        </div>
+        <button onclick="saveUsername()" style="
+            width:100%;
+            padding:10px;
+            background:#a200ff;
+            border:none;
+            border-radius:10px;
+            color:white;
+            font-weight:bold;
+            cursor:pointer;
+        ">Продолжить</button>
     </div>
 </div>
 
-
-<!-- ===================================================== -->
-<!-- ОСНОВНАЯ СТРАНИЦА -->
-<!-- ===================================================== -->
-
-<div id="mainContent" style="display: none;">
-    <header class="header">
-        <img src="images/logo.png" alt="JojoLand" class="logo">
-        <h1>JojoLand</h1>
-        <p class="subtitle">Новогоднее событие 2025</p>
-
-        <nav class="nav">
-            <a href="rules.html" class="nav-btn">📜 Правила</a>
-            <a href="tgk.html" class="nav-btn">📘 TGK</a>
-            <a href="obzhalovanie.html" class="nav-btn">🔐 Обжалование</a>
-            <a href="points-info.html" class="nav-btn active">🎁 О системе</a>
-        </nav>
-    </header>
-
-    <main class="main-content">
-
-        <section class="info-block">
-            <h2>🎄 Новогодние очки</h2>
-            <p>Собирайте очки ежедневно, участвуйте в топе, получайте награды!</p>
-        </section>
-
-        <section class="button-grid">
-
-            <a class="main-btn" href="https://t.me/+18-ycRRnOTgxZTgy">
-                <div class="btn-icon">📌</div>
-                <div class="btn-content">
-                    <h3>TGK чат</h3>
-                    <p>Обсуждение события</p>
-                </div>
-            </a>
-
-            <a class="main-btn" href="https://t.me/Jojolandpe">
-                <div class="btn-icon">💬</div>
-                <div class="btn-content">
-                    <h3>Telegram</h3>
-                    <p>Новости сервера</p>
-                </div>
-            </a>
-
-            <a class="main-btn" href="http://pay.jojoland.ru/">
-                <div class="btn-icon">💎</div>
-                <div class="btn-content">
-                    <h3>Донат сайт</h3>
-                    <p>Покупка привилегий</p>
-                </div>
-            </a>
-
-            <a class="main-btn" href="leaderboard.html">
-                <div class="btn-icon">🏆</div>
-                <div class="btn-content">
-                    <h3>Топ игроков</h3>
-                    <p>Смотреть рейтинг</p>
-                </div>
-            </a>
-
-            <a class="main-btn" href="points-info.html">
-                <div class="btn-icon">📖</div>
-                <div class="btn-content">
-                    <h3>Подробнее</h3>
-                    <p>Как работает система</p>
-                </div>
-            </a>
-
-        </section>
-
-        <section class="user-stats">
-            <h3>📊 Ваша статистика</h3>
-
-            <div class="stats-grid">
-
-                <div class="stat-card">
-                    <div class="stat-icon">🎁</div>
-                    <div class="stat-value" id="statsPoints">0</div>
-                    <div class="stat-label">Очков</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-value" id="statsDays">0</div>
-                    <div class="stat-label">Дней участия</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">🏆</div>
-                    <div class="stat-value" id="statsRank">—</div>
-                    <div class="stat-label">Место</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">⏰</div>
-                    <div class="stat-value" id="statsNext">—</div>
-                    <div class="stat-label">Следующая награда</div>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <p>© 2025 JojoLand • Новогоднее событие</p>
-            <p class="footer-ip">Сбор очков доступен до 1 января</p>
-            <div class="user-info">
-                <span>Игрок: <strong id="currentUser">Не авторизован</strong></span>
-                <button onclick="logout()" class="logout-btn">Сменить игрока</button>
-            </div>
-        </div>
-    </footer>
-</div>
+<script src="points-system.js"></script>
 
 <script>
-function closeWidget() {
-    document.getElementById('pointsWidget').style.display = 'none';
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        const size = Math.random() * 2 + 1;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.opacity = Math.random() * 0.5 + 0.2;
+        const duration = Math.random() * 20 + 15;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `${Math.random() * 10}s`;
+        particlesContainer.appendChild(particle);
+    }
 }
+
+window.onload = function() {
+    createParticles();
+
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+    }, 400);
+};
 </script>
 
 </body>
