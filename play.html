@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Присоединиться к JojoLand</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0033, #330066, #1a0033);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .main-card {
+            background: rgba(0,0,0,0.7);
+            border-radius: 30px;
+            padding: 50px;
+            border: 4px solid #ff00ff;
+            box-shadow: 0 0 50px rgba(255,0,255,0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: #ffb3ff;
+            text-shadow: 0 0 20px #ff00ff;
+            font-size: 42px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+        
+        .server-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid rgba(255,0,255,0.3);
+        }
+        
+        .server-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .server-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #ccccff;
+            font-size: 18px;
+        }
+        
+        .detail-value {
+            color: #6ab7ff;
+            font-weight: bold;
+            font-size: 20px;
+            background: rgba(106,183,255,0.1);
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+        
+        /* Основная кнопка Играть */
+        .play-btn {
+            display: block;
+            width: 100%;
+            padding: 25px;
+            background: linear-gradient(135deg, #00cc66, #00ff99);
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 30px 0;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 0 30px rgba(0,255,153,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .play-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 40px #00ff99;
+            background: linear-gradient(135deg, #00ff99, #00cc66);
+        }
+        
+        .play-btn:active {
+            transform: translateY(-2px);
+        }
+        
+        .play-btn .icon {
+            font-size: 32px;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+        
+        /* Альтернативные кнопки */
+        .alt-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .alt-btn {
+            padding: 18px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .alt-btn:hover {
+            transform: translateY(-3px);
+        }
+        
+        .copy-btn {
+            border-color: #0066ff;
+            background: rgba(0,102,255,0.1);
+        }
+        
+        .copy-btn:hover {
+            background: rgba(0,102,255,0.3);
+            box-shadow: 0 0 20px #0066ff;
+        }
+        
+        .manual-btn {
+            border-color: #ff9900;
+            background: rgba(255,153,0,0.1);
+        }
+        
+        .manual-btn:hover {
+            background: rgba(255,153,0,0.3);
+            box-shadow: 0 0 20px #ff9900;
+        }
+        
+        .status-btn {
+            border-color: #00ff00;
+            background: rgba(0,255,0,0.1);
+        }
+        
+        .status-btn:hover {
+            background: rgba(0,255,0,0.3);
+            box-shadow: 0 0 20px #00ff00;
+        }
+        
+        /* Статус сервера */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        .status-checking {
+            background: #ff9900;
+            box-shadow: 0 0 10px #ff9900;
+        }
+        
+        .status-offline {
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+        
+        .status-text {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        /* Инструкции */
+        .instructions {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 2px solid rgba(255,0,255,0.3);
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            color: #ffb3ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .instruction-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #ff00ff, #0066ff);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            color: #ccccff;
+            line-height: 1.6;
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,255,0,0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Анимации */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes pulseBig {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulseBig 2s infinite;
+        }
+        
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .main-card {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            .play-btn {
+                padding: 20px;
+                font-size: 20px;
+            }
+            
+            .alt-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="main-card">
+            <!-- Статус сервера -->
+            <div class="status-indicator">
+                <div class="status-dot status-checking" id="statusDot"></div>
+                <div class="status-text" id="statusText">Проверка сервера...</div>
+            </div>
+            
+            <h1>🎮 Играть на JojoLand</h1>
+            
+            <!-- Информация о сервере -->
+            <div class="server-info">
+                <div class="server-detail">
+                    <span class="detail-label">IP Адрес:</span>
+                    <span class="detail-value" id="serverIP">jojoland.ru</span>
+                </div>
+                <div class="server-detail">
+                    <span class="detail-label">Порт:</span>
+                    <span class="detail-value" id="serverPort">25565</span>
+                </div>
+                <div class="server-detail">
+                    <span class="detail-label">Версия:</span>
+                    <span class="detail-value" id="serverVersion">1.16-1.20</span>
+                </div>
+                <div class="server-detail">
+                    <span class="detail-label">Игроков онлайн:</span>
+                    <span class="detail-value" id="onlinePlayers">0/100</span>
+                </div>
+            </div>
+            
+            <!-- Основная кнопка -->
+            <a href="minecraft://?addExternalServer=JojoLand|jojoland.ru:25565" class="play-btn" id="playButton">
+                <span class="icon">▶</span>
+                ИГРАТЬ СЕЙЧАС
+            </a>
+            
+            <!-- Альтернативные кнопки -->
+            <div class="alt-buttons">
+                <button class="alt-btn copy-btn" onclick="copyIP()">
+                    <i class="fas fa-copy"></i>
+                    Копировать IP
+                </button>
+                
+                <a href="online.html" class="alt-btn status-btn">
+                    <i class="fas fa-users"></i>
+                    Смотреть онлайн
+                </a>
+                
+                <a href="index.html" class="alt-btn manual-btn">
+                    <i class="fas fa-home"></i>
+                    На главную
+                </a>
+            </div>
+            
+            <!-- Инструкции -->
+            <div class="instructions">
+                <h3>📋 Как присоединиться?</h3>
+                
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">
+                        <strong>Нажмите кнопку "ИГРАТЬ СЕЙЧАС"</strong> - она откроет Minecraft и автоматически добавит сервер в ваш список
+                    </div>
+                </div>
+                
+                <div class="instruction-step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">
+                        <strong>Если кнопка не работает:</strong> Откройте Minecraft → Мультиплеер → Добавить сервер → Введите IP: <code>jojoland.ru:25565</code>
+                    </div>
+                </div>
+                
+                <div class="instruction-step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">
+                        <strong>Для мобильных устройств:</strong> Убедитесь что у вас установлен Minecraft PE. Нажмите кнопку "ИГРАТЬ" и подтвердите открытие в игре
+                    </div>
+                </div>
+                
+                <div class="instruction-step">
+                    <div class="step-number">4</div>
+                    <div class="step-text">
+                        <strong>Проблемы с подключением?</strong> Убедитесь что ваш клиент поддерживает версию 1.16-1.20. Порт должен быть открыт: 25565
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомление -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">IP адрес скопирован!</span>
+    </div>
+    
+    <script>
+        // Конфигурация сервера
+        const SERVER_CONFIG = {
+            ip: 'jojoland.ru',
+            port: '25565',
+            name: 'JojoLand'
+        };
+        
+        // Элементы DOM
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const playButton = document.getElementById('playButton');
+        const onlinePlayers = document.getElementById('onlinePlayers');
+        
+        // ==================== ПРОВЕРКА СТАТУСА СЕРВЕРА ====================
+        async function checkServerStatus() {
+            try {
+                statusText.textContent = 'Проверка сервера...';
+                statusDot.className = 'status-dot status-checking';
+                
+                // Используем API для проверки статуса
+                const response = await fetch(`https://api.mcsrvstat.us/2/${SERVER_CONFIG.ip}:${SERVER_CONFIG.port}`);
+                const data = await response.json();
+                
+                if (data.online) {
+                    // Сервер онлайн
+                    statusDot.className = 'status-dot status-online';
+                    statusText.textContent = `🟢 Сервер онлайн (${data.players?.online || 0} игроков)`;
+                    onlinePlayers.textContent = `${data.players?.online || 0}/${data.players?.max || 100}`;
+                    
+                    // Обновляем кнопку
+                    updatePlayButton(data.players?.online || 0);
+                } else {
+                    // Сервер оффлайн
+                    statusDot.className = 'status-dot status-offline';
+                    statusText.textContent = '🔴 Сервер оффлайн';
+                    onlinePlayers.textContent = '0/100';
+                    
+                    // Делаем кнопку неактивной
+                    playButton.style.background = 'linear-gradient(135deg, #666, #999)';
+                    playButton.style.boxShadow = '0 0 20px rgba(255,255,255,0.2)';
+                    playButton.innerHTML = '<span class="icon">⏸</span> СЕРВЕР НЕДОСТУПЕН';
+                    playButton.classList.remove('pulse');
+                    playButton.onclick = function(e) {
+                        e.preventDefault();
+                        showNotification('Сервер временно недоступен. Попробуйте позже.', 'error');
+                    };
+                }
+            } catch (error) {
+                console.error('Ошибка проверки сервера:', error);
+                statusDot.className = 'status-dot status-checking';
+                statusText.textContent = '⚠ Не удалось проверить статус';
+            }
+        }
+        
+        // ==================== ОБНОВЛЕНИЕ КНОПКИ ИГРАТЬ ====================
+        function updatePlayButton(onlineCount) {
+            // Восстанавливаем стандартный вид кнопки
+            playButton.style.background = 'linear-gradient(135deg, #00cc66, #00ff99)';
+            playButton.style.boxShadow = '0 0 30px rgba(0,255,153,0.5)';
+            playButton.innerHTML = '<span class="icon">▶</span> ИГРАТЬ СЕЙЧАС';
+            playButton.classList.add('pulse');
+            
+            // Обновляем ссылку с актуальным IP
+            playButton.href = `minecraft://?addExternalServer=${encodeURIComponent(SERVER_CONFIG.name)}|${SERVER_CONFIG.ip}:${SERVER_CONFIG.port}`;
+            
+            // Добавляем обработчик для показа уведомления
+            playButton.addEventListener('click', function() {
+                showNotification('Запускаем Minecraft...', 'success');
+                
+                // Резервное действие на случай если ссылка не сработает
+                setTimeout(() => {
+                    if (confirm('Не удалось запустить Minecraft автоматически. Хотите скопировать IP сервера?')) {
+                        copyIP();
+                    }
+                }, 2000);
+            });
+        }
+        
+        // ==================== КОПИРОВАНИЕ IP ====================
+        function copyIP() {
+            const ipText = `${SERVER_CONFIG.ip}:${SERVER_CONFIG.port}`;
+            
+            // Используем современный Clipboard API
+            navigator.clipboard.writeText(ipText)
+                .then(() => {
+                    showNotification(`IP скопирован: ${ipText}`, 'success');
+                })
+                .catch(err => {
+                    // Fallback для старых браузеров
+                    const textArea = document.createElement('textarea');
+                    textArea.value = ipText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification(`IP скопирован: ${ipText}`, 'success');
+                });
+        }
+        
+        // ==================== ПОКАЗ УВЕДОМЛЕНИЙ ====================
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            // Меняем цвет в зависимости от типа
+            if (type === 'error') {
+                notification.style.background = 'rgba(255,0,0,0.9)';
+            } else if (type === 'warning') {
+                notification.style.background = 'rgba(255,153,0,0.9)';
+            } else {
+                notification.style.background = 'rgba(0,255,0,0.9)';
+            }
+            
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            // Автоматически скрываем через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // ==================== ПРОВЕРКА ПЛАТФОРМЫ ====================
+        function detectPlatform() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            // Проверяем мобильное устройство
+            if (/android/i.test(userAgent)) {
+                showNotification('📱 Обнаружен Android. Нажмите "ИГРАТЬ" для запуска Minecraft PE', 'info');
+            } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                showNotification('📱 Обнаружен iOS. Нажмите "ИГРАТЬ" для запуска Minecraft PE', 'info');
+            } else {
+                // PC - добавляем инструкции для Java Edition
+                const instructions = document.querySelector('.instructions');
+                const pcInstruction = document.createElement('div');
+                pcInstruction.className = 'instruction-step';
+                pcInstruction.innerHTML = `
+                    <div class="step-number">★</div>
+                    <div class="step-text">
+                        <strong>Для Minecraft Java Edition:</strong> Кнопка "ИГРАТЬ" автоматически добавит сервер. Если не сработает - скопируйте IP и добавьте сервер вручную через "Добавить сервер"
+                    </div>
+                `;
+                instructions.appendChild(pcInstruction);
+            }
+        }
+        
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем платформу
+            detectPlatform();
+            
+            // Проверяем статус сервера сразу
+            checkServerStatus();
+            
+            // Обновляем статус каждые 30 секунд
+            setInterval(checkServerStatus, 30000);
+            
+            // Показываем инструкции для разных платформ
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                document.getElementById('serverVersion').textContent = 'Bedrock/PE';
+            }
+            
+            // Добавляем обработчик для ручной проверки статуса
+            statusDot.parentElement.addEventListener('click', checkServerStatus);
+            
+            // Проверяем, установлен ли Minecraft
+            checkMinecraftInstalled();
+        });
+        
+        // ==================== ПРОВЕРКА УСТАНОВЛЕННОГО MINECRAFT ====================
+        function checkMinecraftInstalled() {
+            // Это примерная проверка, на самом деле браузер не может напрямую проверить установленные приложения
+            // Но мы можем проверить по user agent или показать инструкции
+            
+            const userAgent = navigator.userAgent.toLowerCase();
+            
+            if (userAgent.includes('android') || userAgent.includes('iphone') || userAgent.includes('ipad')) {
+                // Мобильное устройство
+                setTimeout(() => {
+                    showNotification('📱 Убедитесь что у вас установлен Minecraft PE', 'info');
+                }, 5000);
+            }
+        }
+        
+        // ==================== ОБРАБОТКА НЕУДАЧНОГО ЗАПУСКА ====================
+        // Если ссылка minecraft:// не сработала, показываем инструкции
+        window.addEventListener('blur', function() {
+            // Если окно потеряло фокус после клика на кнопку - значит игра запускается
+            setTimeout(function() {
+                if (document.hasFocus()) {
+                    // Окно все еще в фокусе - значит игра не запустилась
+                    showNotification('Не удалось запустить Minecraft. Попробуйте добавить сервер вручную.', 'warning');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
