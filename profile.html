@@ -515,7 +515,7 @@ async function loadUserProfile() {
     const nickname = localStorage.getItem('jojoland_nickname');
     const userId = localStorage.getItem('jojoland_userId');
     
-    console.log('👤 Загружаю профиль:', { nickname, userId });
+    console.log('👤 Загружаю свой профиль:', { nickname, userId });
     
     if (!nickname || !userId) {
         showError('Сначала нужно войти в аккаунт на главной странице');
@@ -538,7 +538,7 @@ async function loadUserProfile() {
             // Отображаем все данные
             displayUserData(userData, userId, nickname, pointsData.total);
             
-            // Обновляем последний визит
+            // Обновляем последний визит (только для своего профиля)
             await updateLastVisit(userId, userData);
         } else {
             console.log('❌ Пользователь не найден в базе данных');
@@ -581,7 +581,7 @@ async function loadOtherUserProfile(viewUserId) {
         
         // Меняем заголовки
         document.getElementById('page-title').textContent = 'Профиль игрока';
-        document.getElementById('page-subtitle').textContent = 'Просмотр профиля другого игрока';
+        document.getElementById('page-subtitle').textContent = `Просмотр профиля игрока "${userData.nickname || 'Неизвестно'}"`;
         document.getElementById('profile-header').classList.add('viewing-others-profile');
         
         // Изменяем кнопки действий
@@ -592,7 +592,10 @@ async function loadOtherUserProfile(viewUserId) {
         `;
         
         // Убираем кнопку выхода
-        document.getElementById('logout-btn-profile').style.display = 'none';
+        const logoutBtn = document.getElementById('logout-btn-profile');
+        if (logoutBtn) {
+            logoutBtn.style.display = 'none';
+        }
         
         // Обновляем ссылку "Назад"
         const backBtn = document.querySelector('.back-btn');
@@ -616,6 +619,7 @@ async function updateLastVisit(userId, userData) {
     
     if (viewUserId) {
         // Это просмотр чужого профиля, не обновляем визит
+        console.log('📝 Это чужой профиль, визит не обновляется');
         return;
     }
     
@@ -875,11 +879,16 @@ window.onload = async function() {
         const urlParams = new URLSearchParams(window.location.search);
         const viewUserId = urlParams.get('view');
         
-        if (viewUserId) {
+        console.log('🔍 Параметр view из URL:', viewUserId);
+        console.log('🔍 Параметры URL:', window.location.search);
+        
+        if (viewUserId && viewUserId !== 'null' && viewUserId !== 'undefined') {
             // Загружаем профиль другого игрока
+            console.log('👤 Загружаю профиль другого игрока с ID:', viewUserId);
             loadOtherUserProfile(viewUserId);
         } else {
             // Загружаем свой профиль
+            console.log('👤 Загружаю свой профиль');
             loadUserProfile();
         }
     }, 400);
