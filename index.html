@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JojoLand — Официальный сайт</title>
     <link rel="stylesheet" href="style.css">
-
+    
     <!-- Игровой шрифт -->
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     
@@ -47,6 +47,15 @@
                 opacity: 0;
             }
         }
+        
+        /* Скрыть/показать формы */
+        .form-container {
+            display: none;
+        }
+        
+        .form-container.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -57,44 +66,123 @@
     <p>Загрузка...</p>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО ВВОДА НИКА -->
-<div id="nickname-modal" class="modal-overlay">
+<!-- МОДАЛЬНОЕ ОКНО ВХОДА/РЕГИСТРАЦИИ -->
+<div id="auth-modal" class="modal-overlay">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2>Добро пожаловать в JojoLand!</h2>
-            <p>Для продолжения введите свой игровой никнейм</p>
+        <!-- ВКЛАДКИ ВХОД/РЕГИСТРАЦИЯ -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Вход</button>
+            <button class="auth-tab" data-tab="register">Регистрация</button>
         </div>
         
-        <div class="modal-body">
-            <div class="input-group">
-                <input 
-                    type="text" 
-                    id="nickname-input" 
-                    placeholder="Ваш ник (3-16 символов)" 
-                    maxlength="16"
-                    autocomplete="off"
-                >
-                <div class="input-hint">
-                    <span id="char-count">0/16</span>
-                </div>
-                <div class="error-message" id="error-message"></div>
+        <!-- ФОРМА ВХОДА -->
+        <div id="login-form" class="form-container active">
+            <div class="modal-header">
+                <h2>Вход в аккаунт</h2>
+                <p>Введите данные для входа</p>
             </div>
             
-            <div class="requirements">
-                <h4>Требования к нику:</h4>
-                <ul>
-                    <li id="req-length" class="invalid">✓ 3-16 символов</li>
-                    <li id="req-format" class="invalid">✓ Только буквы, цифры и _</li>
-                    <li id="req-unique" class="valid">✓ Проверка уникальности...</li>
-                </ul>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="login-nickname">Никнейм:</label>
+                    <input 
+                        type="text" 
+                        id="login-nickname" 
+                        placeholder="Ваш никнейм"
+                        autocomplete="username"
+                    >
+                </div>
+                
+                <div class="input-group">
+                    <label for="login-password">Пароль:</label>
+                    <input 
+                        type="password" 
+                        id="login-password" 
+                        placeholder="Ваш пароль"
+                        autocomplete="current-password"
+                    >
+                    <div class="password-toggle" id="toggle-login-password">👁️</div>
+                </div>
+                
+                <div class="error-message" id="login-error"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="login-btn" class="submit-btn">
+                    Войти в аккаунт
+                </button>
+                <p class="modal-note">
+                    Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a>
+                </p>
             </div>
         </div>
         
-        <div class="modal-footer">
-            <button id="submit-nickname" class="submit-btn" disabled>
-                Сохранить и продолжить
-            </button>
-            <p class="modal-note">Этот ник будет использоваться для идентификации на сайте</p>
+        <!-- ФОРМА РЕГИСТРАЦИИ -->
+        <div id="register-form" class="form-container">
+            <div class="modal-header">
+                <h2>Регистрация</h2>
+                <p>Создайте новый аккаунт</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="reg-nickname">Никнейм:</label>
+                    <input 
+                        type="text" 
+                        id="reg-nickname" 
+                        placeholder="Придумайте ник (3-16 символов)"
+                        maxlength="16"
+                        autocomplete="username"
+                    >
+                    <div class="input-hint">
+                        <span id="reg-char-count">0/16</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-password">Пароль:</label>
+                    <input 
+                        type="password" 
+                        id="reg-password" 
+                        placeholder="Придумайте пароль (минимум 6 символов)"
+                        autocomplete="new-password"
+                    >
+                    <div class="password-toggle" id="toggle-reg-password">👁️</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-confirm-password">Повторите пароль:</label>
+                    <input 
+                        type="password" 
+                        id="reg-confirm-password" 
+                        placeholder="Повторите пароль"
+                        autocomplete="new-password"
+                    >
+                    <div class="password-toggle" id="toggle-reg-confirm">👁️</div>
+                </div>
+                
+                <div class="requirements">
+                    <h4>Требования:</h4>
+                    <ul>
+                        <li id="req-nick-length" class="invalid">✓ Ник: 3-16 символов</li>
+                        <li id="req-nick-format" class="invalid">✓ Только буквы, цифры, _</li>
+                        <li id="req-nick-unique" class="valid">✓ Ник свободен</li>
+                        <li id="req-password-length" class="invalid">✓ Пароль: минимум 6 символов</li>
+                        <li id="req-password-match" class="invalid">✓ Пароли совпадают</li>
+                    </ul>
+                </div>
+                
+                <div class="error-message" id="reg-error"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="register-btn" class="submit-btn" disabled>
+                    Зарегистрироваться
+                </button>
+                <p class="modal-note">
+                    Есть аккаунт? <a href="#" id="switch-to-login">Войти</a>
+                </p>
+            </div>
         </div>
         
         <div class="server-info-small">
@@ -111,10 +199,14 @@
 
 <header>
     <div class="header-top">
-        <a href="profil.html" class="profile-btn">
+        <a href="profile.html" class="profile-btn" id="profile-link" style="display: none;">
             <span class="profile-icon">👤</span>
             <span class="profile-text">Профиль</span>
         </a>
+        <button class="profile-btn" id="logout-btn-header" style="display: none;">
+            <span class="profile-icon">🚪</span>
+            <span class="profile-text">Выйти</span>
+        </button>
         <img src="images/logo.png" class="logo" alt="JojoLand Logo">
     </div>
     
@@ -224,7 +316,7 @@
     </div>
 </footer>
 
-</div> <!-- /content -->
+</div>
 
 <!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -234,7 +326,7 @@
 // Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-    authDomain: "jojoland-chat.firebaseapp.com",
+    authDomain: "jojoland-chat.firebasestorage.app",
     databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
     projectId: "jojoland-chat",
     storageBucket: "jojoland-chat.firebasestorage.app",
@@ -242,7 +334,6 @@ const firebaseConfig = {
     appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
 };
 
-// Инициализируем Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
@@ -250,24 +341,19 @@ const database = firebase.database();
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
     
-    // Создаем 30 частиц
     for (let i = 0; i < 30; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         
-        // Случайное положение
         particle.style.left = `${Math.random() * 100}%`;
         particle.style.top = `${Math.random() * 100}%`;
         
-        // Случайный размер
         const size = Math.random() * 2 + 1;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
         
-        // Случайная прозрачность
         particle.style.opacity = Math.random() * 0.5 + 0.2;
         
-        // Случайная скорость
         const duration = Math.random() * 20 + 15;
         particle.style.animationDuration = `${duration}s`;
         particle.style.animationDelay = `${Math.random() * 10}s`;
@@ -276,22 +362,56 @@ function createParticles() {
     }
 }
 
-// Функции для работы с ником
+// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С АККАУНТАМИ ====================
+
+// Генерация ID пользователя из ника
+function generateUserId(nickname) {
+    return nickname.toLowerCase()
+        .replace(/[^a-zа-яё0-9_]/g, '_')
+        .replace(/[а-яё]/g, function(match) {
+            const map = {
+                'а':'a','б':'b','в':'v','г':'g','д':'d',
+                'е':'e','ё':'yo','ж':'zh','з':'z','и':'i',
+                'й':'y','к':'k','л':'l','м':'m','н':'n',
+                'о':'o','п':'p','р':'r','с':'s','т':'t',
+                'у':'u','ф':'f','х':'h','ц':'ts','ч':'ch',
+                'ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'',
+                'э':'e','ю':'yu','я':'ya'
+            };
+            return map[match] || match;
+        });
+}
+
+// Проверка валидности ника
 function isValidNickname(nickname) {
-    // Проверяем длину
     if (nickname.length < 3 || nickname.length > 16) {
         return false;
     }
-    
-    // Проверяем разрешенные символы: буквы (латиница и кириллица), цифры, подчеркивание
     const regex = /^[a-zA-Zа-яА-ЯёЁ0-9_]+$/;
     return regex.test(nickname);
+}
+
+// Проверка валидности пароля
+function isValidPassword(password) {
+    return password.length >= 6;
+}
+
+// Хэширование пароля
+function hashPassword(password) {
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
 }
 
 // Проверка уникальности ника
 async function isNicknameUnique(nickname) {
     try {
-        const snapshot = await database.ref('users/' + nickname.toLowerCase()).once('value');
+        const userId = generateUserId(nickname);
+        const snapshot = await database.ref('users/' + userId).once('value');
         return !snapshot.exists();
     } catch (error) {
         console.error('Ошибка проверки ника:', error);
@@ -299,32 +419,192 @@ async function isNicknameUnique(nickname) {
     }
 }
 
-// Сохранение ника в Firebase
-async function saveNickname(nickname) {
+// АВТОРИЗАЦИЯ (вход)
+async function loginUser(nickname, password) {
     try {
-        const userData = {
-            nickname: nickname,
-            createdAt: new Date().toISOString(),
-            lastVisit: new Date().toISOString(),
-            visitsCount: 1
-        };
+        const userId = generateUserId(nickname);
+        const snapshot = await database.ref('users/' + userId).once('value');
         
-        await database.ref('users/' + nickname.toLowerCase()).set(userData);
-        return true;
+        if (!snapshot.exists()) {
+            return { success: false, error: 'Аккаунт не найден' };
+        }
+        
+        const userData = snapshot.val();
+        const passwordHash = hashPassword(password);
+        
+        if (userData.passwordHash !== passwordHash) {
+            return { success: false, error: 'Неверный пароль' };
+        }
+        
+        // Сохраняем данные в localStorage
+        localStorage.setItem('jojoland_nickname', nickname);
+        localStorage.setItem('jojoland_userId', userId);
+        localStorage.setItem('jojoland_loggedIn', 'true');
+        
+        // Обновляем последний визит
+        await updateLastVisit(userId, userData);
+        
+        return { success: true, userData: userData };
     } catch (error) {
-        console.error('Ошибка сохранения:', error);
-        return false;
+        console.error('Ошибка входа:', error);
+        return { success: false, error: 'Ошибка сервера' };
     }
 }
 
-// Обновляем подсчет символов
+// РЕГИСТРАЦИЯ
+async function registerUser(nickname, password) {
+    try {
+        const userId = generateUserId(nickname);
+        
+        // Проверяем, существует ли уже пользователь
+        const snapshot = await database.ref('users/' + userId).once('value');
+        if (snapshot.exists()) {
+            return { success: false, error: 'Этот ник уже занят' };
+        }
+        
+        // Подготавливаем данные пользователя
+        const now = new Date();
+        const userData = {
+            nickname: nickname,
+            passwordHash: hashPassword(password),
+            createdAt: now.toISOString(),
+            lastVisit: now.toISOString(),
+            visitsCount: 1,
+            registeredAt: Date.now(),
+            stats: {
+                totalVisits: 1,
+                achievements: ['first_visit']
+            }
+        };
+        
+        // Сохраняем в Firebase
+        await database.ref('users/' + userId).set(userData);
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('jojoland_nickname', nickname);
+        localStorage.setItem('jojoland_userId', userId);
+        localStorage.setItem('jojoland_loggedIn', 'true');
+        
+        return { success: true, userData: userData };
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        return { success: false, error: 'Ошибка сервера' };
+    }
+}
+
+// Обновление последнего визита
+async function updateLastVisit(userId, userData) {
+    try {
+        await database.ref('users/' + userId).update({
+            lastVisit: new Date().toISOString(),
+            visitsCount: (userData.visitsCount || 1) + 1
+        });
+    } catch (error) {
+        console.error('Ошибка обновления визита:', error);
+    }
+}
+
+// ==================== ВАЛИДАЦИЯ ФОРМ В РЕАЛЬНОМ ВРЕМЕНИ ====================
+
+let checkTimeout;
+
+// Валидация формы регистрации
+async function validateRegistrationForm() {
+    const nickname = document.getElementById('reg-nickname').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirmPassword = document.getElementById('reg-confirm-password').value;
+    const registerBtn = document.getElementById('register-btn');
+    const errorMsg = document.getElementById('reg-error');
+    
+    // Элементы требований
+    const reqNickLength = document.getElementById('req-nick-length');
+    const reqNickFormat = document.getElementById('req-nick-format');
+    const reqNickUnique = document.getElementById('req-nick-unique');
+    const reqPasswordLength = document.getElementById('req-password-length');
+    const reqPasswordMatch = document.getElementById('req-password-match');
+    
+    // Сбрасываем состояние
+    errorMsg.textContent = '';
+    registerBtn.disabled = true;
+    
+    // Проверка длины ника
+    if (nickname.length >= 3 && nickname.length <= 16) {
+        reqNickLength.className = 'valid';
+    } else {
+        reqNickLength.className = 'invalid';
+    }
+    
+    // Проверка формата ника
+    if (isValidNickname(nickname)) {
+        reqNickFormat.className = 'valid';
+    } else {
+        reqNickFormat.className = 'invalid';
+    }
+    
+    // Проверка длины пароля
+    if (isValidPassword(password)) {
+        reqPasswordLength.className = 'valid';
+    } else {
+        reqPasswordLength.className = 'invalid';
+    }
+    
+    // Проверка совпадения паролей
+    if (password === confirmPassword && password.length > 0) {
+        reqPasswordMatch.className = 'valid';
+    } else {
+        reqPasswordMatch.className = 'invalid';
+    }
+    
+    // Если все базовые проверки пройдены, проверяем уникальность ника
+    if (nickname.length >= 3 && nickname.length <= 16 && 
+        isValidNickname(nickname) && 
+        isValidPassword(password) && 
+        password === confirmPassword) {
+        
+        reqNickUnique.textContent = '✓ Проверка...';
+        
+        clearTimeout(checkTimeout);
+        checkTimeout = setTimeout(async () => {
+            const isUnique = await isNicknameUnique(nickname);
+            
+            if (isUnique) {
+                reqNickUnique.className = 'valid';
+                reqNickUnique.textContent = '✓ Ник свободен';
+                registerBtn.disabled = false;
+            } else {
+                reqNickUnique.className = 'invalid';
+                reqNickUnique.textContent = '✗ Ник занят';
+                errorMsg.textContent = 'Этот никнейм уже используется';
+            }
+        }, 500);
+    } else {
+        reqNickUnique.textContent = '✗ Заполните поля';
+        reqNickUnique.className = 'invalid';
+        
+        // Показываем конкретные ошибки
+        if (nickname.length > 0) {
+            if (nickname.length < 3) {
+                errorMsg.textContent = 'Ник должен содержать минимум 3 символа';
+            } else if (nickname.length > 16) {
+                errorMsg.textContent = 'Ник не может быть длиннее 16 символов';
+            } else if (!isValidNickname(nickname)) {
+                errorMsg.textContent = 'Разрешены только буквы, цифры и символ _';
+            } else if (!isValidPassword(password)) {
+                errorMsg.textContent = 'Пароль должен содержать минимум 6 символов';
+            } else if (password !== confirmPassword) {
+                errorMsg.textContent = 'Пароли не совпадают';
+            }
+        }
+    }
+}
+
+// Обновление счетчика символов для ника
 function updateCharCount() {
-    const input = document.getElementById('nickname-input');
-    const charCount = document.getElementById('char-count');
+    const input = document.getElementById('reg-nickname');
+    const charCount = document.getElementById('reg-char-count');
     const length = input.value.length;
     charCount.textContent = `${length}/16`;
     
-    // Меняем цвет в зависимости от длины
     if (length < 3) {
         charCount.style.color = '#ff4444';
     } else if (length > 16) {
@@ -334,171 +614,223 @@ function updateCharCount() {
     }
 }
 
-// Проверяем валидность и уникальность в реальном времени
-let checkTimeout;
-async function validateNicknameInRealTime() {
-    const nickname = document.getElementById('nickname-input').value;
-    const submitBtn = document.getElementById('submit-nickname');
-    const errorMsg = document.getElementById('error-message');
-    const reqLength = document.getElementById('req-length');
-    const reqFormat = document.getElementById('req-format');
-    const reqUnique = document.getElementById('req-unique');
-    
-    // Сбрасываем состояние
-    errorMsg.textContent = '';
-    submitBtn.disabled = true;
-    
-    // Проверка длины
-    if (nickname.length >= 3 && nickname.length <= 16) {
-        reqLength.className = 'valid';
-    } else {
-        reqLength.className = 'invalid';
-    }
-    
-    // Проверка формата
-    if (isValidNickname(nickname)) {
-        reqFormat.className = 'valid';
-    } else {
-        reqFormat.className = 'invalid';
-    }
-    
-    // Если обе базовые проверки пройдены, проверяем уникальность
-    if (nickname.length >= 3 && nickname.length <= 16 && isValidNickname(nickname)) {
-        reqUnique.textContent = '✓ Проверка уникальности...';
-        
-        // Делаем задержку для избежания частых запросов
-        clearTimeout(checkTimeout);
-        checkTimeout = setTimeout(async () => {
-            const isUnique = await isNicknameUnique(nickname);
+// Переключение видимости пароля
+function setupPasswordToggles() {
+    const toggles = document.querySelectorAll('.password-toggle');
+    toggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const inputId = this.id.replace('toggle-', '');
+            const input = document.getElementById(inputId);
             
-            if (isUnique) {
-                reqUnique.className = 'valid';
-                reqUnique.textContent = '✓ Ник свободен';
-                submitBtn.disabled = false;
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.textContent = '👁️‍🗨️';
             } else {
-                reqUnique.className = 'invalid';
-                reqUnique.textContent = '✗ Ник уже занят';
-                errorMsg.textContent = 'Этот никнейм уже используется другим игроком';
+                input.type = 'password';
+                this.textContent = '👁️';
             }
-        }, 500);
-    } else {
-        reqUnique.className = 'invalid';
-        reqUnique.textContent = '✗ Введите корректный ник';
+        });
+    });
+}
+
+// Переключение между вкладками входа и регистрации
+function setupAuthTabs() {
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = document.querySelectorAll('.form-container');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Обновляем активную вкладку
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Показываем соответствующую форму
+            forms.forEach(form => {
+                form.classList.remove('active');
+                if (form.id === `${tabName}-form`) {
+                    form.classList.add('active');
+                }
+            });
+            
+            // Очищаем ошибки
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('reg-error').textContent = '';
+            
+            // Очищаем поля
+            if (tabName === 'login') {
+                document.getElementById('login-nickname').focus();
+            } else {
+                document.getElementById('reg-nickname').focus();
+            }
+        });
+    });
+    
+    // Ссылки для переключения
+    document.getElementById('switch-to-register').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('[data-tab="register"]').click();
+    });
+    
+    document.getElementById('switch-to-login').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('[data-tab="login"]').click();
+    });
+}
+
+// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+
+// Обработка входа
+function setupLoginHandler() {
+    const loginBtn = document.getElementById('login-btn');
+    const nicknameInput = document.getElementById('login-nickname');
+    const passwordInput = document.getElementById('login-password');
+    
+    loginBtn.addEventListener('click', async function() {
+        const nickname = nicknameInput.value.trim();
+        const password = passwordInput.value;
+        const errorMsg = document.getElementById('login-error');
         
-        if (nickname.length > 0) {
-            if (nickname.length < 3) {
-                errorMsg.textContent = 'Ник должен содержать минимум 3 символа';
-            } else if (nickname.length > 16) {
-                errorMsg.textContent = 'Ник не может быть длиннее 16 символов';
-            } else if (!isValidNickname(nickname)) {
-                errorMsg.textContent = 'Разрешены только буквы, цифры и символ _';
-            }
+        // Валидация
+        if (!nickname) {
+            errorMsg.textContent = 'Введите никнейм';
+            nicknameInput.focus();
+            return;
         }
+        
+        if (!password) {
+            errorMsg.textContent = 'Введите пароль';
+            passwordInput.focus();
+            return;
+        }
+        
+        // Показываем загрузку
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Вход...';
+        
+        // Пытаемся войти
+        const result = await loginUser(nickname, password);
+        
+        if (result.success) {
+            loginBtn.textContent = '✓ Успешно!';
+            loginBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
+            
+            // Закрываем модальное окно через 1 секунду
+            setTimeout(() => {
+                document.getElementById('auth-modal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-modal').style.display = 'none';
+                    updateHeaderForLoggedInUser(nickname);
+                    showWelcomeNotification(nickname);
+                }, 300);
+            }, 1000);
+        } else {
+            loginBtn.textContent = 'Войти в аккаунт';
+            loginBtn.disabled = false;
+            errorMsg.textContent = result.error;
+            loginBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
+        }
+    });
+    
+    // Обработка Enter в форме входа
+    nicknameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') passwordInput.focus();
+    });
+    
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginBtn.click();
+    });
+}
+
+// Обработка регистрации
+function setupRegisterHandler() {
+    const registerBtn = document.getElementById('register-btn');
+    const nicknameInput = document.getElementById('reg-nickname');
+    const passwordInput = document.getElementById('reg-password');
+    const confirmInput = document.getElementById('reg-confirm-password');
+    
+    registerBtn.addEventListener('click', async function() {
+        const nickname = nicknameInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmInput.value;
+        const errorMsg = document.getElementById('reg-error');
+        
+        // Дополнительная проверка перед отправкой
+        if (!isValidNickname(nickname)) {
+            errorMsg.textContent = 'Неверный формат ника';
+            return;
+        }
+        
+        if (!isValidPassword(password)) {
+            errorMsg.textContent = 'Пароль слишком короткий';
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            errorMsg.textContent = 'Пароли не совпадают';
+            return;
+        }
+        
+        // Показываем загрузку
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Регистрация...';
+        
+        // Пытаемся зарегистрировать
+        const result = await registerUser(nickname, password);
+        
+        if (result.success) {
+            registerBtn.textContent = '✓ Успешно!';
+            registerBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
+            
+            // Закрываем модальное окно через 1 секунду
+            setTimeout(() => {
+                document.getElementById('auth-modal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-modal').style.display = 'none';
+                    updateHeaderForLoggedInUser(nickname);
+                    showWelcomeNotification(nickname, true);
+                }, 300);
+            }, 1000);
+        } else {
+            registerBtn.textContent = 'Зарегистрироваться';
+            registerBtn.disabled = false;
+            errorMsg.textContent = result.error;
+            registerBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
+        }
+    });
+}
+
+// Обновление хедера для авторизованного пользователя
+function updateHeaderForLoggedInUser(nickname) {
+    const profileLink = document.getElementById('profile-link');
+    const logoutBtn = document.getElementById('logout-btn-header');
+    
+    if (profileLink) {
+        profileLink.style.display = 'flex';
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.style.display = 'flex';
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+                localStorage.removeItem('jojoland_nickname');
+                localStorage.removeItem('jojoland_userId');
+                localStorage.removeItem('jojoland_loggedIn');
+                window.location.reload();
+            }
+        });
     }
 }
 
-// Проверяем, есть ли уже сохраненный ник
-function hasSavedNickname() {
-    return localStorage.getItem('jojoland_nickname') !== null;
-}
-
-function getSavedNickname() {
-    return localStorage.getItem('jojoland_nickname');
-}
-
-// Загрузка страницы
-window.onload = async function() {
-    // Создаем частицы
-    createParticles();
-    
-    // Анимация загрузки
-    document.getElementById("loader").style.opacity = "0";
-    setTimeout(() => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
-        
-        // Проверяем, есть ли сохраненный ник
-        if (!hasSavedNickname()) {
-            // Показываем модальное окно
-            document.getElementById('nickname-modal').style.display = 'flex';
-            
-            // Настройка событий для ввода ника
-            const nicknameInput = document.getElementById('nickname-input');
-            const submitBtn = document.getElementById('submit-nickname');
-            
-            // Обновляем счетчик символов
-            nicknameInput.addEventListener('input', () => {
-                updateCharCount();
-                validateNicknameInRealTime();
-            });
-            
-            // Обработчик отправки
-            submitBtn.addEventListener('click', async () => {
-                const nickname = nicknameInput.value.trim();
-                
-                if (isValidNickname(nickname) && !submitBtn.disabled) {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Сохранение...';
-                    
-                    const saved = await saveNickname(nickname);
-                    
-                    if (saved) {
-                        // Сохраняем в localStorage
-                        localStorage.setItem('jojoland_nickname', nickname);
-                        
-                        // Показываем успешное сообщение
-                        submitBtn.textContent = '✓ Успешно сохранено!';
-                        submitBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
-                        
-                        // Закрываем модальное окно через 1 секунду
-                        setTimeout(() => {
-                            document.getElementById('nickname-modal').style.opacity = '0';
-                            setTimeout(() => {
-                                document.getElementById('nickname-modal').style.display = 'none';
-                                // Можно добавить приветственное сообщение
-                                showWelcomeMessage(nickname);
-                            }, 300);
-                        }, 1000);
-                    } else {
-                        submitBtn.textContent = 'Ошибка сохранения';
-                        submitBtn.style.background = 'linear-gradient(90deg, #ff4444, #ff8888)';
-                        setTimeout(() => {
-                            submitBtn.textContent = 'Сохранить и продолжить';
-                            submitBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
-                            validateNicknameInRealTime();
-                        }, 2000);
-                    }
-                }
-            });
-            
-            // Обработка нажатия Enter
-            nicknameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !submitBtn.disabled) {
-                    submitBtn.click();
-                }
-            });
-            
-            // Фокусируемся на поле ввода
-            setTimeout(() => {
-                nicknameInput.focus();
-            }, 300);
-        } else {
-            // Если ник уже сохранен, можно показать приветствие
-            const nickname = getSavedNickname();
-            showWelcomeMessage(nickname);
-        }
-    }, 400);
-};
-
-// Функция для показа приветственного сообщения (опционально)
-function showWelcomeMessage(nickname) {
-    // Создаем временное уведомление
+// Показ приветственного уведомления
+function showWelcomeNotification(nickname, isNew = false) {
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(90deg, #6200ff, #ff00ff);
+        background: linear-gradient(90deg, ${isNew ? '#00cc66' : '#6200ff'}, ${isNew ? '#00ff88' : '#ff00ff'});
         color: white;
         padding: 15px 25px;
         border-radius: 12px;
@@ -506,11 +838,16 @@ function showWelcomeMessage(nickname) {
         animation: slideInRight 0.5s ease;
         box-shadow: 0 5px 20px rgba(98, 0, 255, 0.5);
         max-width: 300px;
+        font-family: 'Orbitron', sans-serif;
     `;
     
     notification.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 5px;">Добро пожаловать, ${nickname}!</div>
-        <div style="font-size: 12px; opacity: 0.9;">Приятной игры на сервере</div>
+        <div style="font-weight: bold; margin-bottom: 5px;">
+            ${isNew ? '🎉 Добро пожаловать!' : '👋 С возвращением!'}
+        </div>
+        <div style="font-size: 12px; opacity: 0.9;">
+            ${isNew ? `Аккаунт ${nickname} создан!` : `Рады видеть вас снова, ${nickname}!`}
+        </div>
     `;
     
     document.body.appendChild(notification);
@@ -520,12 +857,71 @@ function showWelcomeMessage(nickname) {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
         }, 300);
     }, 3000);
 }
 
-// Анимация для уведомления
+// Проверка авторизации при загрузке
+function checkAuth() {
+    const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
+    const nickname = localStorage.getItem('jojoland_nickname');
+    
+    if (isLoggedIn && nickname) {
+        // Пользователь уже авторизован
+        updateHeaderForLoggedInUser(nickname);
+        return false; // Не показывать модальное окно
+    }
+    
+    return true; // Показывать модальное окно
+}
+
+// ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
+
+window.onload = async function() {
+    createParticles();
+    
+    // Анимация загрузки
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+        
+        // Проверяем, нужно ли показывать форму авторизации
+        if (checkAuth()) {
+            // Показываем модальное окно авторизации
+            document.getElementById('auth-modal').style.display = 'flex';
+            
+            // Настраиваем всё
+            setupAuthTabs();
+            setupPasswordToggles();
+            setupLoginHandler();
+            setupRegisterHandler();
+            
+            // Настраиваем валидацию формы регистрации в реальном времени
+            const regNicknameInput = document.getElementById('reg-nickname');
+            const regPasswordInput = document.getElementById('reg-password');
+            const regConfirmInput = document.getElementById('reg-confirm-password');
+            
+            regNicknameInput.addEventListener('input', () => {
+                updateCharCount();
+                validateRegistrationForm();
+            });
+            
+            regPasswordInput.addEventListener('input', validateRegistrationForm);
+            regConfirmInput.addEventListener('input', validateRegistrationForm);
+            
+            // Фокусируемся на поле ввода ника в форме входа
+            setTimeout(() => {
+                document.getElementById('login-nickname').focus();
+            }, 300);
+        }
+    }, 400);
+};
+
+// Добавляем анимацию для уведомления
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
