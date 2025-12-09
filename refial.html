@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="points.css">
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Дополнительные стили для реферальной страницы */
         .background-effects {
             position: fixed;
             top: 0;
@@ -46,7 +45,6 @@
             }
         }
         
-        /* Анимация загрузки */
         #loader {
             position: fixed;
             top: 0; left: 0;
@@ -74,7 +72,6 @@
             transition: opacity 0.8s ease-in-out;
         }
         
-        /* Кастомные стили для рефералов */
         .ref-container {
             max-width: 1200px;
             margin: 40px auto;
@@ -117,7 +114,6 @@
             line-height: 1.6;
         }
         
-        /* Секции */
         .ref-section {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
@@ -155,7 +151,6 @@
             background: linear-gradient(135deg, rgba(255, 0, 255, 0.1), rgba(255, 153, 255, 0.1));
         }
         
-        /* Карточки наград */
         .rewards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -204,7 +199,6 @@
             text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
         }
         
-        /* Правила */
         .rules-list {
             list-style: none;
             padding: 0;
@@ -250,7 +244,6 @@
             font-weight: bold;
         }
         
-        /* Генерация ссылки */
         .link-generator {
             background: rgba(255, 255, 255, 0.08);
             border-radius: 15px;
@@ -328,7 +321,6 @@
             cursor: not-allowed;
         }
         
-        /* Статистика */
         .stats-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -360,7 +352,6 @@
             letter-spacing: 1px;
         }
         
-        /* Список рефералов */
         .ref-list {
             max-height: 300px;
             overflow-y: auto;
@@ -411,7 +402,6 @@
             opacity: 0.5;
         }
         
-        /* Уведомления */
         .notification {
             position: fixed;
             top: 20px;
@@ -438,7 +428,6 @@
             }
         }
         
-        /* Адаптивность */
         @media (max-width: 768px) {
             .ref-container {
                 padding: 0 15px;
@@ -504,16 +493,13 @@
 </head>
 <body>
 
-<!-- Анимация загрузки -->
 <div id="loader">
     <div class="spinner"></div>
     <p>Загрузка...</p>
 </div>
 
-<!-- Фоновые эффекты -->
 <div class="background-effects" id="particles"></div>
 
-<!-- Основной контент -->
 <div id="content">
 
 <header>
@@ -538,7 +524,6 @@
 </header>
 
 <main class="ref-container">
-    <!-- Герой секция -->
     <section class="hero-section">
         <h1>🤝 Реферальная система</h1>
         <p>Приглашайте друзей на сервер JojoLand и получайте новогодние очки за каждого нового игрока!</p>
@@ -549,7 +534,6 @@
         </div>
     </section>
 
-    <!-- Награды -->
     <section class="ref-section rewards-section">
         <h2>🎁 Что вы получите</h2>
         <div class="rewards-grid">
@@ -576,7 +560,6 @@
         </div>
     </section>
 
-    <!-- Правила -->
     <section class="ref-section rules-section">
         <h2>📋 Правила системы</h2>
         <ul class="rules-list">
@@ -607,7 +590,6 @@
         </ul>
     </section>
 
-    <!-- Генератор ссылки -->
     <section class="ref-section link-section" id="link-section">
         <h2>🔗 Ваша реферальная ссылка</h2>
         <div class="link-generator">
@@ -622,7 +604,6 @@
         </div>
     </section>
 
-    <!-- Статистика -->
     <section class="ref-section stats-section">
         <h2>📊 Ваша статистика</h2>
         <div class="stats-cards">
@@ -653,7 +634,6 @@
         </div>
     </section>
 
-    <!-- Важно -->
     <div class="quick-links" style="margin-top: 30px;">
         <h3>⚠️ Важная информация</h3>
         <p>Реферальная ссылка работает только для <strong>новых игроков</strong>, которые ранее не регистрировались на сервере. Если ваш друг уже имеет аккаунт, система автоматически определит это и не начислит награды.</p>
@@ -670,7 +650,6 @@
 
 </div>
 
-<!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -689,12 +668,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Глобальные переменные
 let userId = null;
 let userNickname = null;
 let refData = null;
 
-// СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
     
@@ -719,7 +696,6 @@ function createParticles() {
     }
 }
 
-// ПРОВЕРКА АВТОРИЗАЦИИ
 async function checkAuth() {
     userId = localStorage.getItem('jojoland_userId');
     userNickname = localStorage.getItem('jojoland_nickname');
@@ -732,10 +708,25 @@ async function checkAuth() {
         return false;
     }
     
+    const profileLink = document.getElementById('profile-link');
+    const logoutBtn = document.getElementById('logout-btn-header');
+    
+    if (profileLink) profileLink.style.display = 'flex';
+    if (logoutBtn) {
+        logoutBtn.style.display = 'flex';
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+                localStorage.removeItem('jojoland_nickname');
+                localStorage.removeItem('jojoland_userId');
+                localStorage.removeItem('jojoland_loggedIn');
+                window.location.reload();
+            }
+        });
+    }
+    
     return true;
 }
 
-// ЗАГРУЗКА РЕФЕРАЛЬНЫХ ДАННЫХ
 async function loadRefData() {
     try {
         const snapshot = await database.ref('referrals/' + userId).once('value');
@@ -744,7 +735,6 @@ async function loadRefData() {
             refData = snapshot.val();
             console.log('Реферальные данные загружены:', refData);
         } else {
-            // Создаем новую запись
             refData = {
                 referral_code: null,
                 referral_link: null,
@@ -755,8 +745,6 @@ async function loadRefData() {
                 max_referrals: 3,
                 is_used: false
             };
-            
-            console.log('Новая реферальная запись создана');
         }
         
         updateRefStats();
@@ -768,60 +756,6 @@ async function loadRefData() {
     }
 }
 
-// СОЗДАНИЕ РЕФЕРАЛЬНОЙ ССЫЛКИ
-async function createReferralLink() {
-    if (!userId || !userNickname) {
-        showNotification('Необходимо войти в аккаунт', 'error');
-        return;
-    }
-    
-    // Проверяем, не создана ли уже ссылка
-    if (refData && refData.referral_link) {
-        showNotification('У вас уже есть реферальная ссылка', 'info');
-        showReferralLink();
-        return;
-    }
-    
-    try {
-        // Генерируем уникальный код
-        const referralCode = generateReferralCode(userNickname);
-        const referralLink = `${window.location.origin}/index.html?ref=${referralCode}`;
-        
-        // Подготавливаем данные
-        const now = new Date();
-        const newRefData = {
-            referral_code: referralCode,
-            referral_link: referralLink,
-            created_at: now.toISOString(),
-            referrals_count: 0,
-            referrals_list: [],
-            total_points: 0,
-            max_referrals: 3,
-            is_used: true
-        };
-        
-        // Сохраняем в Firebase
-        await database.ref('referrals/' + userId).set(newRefData);
-        
-        // Обновляем локальные данные
-        refData = newRefData;
-        
-        // Показываем уведомление
-        showNotification('✅ Реферальная ссылка создана успешно!', 'success');
-        
-        // Показываем ссылку
-        showReferralLink();
-        
-        // Обновляем статистику
-        updateRefStats();
-        
-    } catch (error) {
-        console.error('Ошибка создания реферальной ссылки:', error);
-        showNotification('Ошибка создания ссылки', 'error');
-    }
-}
-
-// ГЕНЕРАЦИЯ УНИКАЛЬНОГО КОДА
 function generateReferralCode(nickname) {
     const timestamp = Date.now().toString(36);
     const randomStr = Math.random().toString(36).substr(2, 5);
@@ -830,7 +764,55 @@ function generateReferralCode(nickname) {
     return `${nicknamePart}${timestamp}${randomStr}`.replace(/[^a-z0-9]/g, '');
 }
 
-// ПОКАЗ РЕФЕРАЛЬНОЙ ССЫЛКИ
+async function createReferralLink() {
+    if (!userId || !userNickname) {
+        showNotification('Необходимо войти в аккаунт', 'error');
+        return;
+    }
+    
+    if (refData && refData.referral_link) {
+        showNotification('У вас уже есть реферальная ссылка', 'info');
+        showReferralLink();
+        return;
+    }
+    
+    try {
+        const referralCode = generateReferralCode(userNickname);
+        
+        // Используем хеш (#) вместо параметров (?)
+        const baseUrl = window.location.origin + window.location.pathname;
+        const pathParts = baseUrl.split('/');
+        pathParts.pop(); // Убираем refial.html
+        const siteRoot = pathParts.join('/') + '/';
+        const referralLink = `${siteRoot}index.html#ref=${referralCode}`;
+        
+        const now = new Date();
+        const newRefData = {
+            referral_code: referralCode,
+            referral_link: referralLink,
+            clean_link: `${siteRoot}index.html#ref=${referralCode}`,
+            created_at: now.toISOString(),
+            referrals_count: 0,
+            referrals_list: [],
+            total_points: 0,
+            max_referrals: 3,
+            is_used: true
+        };
+        
+        await database.ref('referrals/' + userId).set(newRefData);
+        
+        refData = newRefData;
+        
+        showNotification('✅ Реферальная ссылка создана успешно!', 'success');
+        showReferralLink();
+        updateRefStats();
+        
+    } catch (error) {
+        console.error('Ошибка создания реферальной ссылки:', error);
+        showNotification('Ошибка создания ссылки', 'error');
+    }
+}
+
 function showReferralLink() {
     if (!refData || !refData.referral_link) return;
     
@@ -840,20 +822,19 @@ function showReferralLink() {
     const shareBtn = document.getElementById('share-link-btn');
     const linkStatus = document.getElementById('link-status');
     
-    linkElement.href = refData.referral_link;
-    linkElement.textContent = refData.referral_link;
+    // Получаем чистую ссылку (без пути к текущей странице)
+    const baseUrl = window.location.origin + '/';
+    const cleanLink = `${baseUrl}index.html#ref=${refData.referral_code}`;
+    
+    linkElement.href = cleanLink;
+    linkElement.textContent = `${cleanLink} (от ${userNickname})`;
     
     linkDisplay.style.display = 'block';
     copyBtn.style.display = 'inline-block';
     shareBtn.style.display = 'inline-block';
     linkStatus.textContent = 'Ваша реферальная ссылка:';
-    
-    // Добавляем никнейм в ссылку для красоты
-    const displayLink = `${window.location.origin}/index.html?ref=${refData.referral_code} (от ${userNickname})`;
-    linkElement.textContent = displayLink;
 }
 
-// КОПИРОВАНИЕ ССЫЛКИ В БУФЕР
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
         showNotification('✅ Ссылка скопирована в буфер обмена!', 'success');
@@ -872,7 +853,6 @@ function copyToClipboard(text) {
     });
 }
 
-// ОБНОВЛЕНИЕ СТАТИСТИКИ
 function updateRefStats() {
     if (!refData) return;
     
@@ -883,7 +863,6 @@ function updateRefStats() {
     updateRefList();
 }
 
-// ОБНОВЛЕНИЕ СПИСКА ПРИГЛАШЕННЫХ
 function updateRefList() {
     const refListContainer = document.getElementById('ref-list');
     
@@ -918,7 +897,6 @@ function updateRefList() {
     }).join('');
 }
 
-// ПОКАЗ УВЕДОМЛЕНИЯ
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -956,25 +934,21 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
-
 function setupEventListeners() {
-    // Кнопка создания ссылки
     document.getElementById('create-ref-link').addEventListener('click', createReferralLink);
     
-    // Кнопка копирования ссылки
     document.getElementById('copy-link-btn').addEventListener('click', function() {
         if (refData && refData.referral_link) {
-            const cleanLink = refData.referral_link.replace(/ \(от .+\)$/, '');
-            copyToClipboard(cleanLink);
+            // Берем чистую ссылку без комментария "от nickname"
+            const cleanLink = refData.referral_link.split(' (от')[0];
+            copyToClipboard(cleanLink.trim());
         }
     });
     
-    // Кнопка поделиться
     document.getElementById('share-link-btn').addEventListener('click', function() {
         if (refData && refData.referral_link) {
-            const cleanLink = refData.referral_link.replace(/ \(от .+\)$/, '');
-            const shareText = `🎄 Присоединяйся к серверу JojoLand по моей реферальной ссылке! Получи новогодние очки при регистрации! ${cleanLink}`;
+            const cleanLink = refData.referral_link.split(' (от')[0].trim();
+            const shareText = `🎄 Присоединяйся к серверу JojoLand по моей реферальной ссылке! Получи новогодние очки при регистрации!\n${cleanLink}`;
             
             if (navigator.share) {
                 navigator.share({
@@ -989,166 +963,18 @@ function setupEventListeners() {
     });
 }
 
-// ==================== ОБРАБОТКА РЕФЕРАЛЬНЫХ ССЫЛОК ====================
-
-// Проверка реферальной ссылки при регистрации
-async function checkReferralOnRegistration(userId, nickname) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    
-    if (!refCode) return null;
-    
-    try {
-        // Ищем реферала по коду
-        const referralsSnapshot = await database.ref('referrals').once('value');
-        
-        if (!referralsSnapshot.exists()) return null;
-        
-        let referrerId = null;
-        let referrerData = null;
-        
-        referralsSnapshot.forEach((childSnapshot) => {
-            const data = childSnapshot.val();
-            if (data.referral_code === refCode) {
-                referrerId = childSnapshot.key;
-                referrerData = data;
-            }
-        });
-        
-        if (!referrerId || !referrerData) {
-            console.log('Реферальный код не найден');
-            return null;
-        }
-        
-        // Проверяем лимит приглашений
-        if (referrerData.referrals_count >= referrerData.max_referrals) {
-            console.log('Достигнут лимит приглашений');
-            return null;
-        }
-        
-        // Проверяем, не регистрировался ли уже этот пользователь
-        const usersSnapshot = await database.ref('users').once('value');
-        let isNewUser = true;
-        
-        usersSnapshot.forEach((childSnapshot) => {
-            const userData = childSnapshot.val();
-            if (userData.nickname.toLowerCase() === nickname.toLowerCase() && 
-                childSnapshot.key !== userId) {
-                isNewUser = false;
-            }
-        });
-        
-        if (!isNewUser) {
-            console.log('Пользователь уже существует');
-            return null;
-        }
-        
-        // Начисляем награды
-        const inviterReward = Math.floor(Math.random() * 5) + 1; // 1-5 очков
-        const invitedReward = Math.floor(Math.random() * 3) + 1; // 1-3 очков
-        
-        // Обновляем данные пригласившего
-        const newReferrerData = {
-            ...referrerData,
-            referrals_count: referrerData.referrals_count + 1,
-            total_points: (referrerData.total_points || 0) + inviterReward,
-            referrals_list: [
-                ...(referrerData.referrals_list || []),
-                {
-                    nickname: nickname,
-                    date: new Date().toISOString(),
-                    points_rewarded: inviterReward,
-                    user_id: userId
-                }
-            ]
-        };
-        
-        // Сохраняем обновленные данные пригласившего
-        await database.ref('referrals/' + referrerId).set(newReferrerData);
-        
-        // Начисляем очки приглашенному
-        const invitedUserPoints = await getOrCreatePointsData(userId);
-        invitedUserPoints.total_points = (invitedUserPoints.total_points || 0) + invitedReward;
-        invitedUserPoints.available_points = (invitedUserPoints.available_points || 0) + invitedReward;
-        
-        // Добавляем в историю наград
-        const rewardRecord = {
-            date: new Date().toISOString(),
-            points: invitedReward,
-            type: 'referral_bonus',
-            description: `Бонус за регистрацию по реферальной ссылке от ${referrerId}`
-        };
-        
-        invitedUserPoints.rewards_history = [
-            rewardRecord,
-            ...(invitedUserPoints.rewards_history || [])
-        ];
-        
-        await database.ref('holiday_points/' + userId).set(invitedUserPoints);
-        
-        // Сохраняем информацию о реферале
-        await database.ref('referrals/' + userId).update({
-            referred_by: referrerId,
-            referral_bonus_received: invitedReward
-        });
-        
-        return {
-            referrerId: referrerId,
-            inviterReward: inviterReward,
-            invitedReward: invitedReward
-        };
-        
-    } catch (error) {
-        console.error('Ошибка обработки реферальной ссылки:', error);
-        return null;
-    }
-}
-
-// Получение данных очков пользователя
-async function getOrCreatePointsData(userId) {
-    try {
-        const snapshot = await database.ref('holiday_points/' + userId).once('value');
-        
-        if (snapshot.exists()) {
-            return snapshot.val();
-        } else {
-            return {
-                total_points: 0,
-                available_points: 0,
-                spent_points: 0,
-                daily_gifts: {},
-                rewards_history: [],
-                current_streak: 0,
-                max_streak: 0,
-                last_claim: null
-            };
-        }
-    } catch (error) {
-        console.error('Ошибка получения данных очков:', error);
-        return null;
-    }
-}
-
-// ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
-
 window.onload = async function() {
     createParticles();
     
-    // Анимация загрузки
     document.getElementById("loader").style.opacity = "0";
     setTimeout(async () => {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
         
-        // Проверяем авторизацию
         if (await checkAuth()) {
-            // Загружаем данные
             await loadRefData();
-            
-            // Настраиваем обработчики событий
             setupEventListeners();
             
-            // Если уже есть ссылка - показываем ее
             if (refData && refData.referral_link) {
                 showReferralLink();
             }
