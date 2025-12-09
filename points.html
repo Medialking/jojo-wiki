@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новогодние очки | JojoLand</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="points.css">
+    
+    <!-- Игровой шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<!-- ФОНОВЫЕ ЭФФЕКТЫ -->
+<div class="background-effects" id="particles"></div>
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>🎄 Новогодние очки</h1>
+        <p class="subtitle">Собери очки и получи эксклюзивные награды!</p>
+    </header>
+
+    <div class="points-container">
+        <!-- ЕЖЕДНЕВНЫЙ ПОДАРОК -->
+        <div class="daily-gift-section">
+            <div class="section-header">
+                <h2>🎁 Ежедневный подарок</h2>
+                <p>Заходи каждый день до 1 января и получай новогодние очки!</p>
+            </div>
+            
+            <div class="gift-box" id="daily-gift">
+                <div class="gift-ribbon"></div>
+                <div class="gift-lid"></div>
+                <div class="gift-body">
+                    <div class="gift-content">
+                        <div class="gift-icon">🎁</div>
+                        <div class="gift-text">
+                            <h3>Ежедневный подарок</h3>
+                            <p id="gift-status">Нажмите, чтобы открыть</p>
+                        </div>
+                    </div>
+                    <div class="gift-timer" id="gift-timer">
+                        <div class="timer-icon">⏰</div>
+                        <span>Доступно через: <span id="countdown">--:--:--</span></span>
+                    </div>
+                </div>
+                <div class="gift-sparkle" id="sparkle-1">✨</div>
+                <div class="gift-sparkle" id="sparkle-2">✨</div>
+                <div class="gift-sparkle" id="sparkle-3">✨</div>
+            </div>
+            
+            <div class="gift-info">
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-content">
+                        <h4>Как получить?</h4>
+                        <p>Просто заходите на сайт каждые 24 часа и открывайте подарок</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🎲</div>
+                    <div class="info-content">
+                        <h4>Сколько очков?</h4>
+                        <p>От <strong>1 до 10 очков</strong> случайным образом каждый день</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">📅</div>
+                    <div class="info-content">
+                        <h4>До конца акции:</h4>
+                        <p id="days-left">Загрузка...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТАТИСТИКА ПО ОЧКАМ -->
+        <div class="points-stats-section">
+            <h2 class="section-title">📊 Ваша статистика</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Всего очков</div>
+                        <div class="stat-value" id="total-points">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">🎁</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Открыто подарков</div>
+                        <div class="stat-value" id="gifts-opened">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Дней подряд</div>
+                        <div class="stat-value" id="streak-days">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Макс. серия</div>
+                        <div class="stat-value" id="max-streak">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="streak-visual">
+                <h4>🔥 Серия дней:</h4>
+                <div class="streak-days" id="streak-visual">
+                    <!-- Дни будут добавляться через JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ИСТОРИЯ НАГРАД -->
+        <div class="rewards-history">
+            <h2 class="section-title">📜 История наград</h2>
+            <div class="rewards-list" id="rewards-list">
+                <!-- Награды будут добавляться через JS -->
+                <div class="empty-rewards">
+                    <div class="empty-icon">📭</div>
+                    <p>Пока нет полученных наград</p>
+                    <small>Откройте первый ежедневный подарок!</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ИНФОРМАЦИЯ О СИСТЕМЕ -->
+        <div class="system-info">
+            <h2 class="section-title">ℹ️ О системе очков</h2>
+            
+            <div class="info-grid">
+                <div class="system-card">
+                    <div class="system-icon">🎄</div>
+                    <h3>Новогоднее событие</h3>
+                    <p>Акция проходит с <strong>15 декабря 2024</strong> по <strong>1 января 2025</strong></p>
+                </div>
+                
+                <div class="system-card">
+                    <div class="system-icon">🎰</div>
+                    <h3>Случайные награды</h3>
+                    <p>Каждый день вы получаете случайное количество очков от 1 до 10</p>
+                </div>
+                
+                <div class="system-card">
+                    <div class="system-icon">🔥</div>
+                    <h3>Система серий</h3>
+                    <p>Чем больше дней подряд вы заходите, тем больше шанс получить больше очков</p>
+                </div>
+                
+                <div class="system-card">
+                    <div class="system-icon">🏪</div>
+                    <h3>Скоро в магазине</h3>
+                    <p>В будущем можно будет обменять очки на эксклюзивные предметы на сервере</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <a href="index.html" class="action-btn">🏠 На главную</a>
+            <a href="profile.html" class="action-btn">👤 Мой профиль</a>
+            <button class="action-btn" id="share-btn">📢 Поделиться</button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО С НАГРАДОЙ -->
+<div id="reward-modal" class="modal-overlay">
+    <div class="modal-content reward-modal">
+        <div class="confetti-container">
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+        </div>
+        
+        <div class="reward-header">
+            <h2>🎉 Поздравляем!</h2>
+            <p>Вы получили новогодние очки!</p>
+        </div>
+        
+        <div class="reward-body">
+            <div class="reward-amount" id="reward-amount">
+                <span class="points-number">5</span>
+                <span class="points-label">новогодних очков</span>
+            </div>
+            
+            <div class="reward-message" id="reward-message">
+                Отличное начало! Возвращайтесь завтра за новой наградой!
+            </div>
+            
+            <div class="reward-stats">
+                <div class="reward-stat">
+                    <span class="stat-label">Всего очков:</span>
+                    <span class="stat-value" id="reward-total">0</span>
+                </div>
+                <div class="reward-stat">
+                    <span class="stat-label">Серия дней:</span>
+                    <span class="stat-value" id="reward-streak">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reward-footer">
+            <button id="close-reward" class="reward-btn">Продолжить</button>
+            <p class="modal-note">Следующий подарок будет доступен через 24 часа</p>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script src="points.js"></script>
+
+</body>
+</html>
