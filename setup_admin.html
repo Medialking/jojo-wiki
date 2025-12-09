@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Настройка админа</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <h1>Настройка администратора</h1>
+    
+    <div>
+        <h3>Информация:</h3>
+        <p>Никнейм пользователя: <input type="text" id="admin-nickname" placeholder="Введите ник"></p>
+        <p>ID пользователя: <input type="text" id="admin-id" placeholder="Введите ID (опционально)"></p>
+        <button onclick="findUser()">Найти пользователя</button>
+        <button onclick="makeAdmin()">Сделать админом</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebasestorage.app",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let selectedUserId = '';
+
+        async function findUser() {
+            const nickname = document.getElementById('admin-nickname').value.trim();
+            if (!nickname) {
+                alert('Введите никнейм');
+                return;
+            }
+
+            try {
+                const snapshot = await database.ref('users').once('value');
+                if (!snapshot.exists()) {
+                    alert('Пользователи не найдены');
+                    return;
+                }
+
+                let found = false;
+                snapshot.forEach((childSnapshot) => {
+                    const userData = childSnapshot.val();
+                    if (userData.nickname && userData.nickname.toLowerCase() === nickname.toLowerCase()) {
+                        selectedUserId = childSnapshot.key;
+                        document.getElementById('admin-id').value = selectedUserId;
+                        alert(`Пользователь найден! ID: ${selectedUserId}`);
+                        found = true;
+                    }
+                });
+
+                if (!found) {
+                    alert('Пользователь с таким ником не найден');
+                }
+            } catch (error) {
+                console.error('Ошибка поиска:', error);
+                alert('Ошибка поиска пользователя');
+            }
+        }
+
+        async function makeAdmin() {
+            if (!selectedUserId) {
+                const userId = document.getElementById('admin-id').value.trim();
+                if (!userId) {
+                    alert('Введите ID пользователя или найдите по нику');
+                    return;
+                }
+                selectedUserId = userId;
+            }
+
+            if (!confirm(`Вы уверены, что хотите сделать пользователя с ID "${selectedUserId}" администратором?`)) {
+                return;
+            }
+
+            try {
+                // Способ 1: Добавить в ветку admins
+                await database.ref('admins/' + selectedUserId).set(true);
+                
+                // Способ 2: Добавить поле rank к пользователю
+                await database.ref('users/' + selectedUserId).update({
+                    rank: 'admin'
+                });
+
+                alert('✅ Пользователь успешно назначен администратором!');
+                console.log('Админ добавлен с ID:', selectedUserId);
+                
+                // Очищаем поля
+                document.getElementById('admin-nickname').value = '';
+                document.getElementById('admin-id').value = '';
+                selectedUserId = '';
+                
+            } catch (error) {
+                console.error('Ошибка назначения админа:', error);
+                alert('Ошибка назначения админа: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
