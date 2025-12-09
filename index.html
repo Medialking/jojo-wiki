@@ -253,13 +253,13 @@
             </div>
         </a>
         
-        <a href="refia.html" class="main-btn refial-btn">
+        <a href="refial.html" class="main-btn refial-btn">
             <div class="btn-icon">🤝</div>
             <div class="btn-content">
                 <h3>Реферальная система</h3>
                 <p>Приглашай друзей и получай бонусы</p>
             </div>
-         </a>
+        </a>
         
         <a href="points.html" class="main-btn points-btn">
             <div class="btn-icon">🎁</div>
@@ -450,16 +450,192 @@ async function loginUser(nickname, password) {
         return { success: false, error: 'Ошибка сервера' };
     }
 }
-// РЕГИСТРАЦИЯ
+
+// ==================== РЕФЕРАЛЬНАЯ СИСТЕМА ====================
+
+// Проверка реферальной ссылки при загрузке страницы
+function checkReferralOnPageLoad() {
+    // Проверяем хеш (#ref=...)
+    const hash = window.location.hash;
+    let refCode = null;
+    
+    if (hash && hash.includes('ref=')) {
+        refCode = hash.split('ref=')[1];
+        // Очищаем хеш из URL
+        window.location.hash = '';
+        console.log('Реферальный код из хеша:', refCode);
+    }
+    
+    // Также проверяем параметры (?ref=...) на всякий случай
+    const urlParams = new URLSearchParams(window.location.search);
+    const refParam = urlParams.get('ref');
+    if (refParam) {
+        refCode = refParam;
+        // Очищаем параметры из URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        console.log('Реферальный код из параметров:', refCode);
+    }
+    
+    if (refCode) {
+        // Сохраняем код для использования при регистрации
+        localStorage.setItem('jojoland_referral_code', refCode);
+        console.log('Реферальный код сохранен в localStorage');
+    }
+    
+    return refCode;
+}
+
+// Функция обработки реферального кода при регистрации
+async function processReferralCode(refCode, newUserId, nickname) {
+    try {
+        console.log('Обработка реферального кода:', refCode);
+        
+        // Ищем реферала по коду
+        const referralsSnapshot = await database.ref('referrals').once('value');
+        
+        if (!referralsSnapshot.exists()) {
+            console.log('Нет рефералов в базе');
+            return null;
+        }
+        
+        let referrerId = null;
+        let referrerData = null;
+        
+        referralsSnapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            if (data.referral_code === refCode) {
+                referrerId = childSnapshot.key;
+                referrerData = data;
+            }
+        });
+        
+        if (!referrerId || !referrerData) {
+            console.log('Реферальный код не найден');
+            return null;
+        }
+        
+        // Проверяем лимит приглашений
+        if (referrerData.referrals_count >= referrerData.max_referrals) {
+            console.log('Достигнут лимит приглашений');
+            return null;
+        }
+        
+        // Проверяем, не регистрировался ли уже этот пользователь
+        const usersSnapshot = await database.ref('users').once('value');
+        let isNewUser = true;
+        
+        usersSnapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
+            if (userData.nickname && 
+                userData.nickname.toLowerCase() === nickname.toLowerCase() && 
+                childSnapshot.key !== newUserId) {
+                isNewUser = false;
+            }
+        });
+        
+        if (!isNewUser) {
+            console.log('Пользователь уже существует');
+            return null;
+        }
+        
+        // Начисляем награды
+        const inviterReward = Math.floor(Math.random() * 5) + 1; // 1-5 очков
+        const invitedReward = Math.floor(Math.random() * 3) + 1; // 1-3 очков
+        
+        console.log('Награды:', { inviterReward, invitedReward });
+        
+        // Обновляем данные пригласившего
+        const newReferrerData = {
+            ...referrerData,
+            referrals_count: (referrerData.referrals_count || 0) + 1,
+            total_points: (referrerData.total_points || 0) + inviterReward,
+            referrals_list: [
+                ...(referrerData.referrals_list || []),
+                {
+                    nickname: nickname,
+                    date: new Date().toISOString(),
+                    points_rewarded: inviterReward,
+                    user_id: newUserId
+                }
+            ]
+        };
+        
+        // Сохраняем обновленные данные пригласившего
+        await database.ref('referrals/' + referrerId).set(newReferrerData);
+        
+        // Получаем или создаем данные очков для нового пользователя
+        let pointsData;
+        const pointsSnapshot = await database.ref('holiday_points/' + newUserId).once('value');
+        
+        if (pointsSnapshot.exists()) {
+            pointsData = pointsSnapshot.val();
+            pointsData.total_points = (pointsData.total_points || 0) + invitedReward;
+            pointsData.available_points = (pointsData.available_points || 0) + invitedReward;
+        } else {
+            pointsData = {
+                total_points: invitedReward,
+                available_points: invitedReward,
+                spent_points: 0,
+                daily_gifts: {},
+                rewards_history: [],
+                current_streak: 0,
+                max_streak: 0,
+                last_claim: null
+            };
+        }
+        
+        // Добавляем в историю наград
+        const rewardRecord = {
+            date: new Date().toISOString(),
+            points: invitedReward,
+            type: 'referral_bonus',
+            description: `Бонус за регистрацию по реферальной ссылке`
+        };
+        
+        if (!pointsData.rewards_history) {
+            pointsData.rewards_history = [];
+        }
+        
+        pointsData.rewards_history.unshift(rewardRecord);
+        
+        await database.ref('holiday_points/' + newUserId).set(pointsData);
+        
+        // Сохраняем информацию о реферале в пользователя
+        await database.ref('users/' + newUserId).update({
+            referred_by: referrerId,
+            referral_bonus_received: invitedReward,
+            referral_code_used: refCode
+        });
+        
+        console.log('Реферальный бонус успешно начислен!');
+        
+        return {
+            referrerId: referrerId,
+            inviterReward: inviterReward,
+            invitedReward: invitedReward
+        };
+        
+    } catch (error) {
+        console.error('Ошибка обработки реферальной ссылки:', error);
+        return null;
+    }
+}
+
+// РЕГИСТРАЦИЯ С РЕФЕРАЛЬНОЙ СИСТЕМОЙ
 async function registerUser(nickname, password) {
     try {
-        const userId = generateUserId(nickname);
+        const newUserId = generateUserId(nickname);
         
         // Проверяем, существует ли уже пользователь
-        const snapshot = await database.ref('users/' + userId).once('value');
+        const snapshot = await database.ref('users/' + newUserId).once('value');
         if (snapshot.exists()) {
             return { success: false, error: 'Этот ник уже занят' };
         }
+        
+        // Проверяем реферальный код
+        const refCode = localStorage.getItem('jojoland_referral_code');
+        let referralResult = null;
         
         // Подготавливаем данные пользователя
         const now = new Date();
@@ -476,31 +652,47 @@ async function registerUser(nickname, password) {
             }
         };
         
+        // Если есть реферальный код - обрабатываем
+        if (refCode) {
+            referralResult = await processReferralCode(refCode, newUserId, nickname);
+            // Очищаем код из localStorage
+            localStorage.removeItem('jojoland_referral_code');
+            
+            if (referralResult) {
+                // Добавляем информацию о реферале
+                userData.referred_by = referralResult.referrerId;
+                userData.referral_bonus_received = referralResult.invitedReward;
+            }
+        }
+        
         // Сохраняем в Firebase
-        await database.ref('users/' + userId).set(userData);
+        await database.ref('users/' + newUserId).set(userData);
         
         // Сохраняем в localStorage
         localStorage.setItem('jojoland_nickname', nickname);
-        localStorage.setItem('jojoland_userId', userId);
+        localStorage.setItem('jojoland_userId', newUserId);
         localStorage.setItem('jojoland_loggedIn', 'true');
         
-        // Проверяем реферальную ссылку
-        const referralResult = await checkReferralOnRegistration(userId, nickname);
-        if (referralResult) {
-            // Показываем уведомление о бонусе
+        // Показываем уведомление с бонусом если есть
+        if (referralResult && referralResult.invitedReward) {
             showWelcomeNotification(nickname, true, referralResult.invitedReward);
         } else {
             showWelcomeNotification(nickname, true);
         }
         
-        return { success: true, userData: userData, referralBonus: referralResult?.invitedReward };
+        return { 
+            success: true, 
+            userData: userData, 
+            referralBonus: referralResult?.invitedReward 
+        };
         
     } catch (error) {
         console.error('Ошибка регистрации:', error);
         return { success: false, error: 'Ошибка сервера' };
     }
 }
-// Обновление последнего визита
+
+// Обновляем последний визит
 async function updateLastVisit(userId, userData) {
     try {
         await database.ref('users/' + userId).update({
@@ -730,7 +922,7 @@ function setupLoginHandler() {
                 setTimeout(() => {
                     document.getElementById('auth-modal').style.display = 'none';
                     updateHeaderForLoggedInUser(nickname);
-                    showWelcomeNotification(nickname);
+                    showWelcomeNotification(nickname, false);
                 }, 300);
             }, 1000);
         } else {
@@ -797,7 +989,6 @@ function setupRegisterHandler() {
                 setTimeout(() => {
                     document.getElementById('auth-modal').style.display = 'none';
                     updateHeaderForLoggedInUser(nickname);
-                    showWelcomeNotification(nickname, true);
                 }, 300);
             }, 1000);
         } else {
@@ -832,7 +1023,7 @@ function updateHeaderForLoggedInUser(nickname) {
 }
 
 // Показ приветственного уведомления
-function showWelcomeNotification(nickname, isNew = false) {
+function showWelcomeNotification(nickname, isNew = false, referralBonus = null) {
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -849,18 +1040,25 @@ function showWelcomeNotification(nickname, isNew = false) {
         font-family: 'Orbitron', sans-serif;
     `;
     
+    let message = isNew ? `🎉 Добро пожаловать!` : `👋 С возвращением!`;
+    let details = isNew ? `Аккаунт ${nickname} создан!` : `Рады видеть вас снова, ${nickname}!`;
+    
+    if (referralBonus) {
+        message = `🎁 +${referralBonus} новогодних очков!`;
+        details = `Вы получили бонус за регистрацию по реферальной ссылке!`;
+    }
+    
     notification.innerHTML = `
         <div style="font-weight: bold; margin-bottom: 5px;">
-            ${isNew ? '🎉 Добро пожаловать!' : '👋 С возвращением!'}
+            ${message}
         </div>
         <div style="font-size: 12px; opacity: 0.9;">
-            ${isNew ? `Аккаунт ${nickname} создан!` : `Рады видеть вас снова, ${nickname}!`}
+            ${details}
         </div>
     `;
     
     document.body.appendChild(notification);
     
-    // Удаляем через 3 секунды
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
@@ -889,6 +1087,9 @@ function checkAuth() {
 // ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
 
 window.onload = async function() {
+    // Проверяем реферальную ссылку сразу при загрузке
+    checkReferralOnPageLoad();
+    
     createParticles();
     
     // Анимация загрузки
@@ -928,101 +1129,6 @@ window.onload = async function() {
         }
     }, 400);
 };
-
-async function checkReferralOnRegistration(userId, nickname) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    
-    if (!refCode) return null;
-    
-    try {
-        // Ищем реферала по коду
-        const referralsSnapshot = await database.ref('referrals').once('value');
-        
-        if (!referralsSnapshot.exists()) return null;
-        
-        let referrerId = null;
-        let referrerData = null;
-        
-        referralsSnapshot.forEach((childSnapshot) => {
-            const data = childSnapshot.val();
-            if (data.referral_code === refCode) {
-                referrerId = childSnapshot.key;
-                referrerData = data;
-            }
-        });
-        
-        if (!referrerId || !referrerData) {
-            console.log('Реферальный код не найден');
-            return null;
-        }
-        
-        // Проверяем лимит приглашений
-        if (referrerData.referrals_count >= referrerData.max_referrals) {
-            console.log('Достигнут лимит приглашений');
-            return null;
-        }
-        
-        // Генерируем награды
-        const inviterReward = Math.floor(Math.random() * 5) + 1; // 1-5 очков
-        const invitedReward = Math.floor(Math.random() * 3) + 1; // 1-3 очка
-        
-        // Обновляем данные пригласившего
-        const newReferrerData = {
-            ...referrerData,
-            referrals_count: referrerData.referrals_count + 1,
-            total_points: (referrerData.total_points || 0) + inviterReward,
-            referrals_list: [
-                ...(referrerData.referrals_list || []),
-                {
-                    nickname: nickname,
-                    date: new Date().toISOString(),
-                    points_rewarded: inviterReward,
-                    user_id: userId
-                }
-            ]
-        };
-        
-        // Сохраняем обновленные данные пригласившего
-        await database.ref('referrals/' + referrerId).set(newReferrerData);
-        
-        // Создаем запись очков для нового пользователя с бонусом
-        const pointsData = {
-            total_points: invitedReward,
-            available_points: invitedReward,
-            spent_points: 0,
-            daily_gifts: {},
-            rewards_history: [{
-                date: new Date().toISOString(),
-                points: invitedReward,
-                type: 'referral_bonus',
-                description: `Бонус за регистрацию по реферальной ссылке`
-            }],
-            current_streak: 0,
-            max_streak: 0,
-            last_claim: null,
-            referred_by: referrerId
-        };
-        
-        await database.ref('holiday_points/' + userId).set(pointsData);
-        
-        // Сохраняем информацию о реферале
-        await database.ref('users/' + userId).update({
-            referred_by: referrerId,
-            referral_bonus_received: invitedReward
-        });
-        
-        return {
-            referrerId: referrerId,
-            inviterReward: inviterReward,
-            invitedReward: invitedReward
-        };
-        
-    } catch (error) {
-        console.error('Ошибка обработки реферальной ссылки:', error);
-        return null;
-    }
-}
 
 // Добавляем анимацию для уведомления
 const style = document.createElement('style');
