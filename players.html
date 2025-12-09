@@ -276,6 +276,7 @@
             font-size: 14px;
             transition: all 0.3s;
             cursor: pointer;
+            border: none;
         }
         
         .view-profile-btn:hover {
@@ -338,6 +339,7 @@
             cursor: pointer;
             transition: all 0.3s;
             font-family: 'Orbitron', sans-serif;
+            border: none;
         }
         
         .page-btn:hover,
@@ -357,6 +359,7 @@
             padding: 40px;
             color: #aaaaff;
             font-size: 18px;
+            grid-column: 1 / -1;
         }
         
         .loading-spinner {
@@ -378,30 +381,7 @@
             grid-column: 1 / -1;
         }
         
-        /* РЕЙТИНГ ИГРОКОВ */
-        .leaderboard-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #ffcc00, #ff9900);
-            color: black;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .leaderboard-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(255, 204, 0, 0.3);
-        }
-        
         /* ИНФОРМАЦИЯ ОБ ИГРОКЕ ПРИ НАВЕДЕНИИ */
-        .player-card:hover .player-tooltip {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
         .player-tooltip {
             position: absolute;
             bottom: 100%;
@@ -417,6 +397,11 @@
             pointer-events: none;
             z-index: 10;
             border: 1px solid #6200ff;
+        }
+        
+        .player-card:hover .player-tooltip {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         /* АДАПТИВНОСТЬ */
@@ -502,7 +487,6 @@
         <div class="page-header">
             <h2 class="page-title">👥 Сообщество сервера</h2>
             <p class="page-subtitle">Найдите друзей, посмотрите статистику других игроков</p>
-            <a href="#leaderboard" class="leaderboard-btn">🏆 Топ игроков по очкам</a>
         </div>
 
         <!-- ПОИСК И ФИЛЬТРЫ -->
@@ -570,21 +554,6 @@
         <!-- ПАГИНАЦИЯ -->
         <div class="pagination" id="pagination">
             <!-- Пагинация загрузится через JS -->
-        </div>
-
-        <!-- ТОП ИГРОКОВ -->
-        <div class="players-category" id="leaderboard">
-            <h3 class="category-title">
-                <span>🏆 Топ игроков</span>
-                <span class="category-badge">Рейтинг</span>
-            </h3>
-            <div class="players-grid" id="leaderboard-container">
-                <!-- Топ игроков загрузится через JS -->
-                <div class="loading" id="loading-leaderboard">
-                    <div class="loading-spinner"></div>
-                    <p>Загрузка рейтинга...</p>
-                </div>
-            </div>
         </div>
 
         <!-- КНОПКА НАЗАД -->
@@ -718,8 +687,15 @@ function createPlayerCard(player, points = 0) {
         'player': 'Игрок'
     };
     
+    // Определяем ID пользователя - используем userId или id
+    const userId = player.userId || player.id;
+    if (!userId) {
+        console.error('У игрока нет ID:', player);
+        return '';
+    }
+    
     return `
-        <div class="player-card ${rank}" data-user-id="${player.userId || player.id}" data-rank="${rank}">
+        <div class="player-card ${rank}" data-user-id="${userId}" data-rank="${rank}">
             <div class="player-header">
                 <div class="player-avatar">${player.nickname?.charAt(0).toUpperCase() || '👤'}</div>
                 <div class="player-info">
@@ -727,7 +703,7 @@ function createPlayerCard(player, points = 0) {
                         ${player.nickname || 'Неизвестно'}
                         <span class="player-rank ${rank}">${rankText[rank]}</span>
                     </h4>
-                    <p class="player-id">ID: ${player.userId || player.id}</p>
+                    <p class="player-id">ID: ${userId}</p>
                 </div>
                 <div class="online-status">
                     <div class="status-dot ${onlineStatus}"></div>
@@ -750,7 +726,7 @@ function createPlayerCard(player, points = 0) {
                 </div>
             </div>
             
-            <button class="view-profile-btn" onclick="viewPlayerProfile('${player.userId || player.id}')">
+            <button class="view-profile-btn" onclick="viewPlayerProfile('${userId}')">
                 👁️ Посмотреть профиль
             </button>
             
@@ -766,12 +742,13 @@ function createPlayerCard(player, points = 0) {
 }
 
 // ==================== ПРОСМОТР ПРОФИЛЯ ИГРОКА ====================
-async function viewPlayerProfile(userId) {
-    // Сохраняем ID игрока для просмотра в localStorage
-    localStorage.setItem('jojoland_view_userId', userId);
+function viewPlayerProfile(userId) {
+    console.log('Переход к профилю игрока:', userId);
     
-    // Переходим на специальную страницу просмотра профиля
-    // или используем существующую с параметром
+    // Очищаем localStorage от старого значения
+    localStorage.removeItem('jojoland_view_userId');
+    
+    // Переходим на профиль с параметром
     window.location.href = `profile.html?view=${userId}`;
 }
 
@@ -990,45 +967,6 @@ function setupSearch() {
     });
 }
 
-// ==================== ЗАГРУЗКА ТОП ИГРОКОВ ====================
-async function loadLeaderboard() {
-    try {
-        showLoading('leaderboard-container', 'Загрузка рейтинга...');
-        
-        const players = await loadAllPlayers();
-        
-        // Получаем очки для каждого игрока
-        const playersWithPoints = await Promise.all(
-            players.map(async (player) => {
-                const points = await getUserPoints(player.userId || player.id);
-                return { ...player, points };
-            })
-        );
-        
-        // Сортируем по очкам (по убыванию)
-        playersWithPoints.sort((a, b) => b.points - a.points);
-        
-        // Берем топ-6 игроков
-        const topPlayers = playersWithPoints.slice(0, 6);
-        
-        // Отображаем
-        const container = document.getElementById('leaderboard-container');
-        container.innerHTML = '';
-        
-        topPlayers.forEach((player, index) => {
-            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🎖️';
-            const playerCard = createPlayerCard(player, player.points)
-                .replace('player-card', `player-card leaderboard ${index < 3 ? 'vip' : ''}`)
-                .replace('player-name', `player-name">${medal} ${player.nickname || 'Неизвестно'}`);
-            container.innerHTML += playerCard;
-        });
-        
-    } catch (error) {
-        console.error('Ошибка загрузки рейтинга:', error);
-        showNoResults('leaderboard-container', 'Ошибка загрузки рейтинга.');
-    }
-}
-
 // ==================== УТИЛИТЫ ДЛЯ ОТОБРАЖЕНИЯ ====================
 function showLoading(containerId, message = 'Загрузка...') {
     const container = document.getElementById(containerId);
@@ -1068,9 +1006,6 @@ async function initPlayersPage() {
         
         // Отображаем всех игроков с пагинацией
         await displayPlayers(filteredPlayers, 'players-container', true);
-        
-        // Загружаем топ игроков
-        await loadLeaderboard();
         
         // Настраиваем поиск
         setupSearch();
@@ -1124,43 +1059,6 @@ window.onload = async function() {
         initPlayersPage();
     }, 400);
 };
-
-// ==================== СИСТЕМА ВЫДАЧИ ТИТУЛОВ ====================
-// Эту функцию может вызывать только администратор
-async function setPlayerRank(userId, rank) {
-    const currentUserId = localStorage.getItem('jojoland_userId');
-    
-    // Проверяем, является ли текущий пользователь администратором
-    const currentUserSnapshot = await database.ref('users/' + currentUserId).once('value');
-    const currentUser = currentUserSnapshot.val();
-    
-    if (getUserRank(currentUser) !== 'admin') {
-        alert('Только администраторы могут выдавать титулы!');
-        return false;
-    }
-    
-    try {
-        // Обновляем ранг пользователя
-        await database.ref('users/' + userId).update({
-            rank: rank,
-            rankGrantedBy: currentUser.nickname,
-            rankGrantedAt: new Date().toISOString()
-        });
-        
-        alert(`Титул успешно выдан! Пользователь теперь ${rank}.`);
-        return true;
-        
-    } catch (error) {
-        console.error('Ошибка выдачи титула:', error);
-        alert('Ошибка выдачи титула.');
-        return false;
-    }
-}
-
-// Пример вызова (можно добавить в админ-панель):
-// setPlayerRank('user_id_here', 'admin'); // Выдать админку
-// setPlayerRank('user_id_here', 'moderator'); // Выдать модератора
-// setPlayerRank('user_id_here', 'vip'); // Выдать VIP статус
 </script>
 
 </body>
