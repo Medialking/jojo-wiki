@@ -16,376 +16,953 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --primary-purple: #1a0033;
+            --secondary-purple: #330066;
+            --accent-pink: #ff00ff;
+            --accent-blue: #00ccff;
+            --accent-green: #00ff99;
+            --accent-orange: #ff9900;
+            --text-light: #e6e6ff;
+            --text-secondary: #b3b3ff;
+            --bg-card: rgba(30, 0, 60, 0.8);
+            --bg-input: rgba(255, 255, 255, 0.1);
+            --glow-pink: 0 0 25px rgba(255, 0, 255, 0.5);
+            --glow-blue: 0 0 25px rgba(0, 204, 255, 0.5);
+            --glow-green: 0 0 25px rgba(0, 255, 153, 0.5);
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a0033, #330066, #1a0033);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple), #0d001a);
+            color: var(--text-light);
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Фоновые элементы */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .floating-msg {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.1;
+            color: var(--accent-pink);
+            animation: floatMessage 20s infinite linear;
+        }
+        
+        .floating-msg:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .floating-msg:nth-child(2) { top: 25%; right: 8%; animation-delay: 4s; }
+        .floating-msg:nth-child(3) { bottom: 30%; left: 10%; animation-delay: 8s; }
+        .floating-msg:nth-child(4) { bottom: 20%; right: 15%; animation-delay: 12s; }
+        
+        @keyframes floatMessage {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(20px, -20px) rotate(90deg); }
+            50% { transform: translate(0, 0) rotate(180deg); }
+            75% { transform: translate(-20px, 20px) rotate(270deg); }
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
+            position: relative;
         }
         
+        /* Заголовок */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .title {
+            font-size: 3.5rem;
+            background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue), var(--accent-pink));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shineTitle 3s linear infinite;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.5;
+            padding: 0 20px;
+        }
+        
+        @keyframes shineTitle {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        /* Кнопка назад */
         .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: rgba(255,0,255,0.2);
-            color: #ffb3ff;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
+            color: var(--text-light);
             text-decoration: none;
-            border-radius: 25px;
-            border: 1px solid rgba(255,0,255,0.4);
-            transition: 0.3s;
-            font-weight: bold;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .back-btn:hover:before {
+            left: 100%;
         }
         
         .back-btn:hover {
-            background: rgba(255,0,255,0.4);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: var(--glow-pink);
+            border-color: rgba(255, 0, 255, 0.3);
         }
         
+        /* Основной контейнер */
         .support-container {
-            background: rgba(0,0,0,0.6);
+            background: rgba(20, 0, 40, 0.7);
             border-radius: 25px;
-            padding: 30px;
-            border: 3px solid #ff00ff;
-            box-shadow: 0 0 40px rgba(255,0,255,0.4);
+            padding: 40px;
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
         }
         
-        h1 {
-            text-align: center;
-            color: #ffb3ff;
-            text-shadow: 0 0 15px #ff00ff;
-            margin-bottom: 30px;
-            font-size: 32px;
+        .support-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue), var(--accent-green));
+            z-index: 2;
         }
         
         /* Выбор типа обращения */
         .request-type {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 25px;
+            margin-bottom: 40px;
         }
         
         .type-card {
-            background: rgba(255,255,255,0.05);
-            padding: 25px;
+            background: linear-gradient(145deg, rgba(40, 0, 80, 0.6), rgba(20, 0, 40, 0.8));
+            padding: 30px;
             border-radius: 20px;
             text-align: center;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .type-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            transform: translateX(-100%);
+        }
+        
+        .type-card:hover:before {
+            animation: shineCard 1s forwards;
+        }
+        
+        @keyframes shineCard {
+            to {
+                transform: translateX(100%);
+            }
         }
         
         .type-card:hover, .type-card.active {
-            background: rgba(255,0,255,0.1);
-            border-color: #ff00ff;
-            transform: translateY(-5px);
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: var(--glow-pink);
+            border-color: var(--accent-pink);
+        }
+        
+        .type-card.complaint:hover { box-shadow: 0 0 30px rgba(255, 153, 0, 0.6); border-color: var(--accent-orange); }
+        .type-card.appeal:hover { box-shadow: 0 0 30px rgba(0, 204, 255, 0.6); border-color: var(--accent-blue); }
+        .type-card.support:hover { box-shadow: 0 0 30px rgba(0, 255, 153, 0.6); border-color: var(--accent-green); }
+        
+        .type-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
         
         .type-card h3 {
-            color: #6ab7ff;
+            color: var(--text-light);
             margin-bottom: 10px;
-            font-size: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
         }
         
         .type-card p {
-            color: #ccccff;
-            font-size: 14px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
             line-height: 1.5;
         }
         
         /* Форма обращения */
         .form-container {
             display: none;
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.6s ease;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            margin-top: 20px;
         }
         
         .form-container.active {
             display: block;
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #ffb3ff;
-            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        input, textarea, select {
+        label i {
+            color: var(--accent-pink);
+            width: 20px;
+            text-align: center;
+        }
+        
+        .input-field, .textarea-field, .select-field {
             width: 100%;
-            padding: 15px;
+            padding: 18px 20px;
             border: none;
             border-radius: 15px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            font-size: 16px;
+            background: var(--bg-input);
+            color: var(--text-light);
+            font-size: 1rem;
             font-family: inherit;
+            transition: all 0.3s;
+            border: 2px solid transparent;
         }
         
-        textarea {
-            min-height: 150px;
+        .textarea-field {
+            min-height: 180px;
             resize: vertical;
         }
         
-        input:focus, textarea:focus, select:focus {
+        .input-field:focus, .textarea-field:focus, .select-field:focus {
             outline: none;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid #ff00ff;
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
         }
         
+        /* Кнопка отправки */
         .submit-btn {
             display: block;
             width: 100%;
-            padding: 18px;
+            padding: 22px;
             border: none;
-            border-radius: 25px;
-            background: linear-gradient(90deg, #ff0099, #ff00cc);
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--accent-pink), #cc00cc);
             color: white;
-            font-weight: bold;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 20px;
-            box-shadow: 0 0 20px rgba(255,0,204,0.5);
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(255, 0, 204, 0.4);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .submit-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #cc00cc, var(--accent-pink));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        
+        .submit-btn:hover:before {
+            opacity: 1;
         }
         
         .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 30px #ff00cc;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 0, 204, 0.7);
+            letter-spacing: 1px;
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
         }
         
         /* Статус отправки */
         .status-message {
-            padding: 20px;
-            border-radius: 15px;
+            padding: 25px;
+            border-radius: 20px;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 25px;
             display: none;
-            animation: fadeIn 0.5s ease;
+            animation: slideIn 0.5s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         .status-message.success {
-            background: rgba(0,255,0,0.1);
-            border: 2px solid #00ff00;
+            background: rgba(0, 255, 153, 0.1);
+            border-color: var(--accent-green);
             display: block;
         }
         
         .status-message.error {
-            background: rgba(255,0,0,0.1);
-            border: 2px solid #ff0000;
+            background: rgba(255, 77, 77, 0.1);
+            border-color: #ff4d4d;
             display: block;
+        }
+        
+        .status-message:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), transparent);
+            animation: progress 5s linear;
+        }
+        
+        .status-message.error:before {
+            background: linear-gradient(90deg, #ff4d4d, transparent);
+        }
+        
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
         }
         
         /* Мои обращения */
         .my-requests {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid rgba(255,255,255,0.1);
+            margin-top: 50px;
+            padding-top: 40px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Список обращений */
+        .requests-list {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
         }
         
         .request-item {
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
+            background: linear-gradient(145deg, rgba(40, 0, 80, 0.6), rgba(20, 0, 40, 0.8));
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+            backdrop-filter: blur(10px);
         }
         
-        .request-item.complaint { border-color: #ff9900; }
-        .request-item.appeal { border-color: #0099ff; }
-        .request-item.support { border-color: #00cc99; }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .request-item.complaint { border-color: rgba(255, 153, 0, 0.3); }
+        .request-item.appeal { border-color: rgba(0, 204, 255, 0.3); }
+        .request-item.support { border-color: rgba(0, 255, 153, 0.3); }
+        
+        .request-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-pink);
+        }
         
         .request-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
         }
         
-        .request-type-badge {
-            padding: 5px 12px;
+        .request-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .type-badge {
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .badge-complaint { background: rgba(255,153,0,0.2); color: #ff9900; }
-        .badge-appeal { background: rgba(0,153,255,0.2); color: #0099ff; }
-        .badge-support { background: rgba(0,204,153,0.2); color: #00cc99; }
+        .badge-complaint { background: linear-gradient(135deg, rgba(255, 153, 0, 0.2), rgba(255, 153, 0, 0.1)); color: #ffcc66; border: 1px solid rgba(255, 153, 0, 0.3); }
+        .badge-appeal { background: linear-gradient(135deg, rgba(0, 204, 255, 0.2), rgba(0, 204, 255, 0.1)); color: #66ccff; border: 1px solid rgba(0, 204, 255, 0.3); }
+        .badge-support { background: linear-gradient(135deg, rgba(0, 255, 153, 0.2), rgba(0, 255, 153, 0.1)); color: #66ffcc; border: 1px solid rgba(0, 255, 153, 0.3); }
+        
+        .ticket-id {
+            color: var(--accent-blue);
+            font-weight: 700;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+        }
         
         .request-status {
-            padding: 5px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .status-new { background: rgba(255,255,0,0.2); color: #ffff00; }
-        .status-read { background: rgba(0,255,0,0.2); color: #00ff00; }
-        .status-closed { background: rgba(255,0,0,0.2); color: #ff0000; }
+        .status-new { background: linear-gradient(135deg, rgba(255, 255, 0, 0.2), rgba(255, 255, 0, 0.1)); color: #ffff66; border: 1px solid rgba(255, 255, 0, 0.3); }
+        .status-read { background: linear-gradient(135deg, rgba(0, 255, 0, 0.2), rgba(0, 255, 0, 0.1)); color: #66ff66; border: 1px solid rgba(0, 255, 0, 0.3); }
+        .status-closed { background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 0, 0.1)); color: #ff6666; border: 1px solid rgba(255, 0, 0, 0.3); }
         
-        /* Таймер удаления для игрока */
+        .request-content {
+            margin-top: 20px;
+        }
+        
+        .request-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .request-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .request-date {
+            color: #9999ff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Ответ администрации */
+        .admin-response {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border-left: 4px solid var(--accent-green);
+            animation: slideInLeft 0.5s ease;
+        }
+        
+        @keyframes slideInLeft {
+            from { transform: translateX(-30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .admin-response-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .admin-response-header i {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }
+        
+        .admin-response-text {
+            color: #ccffcc;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .admin-name {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+        
+        /* Таймер удаления */
         .delete-timer {
-            color: #ff9900;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 3px 8px;
-            background: rgba(255,153,0,0.1);
-            border-radius: 8px;
-            display: inline-block;
-            margin-left: 10px;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            color: var(--accent-orange);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            background: rgba(255, 153, 0, 0.15);
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 15px;
+            animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
-            0% { opacity: 1; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
-            100% { opacity: 1; }
         }
         
-        @media (max-width: 768px) {
+        .time-left {
+            color: #ffff66;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .title {
+                font-size: 2.8rem;
+            }
+            
             .support-container {
-                padding: 20px;
+                padding: 30px;
             }
             
             .request-type {
                 grid-template-columns: 1fr;
             }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 2.3rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+                padding: 0 10px;
+            }
+            
+            .support-container {
+                padding: 25px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
             
             .request-header {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 12px;
             }
+            
+            .request-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .type-card {
+                padding: 20px;
+            }
+            
+            .type-icon {
+                font-size: 2.5rem;
+            }
+            
+            .form-title {
+                font-size: 1.5rem;
+            }
+            
+            .input-field, .textarea-field, .select-field {
+                padding: 15px;
+            }
+            
+            .submit-btn {
+                padding: 18px;
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Загрузка */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-pink);
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Пустой список */
+        .empty-state {
+            text-align: center;
+            padding: 50px 30px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+        
+        /* Уведомление о сохранении ника */
+        .username-notice {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 2px solid var(--accent-pink);
+            box-shadow: var(--glow-pink);
+            z-index: 1000;
+            animation: slideUpNotice 0.5s ease;
+            display: none;
+            backdrop-filter: blur(10px);
+            max-width: 350px;
+        }
+        
+        @keyframes slideUpNotice {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .username-notice.show {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <!-- Фоновые эффекты -->
+    <div class="bg-effects">
+        <div class="floating-msg">💬</div>
+        <div class="floating-msg">🛡️</div>
+        <div class="floating-msg">⚖️</div>
+        <div class="floating-msg">💡</div>
+    </div>
+
     <div class="container">
-        <a href="index.html" class="back-btn">← На главную</a>
+        <!-- Кнопка назад -->
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> На главную
+        </a>
         
+        <!-- Заголовок -->
+        <div class="header">
+            <h1 class="title">💬 Поддержка JojoLand</h1>
+            <p class="subtitle">Мы поможем решить любую проблему! Выберите тип обращения и заполните форму</p>
+        </div>
+        
+        <!-- Основной контейнер -->
         <div class="support-container">
-            <h1>🛡️ Обращение к поддержке</h1>
-            
             <!-- Выбор типа обращения -->
             <div class="request-type">
-                <div class="type-card" data-type="complaint" onclick="selectType('complaint')">
-                    <h3>⚠️ Жалоба на игрока</h3>
-                    <p>Пожаловаться на нарушителя правил, читера или токсичного игрока</p>
+                <div class="type-card complaint" data-type="complaint" onclick="selectType('complaint')">
+                    <div class="type-icon">⚠️</div>
+                    <h3>Жалоба на игрока</h3>
+                    <p>Сообщить о нарушителе правил, читерах или токсичном поведении</p>
                 </div>
                 
-                <div class="type-card" data-type="appeal" onclick="selectType('appeal')">
-                    <h3>⚖️ Апелляция наказания</h3>
-                    <p>Обжаловать бан, мут или другое наказание, если считаете его несправедливым</p>
+                <div class="type-card appeal" data-type="appeal" onclick="selectType('appeal')">
+                    <div class="type-icon">⚖️</div>
+                    <h3>Апелляция наказания</h3>
+                    <p>Оспорить бан, мут или другое несправедливое наказание</p>
                 </div>
                 
-                <div class="type-card" data-type="support" onclick="selectType('support')">
-                    <h3>💬 Техническая поддержка</h3>
-                    <p>Проблемы с подключением, баги, вопросы по донату или другие технические вопросы</p>
+                <div class="type-card support" data-type="support" onclick="selectType('support')">
+                    <div class="type-icon">💡</div>
+                    <h3>Техническая поддержка</h3>
+                    <p>Проблемы с подключением, баги, донат и другие вопросы</p>
                 </div>
             </div>
             
             <!-- Форма жалобы -->
             <div id="complaintForm" class="form-container">
-                <h2 style="color: #ff9900; margin-bottom: 20px;">⚠️ Форма жалобы</h2>
+                <h2 class="form-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Форма жалобы
+                </h2>
                 <div class="form-group">
-                    <label for="complaintUserNickname">Ваш игровой ник:</label>
-                    <input type="text" id="complaintUserNickname" placeholder="Например: Player123" required>
+                    <label for="complaintUserNickname">
+                        <i class="fas fa-user"></i> Ваш игровой ник:
+                    </label>
+                    <input type="text" id="complaintUserNickname" class="input-field" 
+                           placeholder="Введите ваш никнейм в игре" required>
                 </div>
                 <div class="form-group">
-                    <label for="violatorNickname">Ник нарушителя:</label>
-                    <input type="text" id="violatorNickname" placeholder="Например: HackerPro" required>
+                    <label for="violatorNickname">
+                        <i class="fas fa-user-times"></i> Ник нарушителя:
+                    </label>
+                    <input type="text" id="violatorNickname" class="input-field" 
+                           placeholder="Ник игрока, который нарушил правила" required>
                 </div>
                 <div class="form-group">
-                    <label for="violationTime">Время нарушения:</label>
-                    <input type="text" id="violationTime" placeholder="Пример: 15.12.2023 20:30" required>
+                    <label for="violationTime">
+                        <i class="fas fa-clock"></i> Время нарушения:
+                    </label>
+                    <input type="text" id="violationTime" class="input-field" 
+                           placeholder="Пример: 15.12.2023 20:30 (МСК)" required>
                 </div>
                 <div class="form-group">
-                    <label for="violationDescription">Описание нарушения:</label>
-                    <textarea id="violationDescription" placeholder="Подробно опишите, что произошло..." required></textarea>
+                    <label for="violationDescription">
+                        <i class="fas fa-clipboard-list"></i> Описание нарушения:
+                    </label>
+                    <textarea id="violationDescription" class="textarea-field" 
+                              placeholder="Подробно опишите что произошло, как и при каких обстоятельствах..." 
+                              required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="complaintProof">Доказательства (ссылки на видео/скриншоты):</label>
-                    <textarea id="complaintProof" placeholder="Ссылки на YouTube, Imgur, Google Drive и т.д."></textarea>
+                    <label for="complaintProof">
+                        <i class="fas fa-camera"></i> Доказательства:
+                    </label>
+                    <textarea id="complaintProof" class="textarea-field" 
+                              placeholder="Ссылки на видео (YouTube), скриншоты или другие доказательства нарушения..."></textarea>
                 </div>
-                <button class="submit-btn" onclick="submitComplaint()">📨 Отправить жалобу</button>
+                <button class="submit-btn" onclick="submitComplaint()">
+                    <i class="fas fa-paper-plane"></i>
+                    📨 Отправить жалобу
+                </button>
             </div>
             
             <!-- Форма апелляции -->
             <div id="appealForm" class="form-container">
-                <h2 style="color: #0099ff; margin-bottom: 20px;">⚖️ Форма апелляции</h2>
+                <h2 class="form-title">
+                    <i class="fas fa-balance-scale"></i>
+                    Форма апелляции
+                </h2>
                 <div class="form-group">
-                    <label for="appealUserNickname">Ваш игровой ник:</label>
-                    <input type="text" id="appealUserNickname" placeholder="Например: Player123" required>
+                    <label for="appealUserNickname">
+                        <i class="fas fa-user"></i> Ваш игровой ник:
+                    </label>
+                    <input type="text" id="appealUserNickname" class="input-field" 
+                           placeholder="Введите ваш никнейм в игре" required>
                 </div>
                 <div class="form-group">
-                    <label for="punishmentType">Тип наказания:</label>
-                    <select id="punishmentType" required>
-                        <option value="">Выберите тип</option>
-                        <option value="ban">Бан</option>
-                        <option value="mute">Мут в чате</option>
-                        <option value="kick">Кик</option>
-                        <option value="warn">Предупреждение</option>
-                        <option value="other">Другое</option>
+                    <label for="punishmentType">
+                        <i class="fas fa-gavel"></i> Тип наказания:
+                    </label>
+                    <select id="punishmentType" class="select-field" required>
+                        <option value="">Выберите тип наказания</option>
+                        <option value="ban">🔴 Бан (полная блокировка)</option>
+                        <option value="temp_ban">🟡 Временный бан</option>
+                        <option value="mute">🔇 Мут в чате</option>
+                        <option value="kick">👢 Кик с сервера</option>
+                        <option value="warn">⚠️ Предупреждение</option>
+                        <option value="other">❓ Другое</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="punishmentDate">Дата наказания:</label>
-                    <input type="text" id="punishmentDate" placeholder="Пример: 15.12.2023" required>
+                    <label for="punishmentDate">
+                        <i class="fas fa-calendar-alt"></i> Дата наказания:
+                    </label>
+                    <input type="text" id="punishmentDate" class="input-field" 
+                           placeholder="Пример: 15.12.2023" required>
                 </div>
                 <div class="form-group">
-                    <label for="appealReason">Почему считаете наказание несправедливым:</label>
-                    <textarea id="appealReason" placeholder="Подробно объясните свою позицию..." required></textarea>
+                    <label for="appealReason">
+                        <i class="fas fa-comment-alt"></i> Причина оспаривания:
+                    </label>
+                    <textarea id="appealReason" class="textarea-field" 
+                              placeholder="Почему вы считаете наказание несправедливым? Подробно объясните..." 
+                              required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="appealProof">Доказательства вашей невиновности:</label>
-                    <textarea id="appealProof" placeholder="Ссылки на запись стрима, скриншоты, свидетели и т.д."></textarea>
+                    <label for="appealProof">
+                        <i class="fas fa-file-video"></i> Доказательства:
+                    </label>
+                    <textarea id="appealProof" class="textarea-field" 
+                              placeholder="Ссылки на запись стрима, скриншоты, свидетели..."></textarea>
                 </div>
-                <button class="submit-btn" onclick="submitAppeal()">📨 Отправить апелляцию</button>
+                <button class="submit-btn" onclick="submitAppeal()">
+                    <i class="fas fa-gavel"></i>
+                    ⚖️ Отправить апелляцию
+                </button>
             </div>
             
             <!-- Форма поддержки -->
             <div id="supportForm" class="form-container">
-                <h2 style="color: #00cc99; margin-bottom: 20px;">💬 Форма поддержки</h2>
+                <h2 class="form-title">
+                    <i class="fas fa-headset"></i>
+                    Форма поддержки
+                </h2>
                 <div class="form-group">
-                    <label for="supportUserNickname">Ваш игровой ник:</label>
-                    <input type="text" id="supportUserNickname" placeholder="Например: Player123" required>
+                    <label for="supportUserNickname">
+                        <i class="fas fa-user"></i> Ваш игровой ник:
+                    </label>
+                    <input type="text" id="supportUserNickname" class="input-field" 
+                           placeholder="Введите ваш никнейм в игре" required>
                 </div>
                 <div class="form-group">
-                    <label for="supportCategory">Категория проблемы:</label>
-                    <select id="supportCategory" required>
+                    <label for="supportCategory">
+                        <i class="fas fa-folder"></i> Категория проблемы:
+                    </label>
+                    <select id="supportCategory" class="select-field" required>
                         <option value="">Выберите категорию</option>
-                        <option value="connection">Проблемы с подключением</option>
-                        <option value="bug">Баги/глюки</option>
-                        <option value="donate">Вопросы по донату</option>
-                        <option value="technical">Технические вопросы</option>
-                        <option value="other">Другое</option>
+                        <option value="connection">🔌 Проблемы с подключением</option>
+                        <option value="bug">🐛 Баги и глюки</option>
+                        <option value="donate">💰 Вопросы по донату</option>
+                        <option value="technical">🛠️ Технические вопросы</option>
+                        <option value="suggestion">💡 Предложения по игре</option>
+                        <option value="other">❓ Другое</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="supportDescription">Подробное описание проблемы:</label>
-                    <textarea id="supportDescription" placeholder="Опишите проблему как можно подробнее..." required></textarea>
+                    <label for="supportDescription">
+                        <i class="fas fa-align-left"></i> Описание проблемы:
+                    </label>
+                    <textarea id="supportDescription" class="textarea-field" 
+                              placeholder="Опишите проблему как можно подробнее..." 
+                              required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="supportProof">Дополнительная информация:</label>
-                    <textarea id="supportProof" placeholder="Логи ошибок, скриншоты, версия игры и т.д."></textarea>
+                    <label for="supportProof">
+                        <i class="fas fa-info-circle"></i> Дополнительная информация:
+                    </label>
+                    <textarea id="supportProof" class="textarea-field" 
+                              placeholder="Логи ошибок, скриншоты, версия игры, ОС..."></textarea>
                 </div>
-                <button class="submit-btn" onclick="submitSupport()">📨 Отправить в поддержку</button>
+                <button class="submit-btn" onclick="submitSupport()">
+                    <i class="fas fa-headset"></i>
+                    💬 Отправить в поддержку
+                </button>
             </div>
             
             <!-- Статус отправки -->
@@ -393,19 +970,35 @@
             
             <!-- Мои обращения -->
             <div class="my-requests">
-                <h2 style="color: #ffb3ff; margin-bottom: 20px;">📋 Мои обращения</h2>
+                <h2 class="section-title">
+                    <i class="fas fa-history"></i>
+                    Мои обращения
+                </h2>
                 <div id="requestsList">
-                    <p style="text-align: center; color: #aaa;">У вас пока нет обращений</p>
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Загрузка ваших обращений...</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Уведомление о сохранении ника -->
+    <div id="usernameNotice" class="username-notice">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <i class="fas fa-check-circle" style="color: var(--accent-green); font-size: 1.2rem;"></i>
+            <strong style="color: var(--text-light);">Ник сохранен!</strong>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+            Ваш никнейм сохранен локально. Он будет автоматически подставляться в новые обращения.
+        </p>
+    </div>
+
     <script>
-        // ==================== НАСТРОЙКИ ====================
+        // ==================== КОНФИГУРАЦИЯ ====================
         const AUTO_DELETE_DELAY = 5 * 60 * 1000; // 5 минут в миллисекундах
         
-        // ==================== FIREBASE КОНФИГ ====================
         const firebaseConfig = {
             apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
             authDomain: "jojoland-chat.firebaseapp.com",
@@ -422,22 +1015,34 @@
         // ==================== ПЕРЕМЕННЫЕ ====================
         let userId = localStorage.getItem('jojoland_userId');
         if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            userId = 'user_' + Math.random().toString(36).substr(2, 12);
             localStorage.setItem('jojoland_userId', userId);
         }
         
         let username = localStorage.getItem('jojoland_username') || 
-                       `Игрок_${Math.floor(Math.random() * 1000)}`;
+                       `Игрок_${Math.floor(1000 + Math.random() * 9000)}`;
+        let currentFormType = 'complaint';
         
         // ==================== ВЫБОР ТИПА ОБРАЩЕНИЯ ====================
         function selectType(type) {
+            currentFormType = type;
+            
             // Убираем активный класс у всех карточек
             document.querySelectorAll('.type-card').forEach(card => {
                 card.classList.remove('active');
             });
             
             // Добавляем активный класс выбранной карточке
-            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            const selectedCard = document.querySelector(`[data-type="${type}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('active');
+                
+                // Анимация выбора
+                selectedCard.style.animation = 'none';
+                setTimeout(() => {
+                    selectedCard.style.animation = '';
+                }, 10);
+            }
             
             // Скрываем все формы
             document.querySelectorAll('.form-container').forEach(form => {
@@ -445,27 +1050,39 @@
             });
             
             // Показываем выбранную форму
-            document.getElementById(`${type}Form`).classList.add('active');
+            const form = document.getElementById(`${type}Form`);
+            if (form) {
+                form.classList.add('active');
+                
+                // Плавный скролл к форме
+                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             
             // Скрываем статус сообщения
-            document.getElementById('statusMessage').style.display = 'none';
+            hideStatus();
             
-            // Заполняем ник автоматически ТОЛЬКО для поля "Ваш ник"
+            // Заполняем ник автоматически
             fillNicknameField(type);
         }
         
         function fillNicknameField(type) {
             const form = document.getElementById(`${type}Form`);
-            const userNicknameField = form.querySelector('input[id$="UserNickname"]');
+            if (!form) return;
             
+            const userNicknameField = form.querySelector('input[id$="UserNickname"]');
             if (userNicknameField && !userNicknameField.value) {
                 userNicknameField.value = username;
+                
+                // Эффект заполнения
+                userNicknameField.style.boxShadow = '0 0 15px rgba(0, 204, 255, 0.5)';
+                setTimeout(() => {
+                    userNicknameField.style.boxShadow = '';
+                }, 1000);
             }
         }
         
-        // ==================== ОТПРАВКА ЖАЛОБЫ ====================
+        // ==================== ОТПРАВКА ФОРМ ====================
         async function submitComplaint() {
-            // Собираем данные
             const complaintData = {
                 type: 'complaint',
                 userNickname: document.getElementById('complaintUserNickname').value.trim(),
@@ -480,21 +1097,23 @@
                 ticketId: generateTicketId('COMP')
             };
             
-            // Валидация
             if (!validateComplaint(complaintData)) return;
             
+            showLoading(true);
             try {
                 await database.ref('support_tickets').push(complaintData);
-                showStatus('success', '✅ Жалоба отправлена! Администрация рассмотрит её в течение 24 часов.');
+                showStatus('success', '✅ Жалоба успешно отправлена!<br><small>Администрация рассмотрит её в течение 24 часов.</small>');
                 clearForm('complaint');
+                saveUsername(complaintData.userNickname);
                 loadUserRequests();
             } catch (error) {
                 console.error('Ошибка отправки:', error);
-                showStatus('error', '❌ Ошибка отправки. Проверьте подключение к интернету.');
+                showStatus('error', '❌ Ошибка отправки<br><small>Проверьте подключение к интернету и попробуйте снова.</small>');
+            } finally {
+                showLoading(false);
             }
         }
         
-        // ==================== ОТПРАВКА АПЕЛЛЯЦИИ ====================
         async function submitAppeal() {
             const appealData = {
                 type: 'appeal',
@@ -512,18 +1131,21 @@
             
             if (!validateAppeal(appealData)) return;
             
+            showLoading(true);
             try {
                 await database.ref('support_tickets').push(appealData);
-                showStatus('success', '✅ Апелляция отправлена! Рассмотрение обычно занимает 1-3 дня.');
+                showStatus('success', '✅ Апелляция успешно отправлена!<br><small>Рассмотрение обычно занимает 1-3 рабочих дня.</small>');
                 clearForm('appeal');
+                saveUsername(appealData.userNickname);
                 loadUserRequests();
             } catch (error) {
                 console.error('Ошибка отправки:', error);
-                showStatus('error', '❌ Ошибка отправки. Проверьте подключение к интернету.');
+                showStatus('error', '❌ Ошибка отправки<br><small>Проверьте подключение к интернету и попробуйте снова.</small>');
+            } finally {
+                showLoading(false);
             }
         }
         
-        // ==================== ОТПРАВКА В ПОДДЕРЖКУ ====================
         async function submitSupport() {
             const supportData = {
                 type: 'support',
@@ -540,41 +1162,44 @@
             
             if (!validateSupport(supportData)) return;
             
+            showLoading(true);
             try {
                 await database.ref('support_tickets').push(supportData);
-                showStatus('success', '✅ Обращение отправлено! Ответим в течение 12 часов.');
+                showStatus('success', '✅ Обращение отправлено в поддержку!<br><small>Ответим в течение 12 часов.</small>');
                 clearForm('support');
+                saveUsername(supportData.userNickname);
                 loadUserRequests();
             } catch (error) {
                 console.error('Ошибка отправки:', error);
-                showStatus('error', '❌ Ошибка отправки. Проверьте подключение к интернету.');
+                showStatus('error', '❌ Ошибка отправки<br><small>Проверьте подключение к интернету и попробуйте снова.</small>');
+            } finally {
+                showLoading(false);
             }
         }
         
         // ==================== ВАЛИДАЦИЯ ====================
         function validateComplaint(data) {
-            if (!data.userNickname || data.userNickname.trim() === '') {
-                showStatus('error', '❌ Введите ваш игровой ник!');
+            if (!data.userNickname || data.userNickname.trim().length < 3) {
+                showStatus('error', '❌ Введите ваш игровой ник (минимум 3 символа)');
+                shakeElement('complaintUserNickname');
                 return false;
             }
             
-            if (!data.violatorNickname || data.violatorNickname.trim() === '') {
-                showStatus('error', '❌ Введите ник нарушителя!');
+            if (!data.violatorNickname || data.violatorNickname.trim().length < 3) {
+                showStatus('error', '❌ Введите ник нарушителя (минимум 3 символа)');
+                shakeElement('violatorNickname');
                 return false;
             }
             
             if (!data.violationTime || data.violationTime.trim() === '') {
-                showStatus('error', '❌ Укажите время нарушения!');
+                showStatus('error', '❌ Укажите время нарушения');
+                shakeElement('violationTime');
                 return false;
             }
             
-            if (!data.description || data.description.trim() === '') {
-                showStatus('error', '❌ Опишите нарушение!');
-                return false;
-            }
-            
-            if (data.description.length < 20) {
+            if (!data.description || data.description.trim().length < 20) {
                 showStatus('error', '❌ Описание должно быть подробным (минимум 20 символов)');
+                shakeElement('violationDescription');
                 return false;
             }
             
@@ -582,28 +1207,27 @@
         }
         
         function validateAppeal(data) {
-            if (!data.userNickname || data.userNickname.trim() === '') {
-                showStatus('error', '❌ Введите ваш игровой ник!');
+            if (!data.userNickname || data.userNickname.trim().length < 3) {
+                showStatus('error', '❌ Введите ваш игровой ник (минимум 3 символа)');
+                shakeElement('appealUserNickname');
                 return false;
             }
             
             if (!data.punishmentType || data.punishmentType.trim() === '') {
-                showStatus('error', '❌ Выберите тип наказания!');
+                showStatus('error', '❌ Выберите тип наказания');
+                shakeElement('punishmentType');
                 return false;
             }
             
             if (!data.punishmentDate || data.punishmentDate.trim() === '') {
-                showStatus('error', '❌ Укажите дату наказания!');
+                showStatus('error', '❌ Укажите дату наказания');
+                shakeElement('punishmentDate');
                 return false;
             }
             
-            if (!data.reason || data.reason.trim() === '') {
-                showStatus('error', '❌ Объясните, почему наказание несправедливо!');
-                return false;
-            }
-            
-            if (data.reason.length < 20) {
+            if (!data.reason || data.reason.trim().length < 20) {
                 showStatus('error', '❌ Объяснение должно быть подробным (минимум 20 символов)');
+                shakeElement('appealReason');
                 return false;
             }
             
@@ -611,30 +1235,51 @@
         }
         
         function validateSupport(data) {
-            if (!data.userNickname || data.userNickname.trim() === '') {
-                showStatus('error', '❌ Введите ваш игровой ник!');
+            if (!data.userNickname || data.userNickname.trim().length < 3) {
+                showStatus('error', '❌ Введите ваш игровой ник (минимум 3 символа)');
+                shakeElement('supportUserNickname');
                 return false;
             }
             
             if (!data.category || data.category.trim() === '') {
-                showStatus('error', '❌ Выберите категорию проблемы!');
+                showStatus('error', '❌ Выберите категорию проблемы');
+                shakeElement('supportCategory');
                 return false;
             }
             
-            if (!data.description || data.description.trim() === '') {
-                showStatus('error', '❌ Опишите проблему!');
-                return false;
-            }
-            
-            if (data.description.length < 10) {
+            if (!data.description || data.description.trim().length < 10) {
                 showStatus('error', '❌ Описание проблемы должно быть подробным (минимум 10 символов)');
+                shakeElement('supportDescription');
                 return false;
             }
             
             return true;
         }
         
-        // ==================== ПОКАЗ СТАТУСА ====================
+        function shakeElement(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.animation = 'shake 0.5s ease';
+                element.focus();
+                
+                setTimeout(() => {
+                    element.style.animation = '';
+                }, 500);
+            }
+            
+            // Добавляем стили для анимации shake
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                    20%, 40%, 60%, 80% { transform: translateX(5px); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // ==================== СТАТУС ОТПРАВКИ ====================
         function showStatus(type, message) {
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.className = `status-message ${type}`;
@@ -644,29 +1289,47 @@
             // Прокручиваем к статусу
             statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
+            // Автоматически скрываем через 5 секунд
             setTimeout(() => {
-                statusDiv.style.display = 'none';
+                hideStatus();
             }, 5000);
         }
         
-        // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ПОЛЬЗОВАТЕЛЯ ====================
+        function hideStatus() {
+            const statusDiv = document.getElementById('statusMessage');
+            if (statusDiv) {
+                statusDiv.style.display = 'none';
+            }
+        }
+        
+        // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ====================
         async function loadUserRequests() {
+            const requestsList = document.getElementById('requestsList');
+            requestsList.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка ваших обращений...</p>
+                </div>
+            `;
+            
             try {
                 const snapshot = await database.ref('support_tickets')
                     .orderByChild('userId')
                     .equalTo(userId)
                     .once('value');
                 
-                const requestsList = document.getElementById('requestsList');
-                
                 if (!snapshot.exists()) {
-                    requestsList.innerHTML = '<p style="text-align: center; color: #aaa;">У вас пока нет обращений</p>';
+                    requestsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <h3>Нет обращений</h3>
+                            <p>У вас пока нет отправленных обращений.<br>Создайте первое обращение выше!</p>
+                        </div>
+                    `;
                     return;
                 }
                 
-                let html = '';
                 const requests = [];
-                
                 snapshot.forEach(childSnapshot => {
                     const request = childSnapshot.val();
                     request.id = childSnapshot.key;
@@ -676,23 +1339,17 @@
                 // Сортируем по дате (новые сверху)
                 requests.sort((a, b) => b.timestamp - a.timestamp);
                 
-                if (requests.length === 0) {
-                    requestsList.innerHTML = '<p style="text-align: center; color: #aaa;">У вас пока нет обращений</p>';
-                    return;
-                }
-                
                 let shownTickets = 0;
+                let html = '<div class="requests-list">';
                 
                 requests.forEach(request => {
                     const now = Date.now();
                     const answerTime = request.answerTime || request.timestamp;
                     const timeSinceAnswer = now - answerTime;
                     
-                    // ============ ВАЖНОЕ ИЗМЕНЕНИЕ ============
-                    // Если есть ответ админа и прошло больше 5 минут - НЕ показываем тикет
+                    // Пропускаем тикеты с ответами старше 5 минут
                     if (request.adminAnswer && timeSinceAnswer > AUTO_DELETE_DELAY) {
-                        console.log(`⏰ Тикет ${request.ticketId} скрыт (прошло ${Math.floor(timeSinceAnswer/60000)} минут)`);
-                        return; // Пропускаем этот тикет
+                        return;
                     }
                     
                     shownTickets++;
@@ -701,8 +1358,8 @@
                     const dateStr = date.toLocaleDateString('ru-RU') + ' ' + 
                                   date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
                     
-                    const typeText = request.type === 'complaint' ? 'Жалоба' : 
-                                    request.type === 'appeal' ? 'Апелляция' : 'Поддержка';
+                    const typeText = request.type === 'complaint' ? '⚠️ Жалоба' : 
+                                    request.type === 'appeal' ? '⚖️ Апелляция' : '💡 Поддержка';
                     
                     const typeClass = request.type === 'complaint' ? 'badge-complaint' : 
                                      request.type === 'appeal' ? 'badge-appeal' : 'badge-support';
@@ -715,107 +1372,125 @@
                                        request.status === 'read' ? 'status-read' : 'status-closed';
                     
                     // Текст обращения
-                    const requestText = request.description || request.reason || 'Без описания';
+                    const requestText = request.description || request.reason || request.additionalInfo || 'Без описания';
                     
-                    // Таймер удаления (если есть ответ)
+                    // Таймер удаления
                     let timerHtml = '';
                     if (request.adminAnswer && timeSinceAnswer < AUTO_DELETE_DELAY) {
                         const timeLeft = AUTO_DELETE_DELAY - timeSinceAnswer;
                         const minutes = Math.floor(timeLeft / 60000);
                         const seconds = Math.floor((timeLeft % 60000) / 1000);
-                        timerHtml = `<span class="delete-timer">⏳ ${minutes}:${seconds.toString().padStart(2, '0')}</span>`;
+                        timerHtml = `
+                            <div class="delete-timer">
+                                <i class="fas fa-clock"></i>
+                                Ответ удалится через: 
+                                <span class="time-left">${minutes}:${seconds.toString().padStart(2, '0')}</span>
+                            </div>
+                        `;
                     }
                     
                     html += `
                         <div class="request-item ${request.type}">
                             <div class="request-header">
-                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                    <span class="request-type-badge ${typeClass}">${typeText}</span>
-                                    <strong style="color: #6ab7ff;">${request.ticketId || request.id}</strong>
+                                <div class="request-info">
+                                    <span class="type-badge ${typeClass}">${typeText}</span>
+                                    <span class="ticket-id">${request.ticketId || request.id.substr(0, 8)}</span>
                                     ${timerHtml}
                                 </div>
-                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                    <span class="request-status ${statusClass}">${statusText}</span>
-                                    <small style="color: #aaa; font-size: 12px;">${dateStr}</small>
-                                </div>
+                                <span class="request-status ${statusClass}">${statusText}</span>
                             </div>
-                            <div style="margin-top: 15px;">
-                                <p style="color: #ccccff; line-height: 1.5; word-break: break-word;">
-                                    ${truncateText(requestText, 150)}
-                                </p>
+                            
+                            <div class="request-content">
+                                <p class="request-description">${escapeHtml(truncateText(requestText, 200))}</p>
+                                
                                 ${request.adminAnswer ? `
-                                    <div style="margin-top: 15px; padding: 12px; background: rgba(0,255,0,0.1); border-radius: 10px; border-left: 3px solid #00ff00;">
-                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                            <span style="color: #00ff00; font-weight: bold;">📨 Ответ администрации</span>
-                                            <small style="color: #aaa;">
-                                                ${request.adminName || 'Администратор'}
-                                            </small>
+                                    <div class="admin-response">
+                                        <div class="admin-response-header">
+                                            <i class="fas fa-reply"></i>
+                                            <strong>Ответ администрации:</strong>
+                                            <span class="admin-name">${request.adminName || 'Администратор'}</span>
                                         </div>
-                                        <p style="color: #ccffcc; line-height: 1.5; word-break: break-word;">
-                                            ${request.adminAnswer}
-                                        </p>
-                                        ${timerHtml ? `
-                                            <div style="margin-top: 10px; font-size: 12px; color: #ff9900;">
-                                                ⚠️ Ответ будет доступен еще ${Math.ceil((AUTO_DELETE_DELAY - timeSinceAnswer)/60000)} минут
-                                            </div>
-                                        ` : ''}
+                                        <p class="admin-response-text">${escapeHtml(request.adminAnswer)}</p>
                                     </div>
                                 ` : ''}
+                                
+                                <div class="request-details">
+                                    <span class="request-date">
+                                        <i class="far fa-calendar"></i>
+                                        ${dateStr}
+                                    </span>
+                                    
+                                    ${request.adminAnswer && timeSinceAnswer < AUTO_DELETE_DELAY ? `
+                                        <div style="color: var(--accent-orange); font-size: 0.85rem; font-weight: 600;">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Ответ будет доступен еще ${Math.ceil((AUTO_DELETE_DELAY - timeSinceAnswer)/60000)} мин
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
                 });
                 
-                // Если все тикеты скрыты (потому что ответы старые)
+                html += '</div>';
+                
                 if (shownTickets === 0) {
-                    html = '<p style="text-align: center; color: #aaa;">У вас пока нет активных обращений</p>';
+                    html = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <h3>Нет активных обращений</h3>
+                            <p>Все ваши обращения были обработаны или удалены по истечении времени.</p>
+                        </div>
+                    `;
                 }
                 
                 requestsList.innerHTML = html;
                 
-                // Запускаем обновление таймеров каждую секунду
+                // Запускаем обновление таймеров
                 startTimersUpdate();
                 
             } catch (error) {
                 console.error('Ошибка загрузки обращений:', error);
-                document.getElementById('requestsList').innerHTML = 
-                    '<p style="text-align: center; color: #ff6666;">Ошибка загрузки. Обновите страницу.</p>';
+                requestsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <h3>Ошибка загрузки</h3>
+                        <p>Не удалось загрузить ваши обращения.<br>Попробуйте обновить страницу.</p>
+                    </div>
+                `;
             }
         }
         
         // ==================== ОБНОВЛЕНИЕ ТАЙМЕРОВ ====================
         function startTimersUpdate() {
-            // Обновляем таймеры каждую секунду
             setInterval(() => {
-                const requestItems = document.querySelectorAll('.request-item');
-                const now = Date.now();
+                const timers = document.querySelectorAll('.delete-timer .time-left');
+                let needsReload = false;
                 
-                requestItems.forEach(item => {
-                    const timerElement = item.querySelector('.delete-timer');
-                    if (timerElement) {
-                        // Парсим время из элемента
-                        const timerText = timerElement.textContent;
-                        const match = timerText.match(/⏳ (\d+):(\d+)/);
+                timers.forEach(timer => {
+                    const timeText = timer.textContent;
+                    const match = timeText.match(/(\d+):(\d+)/);
+                    
+                    if (match) {
+                        let minutes = parseInt(match[1]);
+                        let seconds = parseInt(match[2]) - 1;
                         
-                        if (match) {
-                            let minutes = parseInt(match[1]);
-                            let seconds = parseInt(match[2]) - 1;
-                            
-                            if (seconds < 0) {
-                                seconds = 59;
-                                minutes -= 1;
-                            }
-                            
-                            if (minutes < 0) {
-                                // Время вышло - перезагружаем список
-                                loadUserRequests();
-                            } else {
-                                // Обновляем таймер
-                                timerElement.textContent = `⏳ ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                            }
+                        if (seconds < 0) {
+                            seconds = 59;
+                            minutes -= 1;
+                        }
+                        
+                        if (minutes < 0) {
+                            needsReload = true;
+                        } else {
+                            timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                         }
                     }
                 });
+                
+                if (needsReload) {
+                    loadUserRequests();
+                }
             }, 1000);
         }
         
@@ -835,53 +1510,117 @@
             return text.substr(0, maxLength) + '...';
         }
         
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         function clearForm(type) {
             const form = document.getElementById(`${type}Form`);
+            if (!form) return;
+            
             form.querySelectorAll('input:not([id$="UserNickname"]), textarea, select').forEach(element => {
                 element.value = '';
             });
+            
+            // Возвращаем выбранную карточку
+            setTimeout(() => {
+                selectType(type);
+            }, 1000);
+        }
+        
+        function saveUsername(newUsername) {
+            if (newUsername && newUsername !== username) {
+                username = newUsername;
+                localStorage.setItem('jojoland_username', username);
+                
+                // Показываем уведомление
+                showUsernameNotice();
+                
+                // Обновляем ник во всех формах
+                ['complaint', 'appeal', 'support'].forEach(type => {
+                    const field = document.getElementById(`${type}UserNickname`);
+                    if (field) {
+                        field.value = username;
+                    }
+                });
+            }
+        }
+        
+        function showUsernameNotice() {
+            const notice = document.getElementById('usernameNotice');
+            if (notice) {
+                notice.classList.add('show');
+                
+                setTimeout(() => {
+                    notice.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        function showLoading(show) {
+            const submitBtn = document.querySelector(`#${currentFormType}Form .submit-btn`);
+            if (submitBtn) {
+                if (show) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+                    submitBtn.disabled = true;
+                } else {
+                    const icon = currentFormType === 'complaint' ? '📨' :
+                                currentFormType === 'appeal' ? '⚖️' : '💬';
+                    const text = currentFormType === 'complaint' ? 'Отправить жалобу' :
+                                currentFormType === 'appeal' ? 'Отправить апелляцию' : 'Отправить в поддержку';
+                    submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> ${icon} ${text}`;
+                    submitBtn.disabled = false;
+                }
+            }
         }
         
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         document.addEventListener('DOMContentLoaded', () => {
-            // Автоматически заполняем ник только для полей "Ваш ник"
-            const userNicknameFields = [
+            // Заполняем ник во всех формах
+            ['complaint', 'appeal', 'support'].forEach(type => {
+                fillNicknameField(type);
+            });
+            
+            // Настройка обработчиков изменения ника
+            const nicknameFields = [
                 'complaintUserNickname',
-                'appealUserNickname',
+                'appealUserNickname', 
                 'supportUserNickname'
             ];
             
-            userNicknameFields.forEach(fieldId => {
+            nicknameFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
-                if (field && !field.value) {
-                    field.value = username;
+                if (field) {
+                    field.addEventListener('blur', function() {
+                        const newUsername = this.value.trim();
+                        if (newUsername && newUsername.length >= 3 && newUsername !== username) {
+                            saveUsername(newUsername);
+                        }
+                    });
+                    
+                    field.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            this.blur();
+                        }
+                    });
                 }
-                
-                // Сохраняем ник при изменении
-                field.addEventListener('change', function() {
-                    const newUsername = this.value.trim();
-                    if (newUsername) {
-                        username = newUsername;
-                        localStorage.setItem('jojoland_username', username);
-                        
-                        // Обновляем только поля "Ваш ник" во всех формах
-                        userNicknameFields.forEach(otherFieldId => {
-                            if (otherFieldId !== fieldId) {
-                                const otherField = document.getElementById(otherFieldId);
-                                if (otherField) {
-                                    otherField.value = username;
-                                }
-                            }
-                        });
-                    }
-                });
             });
             
-            // Загружаем обращения пользователя
+            // Загружаем обращения
             loadUserRequests();
             
             // Выбираем первую форму по умолчанию
             selectType('complaint');
+            
+            // Плавное появление контента
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+            
+            document.body.style.transition = 'opacity 0.5s ease';
+            document.body.style.opacity = '0';
         });
     </script>
 </body>
