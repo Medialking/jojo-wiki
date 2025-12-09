@@ -72,6 +72,9 @@ header {
     transition: all 0.3s;
     z-index: 10;
     backdrop-filter: blur(5px);
+    cursor: pointer;
+    border: none;
+    font-family: 'Orbitron', sans-serif;
 }
 
 .profile-btn:hover {
@@ -529,10 +532,6 @@ footer {
     border-left-color: #ff9900;
 }
 
-.stat-card:nth-child(4) {
-    border-left-color: #ff0066;
-}
-
 .stat-icon {
     font-size: 24px;
     margin-bottom: 10px;
@@ -680,6 +679,7 @@ footer {
     margin: 20px 0;
     color: #ffaaaa;
     text-align: center;
+    font-size: 14px;
 }
 
 .success-message {
@@ -691,6 +691,10 @@ footer {
     color: #aaffcc;
     text-align: center;
 }
+
+/* =========================================== */
+/* СТИЛИ ДЛЯ ФОРМЫ АВТОРИЗАЦИИ */
+/* =========================================== */
 
 /* МОДАЛЬНОЕ ОКНО */
 .modal-overlay {
@@ -729,6 +733,46 @@ footer {
     to { transform: translateY(0); opacity: 1; }
 }
 
+/* ВКЛАДКИ */
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(98, 0, 255, 0.5);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 15px;
+    background: none;
+    border: none;
+    color: #aaaaff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.auth-tab:hover {
+    color: white;
+    background: rgba(98, 0, 255, 0.1);
+}
+
+.auth-tab.active {
+    color: #ffcc00;
+    font-weight: bold;
+}
+
+.auth-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6200ff, #ff00ff);
+}
+
 .modal-header {
     padding: 30px 30px 20px;
     text-align: center;
@@ -753,11 +797,21 @@ footer {
     padding: 30px;
 }
 
+/* ПОЛЯ ВВОДА */
 .input-group {
-    margin-bottom: 25px;
+    position: relative;
+    margin-bottom: 20px;
 }
 
-#nickname-input {
+.input-group label {
+    display: block;
+    color: #aaaaff;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#nickname-input, #login-nickname, #reg-nickname, #login-password, #reg-password, #reg-confirm-password {
     width: 100%;
     padding: 15px 20px;
     background: rgba(255, 255, 255, 0.08);
@@ -770,17 +824,37 @@ footer {
     box-sizing: border-box;
 }
 
-#nickname-input:focus {
+#nickname-input:focus, #login-nickname:focus, #reg-nickname:focus, 
+#login-password:focus, #reg-password:focus, #reg-confirm-password:focus {
     outline: none;
     border-color: #ff00ff;
     box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
     background: rgba(255, 255, 255, 0.12);
 }
 
-#nickname-input::placeholder {
+#nickname-input::placeholder, #login-nickname::placeholder, #reg-nickname::placeholder,
+#login-password::placeholder, #reg-password::placeholder, #reg-confirm-password::placeholder {
     color: #8888cc;
 }
 
+/* КНОПКА ПОКАЗА ПАРОЛЯ */
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 42px;
+    cursor: pointer;
+    font-size: 18px;
+    user-select: none;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+    z-index: 2;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+}
+
+/* ПОДСКАЗКИ */
 .input-hint {
     text-align: right;
     margin-top: 8px;
@@ -788,7 +862,7 @@ footer {
     font-size: 13px;
 }
 
-#char-count {
+#char-count, #reg-char-count {
     background: rgba(98, 0, 255, 0.2);
     padding: 2px 10px;
     border-radius: 10px;
@@ -803,6 +877,7 @@ footer {
     text-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
 }
 
+/* ТРЕБОВАНИЯ */
 .requirements {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
@@ -861,6 +936,7 @@ footer {
     color: white;
 }
 
+/* ФУТЕР МОДАЛЬНОГО ОКНА */
 .modal-footer {
     padding: 0 30px 30px;
     text-align: center;
@@ -900,6 +976,16 @@ footer {
     font-style: italic;
 }
 
+.modal-note a {
+    color: #00ccff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.modal-note a:hover {
+    text-decoration: underline;
+}
+
 .server-info-small {
     background: rgba(98, 0, 255, 0.2);
     padding: 15px;
@@ -911,6 +997,18 @@ footer {
 
 .server-info-small strong {
     color: #ffcc00;
+}
+
+/* КНОПКА ВЫХОДА В ХЕДЕРЕ */
+#logout-btn-header {
+    right: 20px;
+    left: auto;
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+}
+
+#logout-btn-header:hover {
+    background: rgba(255, 68, 68, 0.3);
 }
 
 /* =========================================== */
@@ -1037,7 +1135,7 @@ footer {
         padding: 20px;
     }
     
-    #nickname-input {
+    #nickname-input, #login-nickname, #reg-nickname, #login-password, #reg-password, #reg-confirm-password {
         padding: 12px 15px;
         font-size: 14px;
     }
@@ -1049,6 +1147,21 @@ footer {
     .submit-btn {
         padding: 14px;
         font-size: 14px;
+    }
+    
+    /* Формы авторизации */
+    .auth-tab {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    .input-group label {
+        font-size: 13px;
+    }
+    
+    .password-toggle {
+        right: 10px;
+        top: 38px;
     }
 }
 
@@ -1138,5 +1251,15 @@ footer {
     
     .requirements li {
         font-size: 12px;
+    }
+    
+    /* Формы авторизации */
+    .auth-tab {
+        padding: 10px;
+        font-size: 13px;
+    }
+    
+    .password-toggle {
+        font-size: 16px;
     }
 }
