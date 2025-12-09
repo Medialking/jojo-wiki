@@ -3,303 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой профиль | JojoLand</title>
+    <title>Новогодние очки | JojoLand</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="points.css">
     
     <!-- Игровой шрифт -->
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ПРОФИЛЯ */
-        .profile-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        
-        .profile-header {
-            display: flex;
-            align-items: center;
-            background: linear-gradient(135deg, rgba(98, 0, 255, 0.2), rgba(255, 0, 255, 0.2));
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 2px solid #6200ff;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .profile-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #6200ff, #ff00ff);
-        }
-        
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            margin-right: 25px;
-            border: 3px solid #ffcc00;
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
-        }
-        
-        .profile-info {
-            flex: 1;
-        }
-        
-        .profile-name {
-            color: #ffcc00;
-            font-size: 28px;
-            margin: 0 0 5px;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-        }
-        
-        .profile-id {
-            color: #aaaaff;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        
-        .profile-badges {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .badge {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 5px 10px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            border-left: 4px solid #00cc66;
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .stat-card:nth-child(2) {
-            border-left-color: #6200ff;
-        }
-        
-        .stat-card:nth-child(3) {
-            border-left-color: #ff9900;
-        }
-        
-        .stat-icon {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .stat-title {
-            color: #aaaaff;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            font-family: 'Michroma', sans-serif;
-        }
-        
-        .section-title {
-            color: #ffcc00;
-            font-size: 22px;
-            margin: 40px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 204, 0, 0.3);
-        }
-        
-        .achievements-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-        
-        .achievement-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        
-        .achievement-card:hover {
-            border-color: #ffcc00;
-            transform: scale(1.05);
-        }
-        
-        .achievement-card.locked {
-            opacity: 0.5;
-            filter: grayscale(1);
-        }
-        
-        .achievement-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        
-        .achievement-name {
-            color: white;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .achievement-desc {
-            color: #aaaaff;
-            font-size: 12px;
-        }
-        
-        .holiday-points-card {
-            background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(255, 153, 0, 0.1));
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #ff9900;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .points-display {
-            font-size: 48px;
-            color: #ffcc00;
-            font-weight: bold;
-            margin: 10px 0;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-        }
-        
-        .points-label {
-            color: #ffcc99;
-            font-size: 14px;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .action-btn {
-            flex: 1;
-            padding: 12px;
-            background: rgba(98, 0, 255, 0.2);
-            border: 1px solid #6200ff;
-            border-radius: 10px;
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            transition: all 0.3s;
-            font-family: 'Orbitron', sans-serif;
-            cursor: pointer;
-            border: none;
-            font-size: 14px;
-        }
-        
-        .action-btn:hover {
-            background: rgba(98, 0, 255, 0.4);
-            transform: translateY(-3px);
-        }
-        
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: white;
-            text-decoration: none;
-            margin-top: 20px;
-            transition: all 0.3s;
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Адаптивность профиля */
-        @media (max-width: 768px) {
-            .profile-header {
-                flex-direction: column;
-                text-align: center;
-                padding: 20px;
-            }
-            
-            .profile-avatar {
-                margin-right: 0;
-                margin-bottom: 15px;
-                width: 80px;
-                height: 80px;
-                font-size: 36px;
-            }
-            
-            .profile-name {
-                font-size: 24px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .achievements-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .profile-avatar {
-                width: 60px;
-                height: 60px;
-                font-size: 28px;
-            }
-            
-            .profile-name {
-                font-size: 20px;
-            }
-        }
-    </style>
 </head>
 <body>
 
 <!-- АНИМАЦИЯ ЗАГРУЗКИ -->
 <div id="loader">
     <div class="spinner"></div>
-    <p>Загрузка профиля...</p>
+    <p>Загрузка...</p>
 </div>
 
 <!-- ФОНОВЫЕ ЭФФЕКТЫ -->
@@ -316,69 +32,244 @@
             <img src="images/logo.png" class="logo" alt="JojoLand Logo">
         </div>
         
-        <h1>Мой профиль</h1>
-        <p class="subtitle">Статистика и достижения</p>
+        <h1>🎄 Новогодние очки</h1>
+        <p class="subtitle">Собери очки и получи эксклюзивные награды!</p>
     </header>
 
-    <div class="profile-container">
-        <!-- ЗАГОЛОВОК ПРОФИЛЯ -->
-        <div class="profile-header">
-            <div class="profile-avatar" id="user-avatar">👤</div>
-            <div class="profile-info">
-                <h2 class="profile-name" id="user-nickname">Загрузка...</h2>
-                <div class="profile-id" id="user-id"></div>
-                <div class="profile-badges" id="user-badges">
-                    <!-- Бейджи будут добавляться через JS -->
+    <div class="points-container">
+        <!-- ЕЖЕДНЕВНЫЙ ПОДАРОК -->
+        <div class="daily-gift-section">
+            <div class="section-header">
+                <h2>🎁 Ежедневный подарок</h2>
+                <p>Заходи каждый день до 1 января 2026 и получай новогодние очки!</p>
+            </div>
+            
+            <div class="gift-box" id="daily-gift">
+                <div class="gift-ribbon"></div>
+                <div class="gift-lid"></div>
+                <div class="gift-body">
+                    <div class="gift-content">
+                        <div class="gift-icon">🎁</div>
+                        <div class="gift-text">
+                            <h3>Ежедневный подарок</h3>
+                            <p id="gift-status">Нажмите, чтобы открыть</p>
+                        </div>
+                    </div>
+                    <div class="gift-timer" id="gift-timer">
+                        <div class="timer-icon">⏰</div>
+                        <span>Доступно через: <span id="countdown">--:--:--</span></span>
+                    </div>
+                </div>
+                <div class="gift-sparkle" id="sparkle-1">✨</div>
+                <div class="gift-sparkle" id="sparkle-2">✨</div>
+                <div class="gift-sparkle" id="sparkle-3">✨</div>
+            </div>
+            
+            <div class="gift-info">
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-content">
+                        <h4>Как получить?</h4>
+                        <p>Просто заходите на сайт каждые 24 часа и открывайте подарок</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🎲</div>
+                    <div class="info-content">
+                        <h4>Сколько очков?</h4>
+                        <p>От <strong>1 до 10 очков</strong> случайным образом каждый день</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">📅</div>
+                    <div class="info-content">
+                        <h4>До конца акции:</h4>
+                        <p id="days-left">Загрузка...</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- СТАТИСТИКА -->
-        <h3 class="section-title">📊 Статистика</h3>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📅</div>
-                <div class="stat-title">Дата регистрации</div>
-                <div class="stat-value" id="register-date">--.--.----</div>
+        <!-- СТАТИСТИКА ПО ОЧКАМ -->
+        <div class="points-stats-section">
+            <h2 class="section-title">📊 Ваша статистика</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Всего очков</div>
+                        <div class="stat-value" id="total-points">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">🎁</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Открыто подарков</div>
+                        <div class="stat-value" id="gifts-opened">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Дней подряд</div>
+                        <div class="stat-value" id="streak-days">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card points-stat">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <div class="stat-title">Макс. серия</div>
+                        <div class="stat-value" id="max-streak">0</div>
+                    </div>
+                </div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon">⏱️</div>
-                <div class="stat-title">Последний визит</div>
-                <div class="stat-value" id="last-visit">--:--</div>
+            <div class="streak-visual">
+                <h4>🔥 Серия дней:</h4>
+                <div class="streak-days" id="streak-visual">
+                    <!-- Дни будут добавляться через JS -->
+                </div>
             </div>
+        </div>
+
+        <!-- ИСТОРИЯ НАГРАД -->
+        <div class="rewards-history">
+            <h2 class="section-title">📜 История наград</h2>
+            <div class="rewards-list" id="rewards-list">
+                <!-- Награды будут добавляться через JS -->
+                <div class="empty-rewards">
+                    <div class="empty-icon">📭</div>
+                    <p>Пока нет полученных наград</p>
+                    <small>Откройте первый ежедневный подарок!</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ТОП ИГРОКОВ -->
+        <div class="top-players-section">
+            <h2 class="section-title">🏆 Топ-10 игроков</h2>
+            <p class="section-subtitle">Самые активные собиратели новогодних очков</p>
             
-            <div class="stat-card">
-                <div class="stat-icon">🎮</div>
-                <div class="stat-title">Уровень активности</div>
-                <div class="stat-value" id="activity-level">Новичок</div>
+            <div class="top-players-container">
+                <!-- Топ будет загружаться через JS -->
+                <div class="top-players-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка рейтинга...</p>
+                </div>
+                <div class="top-players-list" id="top-players-list">
+                    <!-- Игроки будут добавляться через JS -->
+                </div>
+                
+                <div class="user-position-card" id="user-position-card" style="display: none;">
+                    <div class="position-header">
+                        <h3>📊 Ваша позиция</h3>
+                    </div>
+                    <div class="position-body">
+                        <div class="position-rank" id="user-rank">-</div>
+                        <div class="position-info">
+                            <div class="position-nickname" id="user-top-nickname">-</div>
+                            <div class="position-points">
+                                <span class="points-label">Очки:</span>
+                                <span class="points-value" id="user-top-points">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- НОВОГОДНИЕ ОЧКИ -->
-        <h3 class="section-title">🎄 Новогодние очки</h3>
-        <div class="holiday-points-card">
-            <div class="points-display" id="holiday-points">0</div>
-            <div class="points-label">собрано очков</div>
-            <p>Участвуйте в новогодних активностях, чтобы получить больше очков!</p>
-            <a href="points.html" class="holiday-btn">Как получить очки →</a>
+        <!-- ИНФОРМАЦИЯ О СИСТЕМЕ -->
+        <div class="system-info">
+            <h2 class="section-title">ℹ️ О системе очков</h2>
+            
+            <div class="info-grid">
+                <div class="system-card">
+                    <div class="system-icon">🎄</div>
+                    <h3>Новогоднее событие</h3>
+                    <p>Акция проходит с <strong>15 декабря 2024</strong> по <strong>1 января 2026</strong></p>
+                </div>
+                
+                <div class="system-card">
+                    <div class="system-icon">🎰</div>
+                    <h3>Случайные награды</h3>
+                    <p>Каждый день вы получаете случайное количество очков от 1 до 10</p>
+                </div>
+                
+                <div class="system-card">
+                    <div class="system-icon">🔥</div>
+                    <h3>Система серий</h3>
+                    <p>Чем больше дней подряд вы заходите, тем больше шанс получить больше очков</p>
+                </div>
+                
+                <div class="system-card">
+                    <div class="system-icon">🏆</div>
+                    <h3>Рейтинг игроков</h3>
+                    <p>Соревнуйтесь с другими игроками и попадите в топ-10 лучших!</p>
+                </div>
+            </div>
         </div>
 
-        <!-- ДОСТИЖЕНИЯ -->
-        <h3 class="section-title">🏆 Достижения</h3>
-        <div class="achievements-grid" id="achievements-container">
-            <!-- Ачивки будут добавляться через JS -->
-        </div>
-
-        <!-- ДЕЙСТВИЯ -->
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
         <div class="action-buttons">
             <a href="index.html" class="action-btn">🏠 На главную</a>
-            <a href="points.html" class="action-btn">🎄 Новогодние очки</a>
-            <a href="wiki.html" class="action-btn">📘 Wiki & Гайды</a>
-            <button class="action-btn" id="logout-btn-profile">🚪 Выйти из аккаунта</button>
+            <a href="profile.html" class="action-btn">👤 Мой профиль</a>
+            <button class="action-btn" id="refresh-top-btn">🔄 Обновить топ</button>
+            <button class="action-btn" id="share-btn">📢 Поделиться</button>
         </div>
+    </div>
+</div>
 
-        <a href="index.html" class="back-btn">← Вернуться на главную</a>
+<!-- МОДАЛЬНОЕ ОКНО С НАГРАДОЙ -->
+<div id="reward-modal" class="modal-overlay">
+    <div class="modal-content reward-modal">
+        <div class="confetti-container">
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+        </div>
+        
+        <div class="reward-header">
+            <h2>🎉 Поздравляем!</h2>
+            <p>Вы получили новогодние очки!</p>
+        </div>
+        
+        <div class="reward-body">
+            <div class="reward-amount" id="reward-amount">
+                <span class="points-number">5</span>
+                <span class="points-label">новогодних очков</span>
+            </div>
+            
+            <div class="reward-message" id="reward-message">
+                Отличное начало! Возвращайтесь завтра за новой наградой!
+            </div>
+            
+            <div class="reward-stats">
+                <div class="reward-stat">
+                    <span class="stat-label">Всего очков:</span>
+                    <span class="stat-value" id="reward-total">0</span>
+                </div>
+                <div class="reward-stat">
+                    <span class="stat-label">Серия дней:</span>
+                    <span class="stat-value" id="reward-streak">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reward-footer">
+            <button id="close-reward" class="reward-btn">Продолжить</button>
+            <p class="modal-note">Следующий подарок будет доступен через 24 часа</p>
+            <p class="modal-note" style="margin-top: 10px; font-size: 11px;">
+                Акция продлена до 1 января 2026 года!
+            </p>
+        </div>
     </div>
 </div>
 
@@ -386,429 +277,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-<script>
-// Инициализация Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-    authDomain: "jojoland-chat.firebasestorage.app",
-    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
-    projectId: "jojoland-chat",
-    storageBucket: "jojoland-chat.firebasestorage.app",
-    messagingSenderId: "602788305122",
-    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
-};
-
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-// СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
-function createParticles() {
-    const particlesContainer = document.getElementById('particles');
-    
-    for (let i = 0; i < 30; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        
-        particle.style.left = `${Math.random() * 100}%`;
-        particle.style.top = `${Math.random() * 100}%`;
-        
-        const size = Math.random() * 2 + 1;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        
-        particle.style.opacity = Math.random() * 0.5 + 0.2;
-        
-        const duration = Math.random() * 20 + 15;
-        particle.style.animationDuration = `${duration}s`;
-        particle.style.animationDelay = `${Math.random() * 10}s`;
-        
-        particlesContainer.appendChild(particle);
-    }
-}
-
-// ФОРМАТИРОВАНИЕ ДАТЫ
-function formatDate(dateString) {
-    if (!dateString) return '--.--.----';
-    
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '--.--.----';
-        
-        return date.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    } catch (error) {
-        console.error('Ошибка форматирования даты:', error);
-        return '--.--.----';
-    }
-}
-
-function formatTime(dateString) {
-    if (!dateString) return '--:--';
-    
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '--:--';
-        
-        return date.toLocaleTimeString('ru-RU', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-    } catch (error) {
-        console.error('Ошибка форматирования времени:', error);
-        return '--:--';
-    }
-}
-
-// ==================== ПОЛУЧЕНИЕ НОВОГОДНИХ ОЧКОВ ====================
-async function loadHolidayPoints(userId) {
-    console.log('🔍 Загружаю новогодние очки для пользователя:', userId);
-    
-    try {
-        const snapshot = await database.ref('holiday_points/' + userId).once('value');
-        console.log('📊 Результат запроса holiday_points:', snapshot.exists());
-        
-        if (snapshot.exists()) {
-            const pointsData = snapshot.val();
-            console.log('🎯 Данные новогодних очков:', pointsData);
-            
-            const totalPoints = pointsData.total_points || pointsData.totalPoints || 0;
-            console.log('🎄 Всего новогодних очков:', totalPoints);
-            
-            // Обновляем отображение
-            document.getElementById('holiday-points').textContent = totalPoints;
-            
-            // Возвращаем данные для других функций
-            return {
-                total: totalPoints,
-                available: pointsData.available_points || pointsData.availablePoints || 0,
-                spent: pointsData.spent_points || pointsData.spentPoints || 0,
-                streak: pointsData.current_streak || pointsData.currentStreak || 0
-            };
-        } else {
-            console.log('⚠️ Данные новогодних очков не найдены для пользователя:', userId);
-            document.getElementById('holiday-points').textContent = 0;
-            return { total: 0, available: 0, spent: 0, streak: 0 };
-        }
-    } catch (error) {
-        console.error('❌ Ошибка загрузки новогодних очков:', error);
-        document.getElementById('holiday-points').textContent = 0;
-        return { total: 0, available: 0, spent: 0, streak: 0 };
-    }
-}
-
-// ==================== ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ====================
-async function loadUserProfile() {
-    const nickname = localStorage.getItem('jojoland_nickname');
-    const userId = localStorage.getItem('jojoland_userId');
-    
-    console.log('👤 Загружаю профиль:', { nickname, userId });
-    
-    if (!nickname || !userId) {
-        showError('Сначала нужно войти в аккаунт на главной странице');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 3000);
-        return;
-    }
-    
-    try {
-        const snapshot = await database.ref('users/' + userId).once('value');
-        
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            console.log('✅ Данные пользователя загружены:', userData);
-            
-            // Загружаем новогодние очки
-            const pointsData = await loadHolidayPoints(userId);
-            
-            // Отображаем все данные
-            displayUserData(userData, userId, nickname, pointsData.total);
-            
-            // Обновляем последний визит
-            await updateLastVisit(userId, userData);
-        } else {
-            console.log('❌ Пользователь не найден в базе данных');
-            document.getElementById('user-nickname').textContent = nickname;
-            document.getElementById('user-id').textContent = `ID: ${userId}`;
-            showError('Данные пользователя не найдены в базе.');
-            
-            // Пытаемся загрузить хотя бы новогодние очки
-            await loadHolidayPoints(userId);
-        }
-    } catch (error) {
-        console.error('❌ Ошибка загрузки профиля:', error);
-        showError('Ошибка загрузки профиля: ' + error.message);
-    }
-}
-
-// ==================== ОБНОВЛЕНИЕ ПОСЛЕДНЕГО ВИЗИТА ====================
-async function updateLastVisit(userId, userData) {
-    try {
-        const currentTime = new Date().toISOString();
-        const visitsCount = (userData.visitsCount || 0) + 1;
-        
-        await database.ref('users/' + userId).update({
-            lastVisit: currentTime,
-            visitsCount: visitsCount
-        });
-        
-        console.log('✅ Визит обновлен:', { lastVisit: currentTime, visitsCount });
-    } catch (error) {
-        console.error('❌ Ошибка обновления визита:', error);
-    }
-}
-
-// ==================== ОТОБРАЖЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ====================
-function displayUserData(userData, userId, nickname, holidayPoints) {
-    // Основная информация
-    document.getElementById('user-nickname').textContent = nickname || userData.nickname || 'Игрок';
-    document.getElementById('user-id').textContent = `ID: ${userId}`;
-    
-    // Аватар (если есть)
-    if (userData.avatar) {
-        document.getElementById('user-avatar').textContent = userData.avatar;
-    }
-    
-    // Статистика
-    const createdAt = userData.createdAt || userData.createdat || userData.registeredAt;
-    const lastVisit = userData.lastVisit || userData.lastvisit || createdAt;
-    
-    document.getElementById('register-date').textContent = formatDate(createdAt);
-    document.getElementById('last-visit').textContent = formatTime(lastVisit);
-    
-    // Уровень активности (на основе visitsCount)
-    const visits = userData.visitsCount || userData.visitscount || 1;
-    let activityLevel = 'Новичок';
-    if (visits > 5) activityLevel = 'Активный';
-    if (visits > 15) activityLevel = 'Опытный';
-    if (visits > 30) activityLevel = 'Ветеран';
-    if (visits > 50) activityLevel = 'Легенда';
-    document.getElementById('activity-level').textContent = activityLevel;
-    
-    // Новогодние очки уже загружены отдельно
-    // holidayPoints передается как параметр
-    
-    // Бейджи и достижения
-    displayBadges(userData, visits, holidayPoints);
-    displayAchievements(userData, visits, holidayPoints);
-}
-
-// ==================== ОТОБРАЖЕНИЕ БЕЙДЖЕЙ ====================
-function displayBadges(userData, visits, holidayPoints) {
-    const badgesContainer = document.getElementById('user-badges');
-    
-    const badges = [];
-    
-    // Бейджи за посещения
-    if (visits >= 1) {
-        badges.push({ icon: '🎯', text: 'Первый визит' });
-    }
-    
-    if (visits >= 3) {
-        badges.push({ icon: '🔥', text: 'Активный' });
-    }
-    
-    if (visits >= 10) {
-        badges.push({ icon: '⭐', text: 'Постоянный' });
-    }
-    
-    if (visits >= 30) {
-        badges.push({ icon: '👑', text: 'Ветеран' });
-    }
-    
-    // Бейджи за новогодние очки
-    if (holidayPoints > 0) {
-        badges.push({ icon: '🎄', text: 'Новый год' });
-    }
-    
-    if (holidayPoints >= 50) {
-        badges.push({ icon: '🏆', text: 'Собиратель' });
-    }
-    
-    if (holidayPoints >= 100) {
-        badges.push({ icon: '💰', text: 'Богатый' });
-    }
-    
-    // Если нет бейджей
-    if (badges.length === 0) {
-        badges.push({ icon: '👤', text: 'Новичок' });
-    }
-    
-    // Ограничиваем количество бейджей для мобильных
-    const maxBadges = window.innerWidth < 768 ? 3 : 6;
-    const displayedBadges = badges.slice(0, maxBadges);
-    
-    badgesContainer.innerHTML = displayedBadges.map(badge => `
-        <div class="badge" title="${badge.text}">
-            <span>${badge.icon}</span>
-            <span>${badge.text}</span>
-        </div>
-    `).join('');
-}
-
-// ==================== ОТОБРАЖЕНИЕ ДОСТИЖЕНИЙ ====================
-function displayAchievements(userData, visits, holidayPoints) {
-    const achievementsContainer = document.getElementById('achievements-container');
-    
-    const achievements = [
-        { 
-            id: 'first_visit', 
-            icon: '🎯', 
-            name: 'Первый раз', 
-            desc: 'Посетить сайт впервые', 
-            earned: visits >= 1 
-        },
-        { 
-            id: 'regular', 
-            icon: '📅', 
-            name: 'Постоянный гость', 
-            desc: '3 посещения сайта', 
-            earned: visits >= 3 
-        },
-        { 
-            id: 'veteran', 
-            icon: '⭐', 
-            name: 'Ветеран', 
-            desc: '10 посещений сайта', 
-            earned: visits >= 10 
-        },
-        { 
-            id: 'legend', 
-            icon: '👑', 
-            name: 'Легенда', 
-            desc: '30 посещений сайта', 
-            earned: visits >= 30 
-        },
-        { 
-            id: 'new_year_start', 
-            icon: '🎄', 
-            name: 'Новогодний дух', 
-            desc: 'Получить новогодние очки', 
-            earned: holidayPoints >= 1 
-        },
-        { 
-            id: 'collector', 
-            icon: '🏆', 
-            name: 'Коллекционер', 
-            desc: '50 новогодних очков', 
-            earned: holidayPoints >= 50 
-        },
-        { 
-            id: 'rich', 
-            icon: '💰', 
-            name: 'Богатый', 
-            desc: '100 новогодних очков', 
-            earned: holidayPoints >= 100 
-        },
-        { 
-            id: 'master', 
-            icon: '👑', 
-            name: 'Мастер', 
-            desc: '500 новогодних очков', 
-            earned: holidayPoints >= 500 
-        }
-    ];
-    
-    achievementsContainer.innerHTML = achievements.map(ach => `
-        <div class="achievement-card ${ach.earned ? '' : 'locked'}" 
-             title="${ach.earned ? '🎉 Получено!' : '🔒 Не получено'}">
-            <div class="achievement-icon">${ach.icon}</div>
-            <div class="achievement-name">${ach.name}</div>
-            <div class="achievement-desc">${ach.desc}</div>
-            ${ach.earned ? '<div class="achievement-status">✅</div>' : ''}
-        </div>
-    `).join('');
-}
-
-// ==================== ПОКАЗАТЬ ОШИБКУ ====================
-function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.style.cssText = `
-        background: rgba(255, 68, 68, 0.2);
-        border: 1px solid #ff4444;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 20px 0;
-        text-align: center;
-        color: #ffaaaa;
-        font-size: 14px;
-    `;
-    errorDiv.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 5px;">⚠️ Ошибка</div>
-        <div>${message}</div>
-    `;
-    
-    const container = document.querySelector('.profile-container');
-    if (container.firstChild) {
-        container.insertBefore(errorDiv, container.firstChild);
-    } else {
-        container.appendChild(errorDiv);
-    }
-    
-    // Автоматически скрыть через 5 секунд
-    setTimeout(() => {
-        errorDiv.style.opacity = '0';
-        errorDiv.style.transition = 'opacity 0.5s';
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.parentNode.removeChild(errorDiv);
-            }
-        }, 500);
-    }, 5000);
-}
-
-// ==================== ВЫХОД ИЗ АККАУНТА ====================
-document.addEventListener('DOMContentLoaded', function() {
-    const logoutBtn = document.getElementById('logout-btn-profile');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            if (confirm('Вы уверены, что хотите выйти из аккаунта?\nДля входа снова потребуется пароль.')) {
-                localStorage.removeItem('jojoland_nickname');
-                localStorage.removeItem('jojoland_userId');
-                localStorage.removeItem('jojoland_loggedIn');
-                window.location.href = 'index.html';
-            }
-        });
-    }
-});
-
-// ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
-window.onload = async function() {
-    createParticles();
-    
-    // Анимация загрузки
-    document.getElementById("loader").style.opacity = "0";
-    setTimeout(() => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
-        
-        // Загружаем профиль
-        loadUserProfile();
-    }, 400);
-};
-
-// Добавляем статус для ачивок
-const style = document.createElement('style');
-style.textContent = `
-    .achievement-status {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 12px;
-        color: #00ff00;
-    }
-    
-    .achievement-card {
-        position: relative;
-    }
-`;
-document.head.appendChild(style);
-</script>
+<script src="points.js"></script>
 
 </body>
 </html>
