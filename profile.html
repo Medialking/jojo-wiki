@@ -154,6 +154,7 @@
             text-align: center;
             transition: all 0.3s;
             border: 1px solid transparent;
+            position: relative;
         }
         
         .achievement-card:hover {
@@ -248,6 +249,15 @@
             background: rgba(255, 255, 255, 0.2);
         }
         
+        .viewing-others-profile {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 204, 255, 0.2));
+            border-color: #0066ff;
+        }
+        
+        .viewing-others-profile::before {
+            background: linear-gradient(90deg, #0066ff, #00ccff);
+        }
+        
         /* Адаптивность профиля */
         @media (max-width: 768px) {
             .profile-header {
@@ -316,13 +326,13 @@
             <img src="images/logo.png" class="logo" alt="JojoLand Logo">
         </div>
         
-        <h1>Мой профиль</h1>
-        <p class="subtitle">Статистика и достижения</p>
+        <h1 id="page-title">Мой профиль</h1>
+        <p class="subtitle" id="page-subtitle">Статистика и достижения</p>
     </header>
 
     <div class="profile-container">
         <!-- ЗАГОЛОВОК ПРОФИЛЯ -->
-        <div class="profile-header">
+        <div class="profile-header" id="profile-header">
             <div class="profile-avatar" id="user-avatar">👤</div>
             <div class="profile-info">
                 <h2 class="profile-name" id="user-nickname">Загрузка...</h2>
@@ -371,10 +381,10 @@
         </div>
 
         <!-- ДЕЙСТВИЯ -->
-        <div class="action-buttons">
+        <div class="action-buttons" id="action-buttons">
             <a href="index.html" class="action-btn">🏠 На главную</a>
+            <a href="players.html" class="action-btn">👥 Все игроки</a>
             <a href="points.html" class="action-btn">🎄 Новогодние очки</a>
-            <a href="wiki.html" class="action-btn">📘 Wiki & Гайды</a>
             <button class="action-btn" id="logout-btn-profile">🚪 Выйти из аккаунта</button>
         </div>
 
@@ -545,8 +555,70 @@ async function loadUserProfile() {
     }
 }
 
+// ==================== ЗАГРУЗКА ПРОФИЛЯ ДРУГОГО ИГРОКА ====================
+async function loadOtherUserProfile(viewUserId) {
+    try {
+        console.log('👤 Загружаю профиль другого игрока:', viewUserId);
+        
+        const snapshot = await database.ref('users/' + viewUserId).once('value');
+        
+        if (!snapshot.exists()) {
+            showError('Профиль игрока не найден');
+            setTimeout(() => {
+                window.location.href = 'players.html';
+            }, 3000);
+            return;
+        }
+        
+        const userData = snapshot.val();
+        console.log('✅ Данные другого игрока загружены:', userData);
+        
+        // Загружаем новогодние очки
+        const pointsData = await loadHolidayPoints(viewUserId);
+        
+        // Отображаем все данные
+        displayUserData(userData, viewUserId, userData.nickname, pointsData.total);
+        
+        // Меняем заголовки
+        document.getElementById('page-title').textContent = 'Профиль игрока';
+        document.getElementById('page-subtitle').textContent = 'Просмотр профиля другого игрока';
+        document.getElementById('profile-header').classList.add('viewing-others-profile');
+        
+        // Изменяем кнопки действий
+        const actionButtons = document.getElementById('action-buttons');
+        actionButtons.innerHTML = `
+            <a href="players.html" class="action-btn">👥 Назад к списку игроков</a>
+            <a href="index.html" class="action-btn">🏠 На главную</a>
+        `;
+        
+        // Убираем кнопку выхода
+        document.getElementById('logout-btn-profile').style.display = 'none';
+        
+        // Обновляем ссылку "Назад"
+        const backBtn = document.querySelector('.back-btn');
+        backBtn.href = 'players.html';
+        backBtn.textContent = '← Назад к списку игроков';
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки профиля другого игрока:', error);
+        showError('Ошибка загрузки профиля другого игрока');
+        setTimeout(() => {
+            window.location.href = 'players.html';
+        }, 3000);
+    }
+}
+
 // ==================== ОБНОВЛЕНИЕ ПОСЛЕДНЕГО ВИЗИТА ====================
 async function updateLastVisit(userId, userData) {
+    // Обновляем только для своего профиля
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewUserId = urlParams.get('view');
+    
+    if (viewUserId) {
+        // Это просмотр чужого профиля, не обновляем визит
+        return;
+    }
+    
     try {
         const currentTime = new Date().toISOString();
         const visitsCount = (userData.visitsCount || 0) + 1;
@@ -590,7 +662,6 @@ function displayUserData(userData, userId, nickname, holidayPoints) {
     document.getElementById('activity-level').textContent = activityLevel;
     
     // Новогодние очки уже загружены отдельно
-    // holidayPoints передается как параметр
     
     // Бейджи и достижения
     displayBadges(userData, visits, holidayPoints);
@@ -603,6 +674,19 @@ function displayBadges(userData, visits, holidayPoints) {
     
     const badges = [];
     
+    // Определяем ранг пользователя
+    let rank = 'player';
+    if (userData.rank === 'admin' || userData.role === 'admin') {
+        rank = 'admin';
+        badges.push({ icon: '👑', text: 'Администратор' });
+    } else if (userData.rank === 'moderator' || userData.role === 'moderator') {
+        rank = 'moderator';
+        badges.push({ icon: '⚡', text: 'Модератор' });
+    } else if (userData.rank === 'vip' || userData.role === 'vip' || userData.isVip) {
+        rank = 'vip';
+        badges.push({ icon: '⭐', text: 'VIP' });
+    }
+    
     // Бейджи за посещения
     if (visits >= 1) {
         badges.push({ icon: '🎯', text: 'Первый визит' });
@@ -613,7 +697,7 @@ function displayBadges(userData, visits, holidayPoints) {
     }
     
     if (visits >= 10) {
-        badges.push({ icon: '⭐', text: 'Постоянный' });
+        badges.push({ icon: '📅', text: 'Постоянный' });
     }
     
     if (visits >= 30) {
@@ -729,7 +813,7 @@ function showError(message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
     errorDiv.style.cssText = `
-        background: rgba(255, 68, 68, 0.2);
+        background: rgba(255, 68, 68, 0.1);
         border: 1px solid #ff4444;
         border-radius: 10px;
         padding: 15px;
@@ -787,27 +871,19 @@ window.onload = async function() {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
         
-        // Загружаем профиль
-        loadUserProfile();
+        // Проверяем, чей профиль загружать
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewUserId = urlParams.get('view');
+        
+        if (viewUserId) {
+            // Загружаем профиль другого игрока
+            loadOtherUserProfile(viewUserId);
+        } else {
+            // Загружаем свой профиль
+            loadUserProfile();
+        }
     }, 400);
 };
-
-// Добавляем статус для ачивок
-const style = document.createElement('style');
-style.textContent = `
-    .achievement-status {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 12px;
-        color: #00ff00;
-    }
-    
-    .achievement-card {
-        position: relative;
-    }
-`;
-document.head.appendChild(style);
 </script>
 
 </body>
