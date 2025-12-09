@@ -1,0 +1,843 @@
+/* =========================================== */
+/* СТИЛИ ДЛЯ СТРАНИЦЫ НОВОГОДНИХ ОЧКОВ */
+/* =========================================== */
+
+/* КОНТЕЙНЕР */
+.points-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* ЕЖЕДНЕВНЫЙ ПОДАРОК */
+.daily-gift-section {
+    background: linear-gradient(135deg, rgba(139, 0, 139, 0.1), rgba(255, 20, 147, 0.1));
+    border-radius: 25px;
+    padding: 40px 30px;
+    margin-bottom: 40px;
+    border: 3px solid #ff00ff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(255, 0, 255, 0.2);
+}
+
+.daily-gift-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #ff00ff, #ff1493, #8b008b);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-header h2 {
+    color: #ffcc00;
+    font-size: 36px;
+    margin: 0 0 15px;
+    text-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+}
+
+.section-header p {
+    color: #ffb6c1;
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* КОРОБКА ПОДАРКА */
+.gift-box {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 40px;
+    background: linear-gradient(135deg, #8b0000, #ff0000);
+    border-radius: 20px;
+    padding: 30px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    border: 4px solid #ffcc00;
+    box-shadow: 0 20px 40px rgba(255, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.gift-box:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(255, 0, 0, 0.4);
+}
+
+.gift-box.opened {
+    background: linear-gradient(135deg, #006400, #00aa00);
+    border-color: #00ff00;
+}
+
+.gift-box.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+.gift-box.disabled:hover {
+    transform: none;
+    box-shadow: 0 20px 40px rgba(255, 0, 0, 0.3);
+}
+
+/* ЛЕНТА ПОДАРКА */
+.gift-ribbon {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 40px;
+    background: linear-gradient(90deg, #00ff00, #ffff00);
+    border-radius: 20px;
+    z-index: 2;
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+.gift-ribbon::before,
+.gift-ribbon::after {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(90deg, #00ff00, #ffff00);
+    border-radius: 50%;
+    top: 35px;
+}
+
+.gift-ribbon::before {
+    left: 20px;
+}
+
+.gift-ribbon::after {
+    right: 20px;
+}
+
+/* КРЫШКА ПОДАРКА */
+.gift-lid {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 30px;
+    background: linear-gradient(135deg, #cc0000, #ff4444);
+    border-radius: 10px 10px 0 0;
+    z-index: 1;
+}
+
+/* ТЕЛО ПОДАРКА */
+.gift-body {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 40px 30px;
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.gift-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.gift-icon {
+    font-size: 80px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.gift-text h3 {
+    color: white;
+    font-size: 28px;
+    margin: 0 0 10px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.gift-text p {
+    color: #ffcccc;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* ТАЙМЕР */
+.gift-timer {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timer-icon {
+    font-size: 24px;
+}
+
+.gift-timer span {
+    color: white;
+    font-size: 16px;
+    font-family: 'Michroma', monospace;
+}
+
+#countdown {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 18px;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* БЛЕСТКИ */
+.gift-sparkle {
+    position: absolute;
+    font-size: 24px;
+    opacity: 0;
+    animation: sparkle 3s infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+#sparkle-1 {
+    top: 20px;
+    left: 20px;
+    animation-delay: 0s;
+}
+
+#sparkle-2 {
+    top: 20px;
+    right: 20px;
+    animation-delay: 1s;
+}
+
+#sparkle-3 {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 2s;
+}
+
+/* ИНФОРМАЦИОННЫЕ КАРТОЧКИ */
+.gift-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.info-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-5px);
+}
+
+.info-icon {
+    font-size: 32px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.info-content h4 {
+    color: #ffcc00;
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.info-content p {
+    color: #ccccff;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.info-content strong {
+    color: #00ff00;
+}
+
+/* СТАТИСТИКА */
+.points-stats-section {
+    background: linear-gradient(135deg, rgba(0, 100, 0, 0.1), rgba(0, 255, 0, 0.1));
+    border-radius: 25px;
+    padding: 40px 30px;
+    margin-bottom: 40px;
+    border: 3px solid #00ff00;
+}
+
+.section-title {
+    color: #ffcc00;
+    font-size: 28px;
+    margin: 0 0 30px;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 204, 0, 0.3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.points-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.points-stat:hover {
+    border-color: #00ff00;
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.points-stat .stat-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.points-stat .stat-content {
+    color: white;
+}
+
+.points-stat .stat-title {
+    color: #aaaaff;
+    font-size: 14px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.points-stat .stat-value {
+    color: #00ff00;
+    font-size: 32px;
+    font-weight: bold;
+    font-family: 'Michroma', monospace;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+/* ВИЗУАЛИЗАЦИЯ СЕРИИ */
+.streak-visual {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    border: 2px solid rgba(255, 100, 0, 0.3);
+}
+
+.streak-visual h4 {
+    color: #ff9900;
+    margin: 0 0 20px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.streak-days {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.streak-day {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.streak-day.active {
+    background: linear-gradient(135deg, #ff9900, #ff5500);
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+}
+
+.streak-day.inactive {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.streak-day.today {
+    animation: pulse 2s infinite;
+    border: 2px solid #00ff00;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* ИСТОРИЯ НАГРАД */
+.rewards-history {
+    background: linear-gradient(135deg, rgba(0, 0, 139, 0.1), rgba(0, 0, 255, 0.1));
+    border-radius: 25px;
+    padding: 40px 30px;
+    margin-bottom: 40px;
+    border: 3px solid #0088ff;
+}
+
+.rewards-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.rewards-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rewards-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.rewards-list::-webkit-scrollbar-thumb {
+    background: #0088ff;
+    border-radius: 4px;
+}
+
+.reward-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 4px solid #0088ff;
+    transition: all 0.3s;
+}
+
+.reward-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.reward-date {
+    color: #aaaaff;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+.reward-info {
+    flex: 1;
+    padding: 0 20px;
+}
+
+.reward-info .reward-type {
+    color: white;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.reward-info .reward-desc {
+    color: #8888ff;
+    font-size: 13px;
+}
+
+.reward-points {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Michroma', monospace;
+    min-width: 80px;
+    text-align: right;
+}
+
+.empty-rewards {
+    text-align: center;
+    padding: 60px 20px;
+    color: #8888ff;
+}
+
+.empty-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-rewards p {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #aaaaff;
+}
+
+.empty-rewards small {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* ИНФОРМАЦИЯ О СИСТЕМЕ */
+.system-info {
+    background: linear-gradient(135deg, rgba(139, 0, 139, 0.1), rgba(255, 0, 255, 0.1));
+    border-radius: 25px;
+    padding: 40px 30px;
+    margin-bottom: 40px;
+    border: 3px solid #ff00ff;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.system-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.system-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-5px);
+    border-color: #ff00ff;
+}
+
+.system-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.system-card h3 {
+    color: #ffcc00;
+    margin: 0 0 15px;
+    font-size: 20px;
+}
+
+.system-card p {
+    color: #ccccff;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.system-card strong {
+    color: #00ff00;
+}
+
+/* МОДАЛЬНОЕ ОКНО НАГРАДЫ */
+.reward-modal {
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #0088ff);
+    opacity: 0;
+    animation: confettiFall 3s ease-in-out;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(500px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.reward-header {
+    position: relative;
+    z-index: 2;
+    padding: 30px 30px 0;
+}
+
+.reward-header h2 {
+    color: #ffcc00;
+    font-size: 32px;
+    margin: 0 0 10px;
+    text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+}
+
+.reward-header p {
+    color: #aaaaff;
+    font-size: 16px;
+    margin: 0;
+}
+
+.reward-body {
+    position: relative;
+    z-index: 2;
+    padding: 30px;
+}
+
+.reward-amount {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 255, 0, 0.2));
+    border-radius: 20px;
+    padding: 40px;
+    margin: 20px 0;
+    border: 3px solid #ffcc00;
+    animation: glow 2s infinite;
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(255, 204, 0, 0.8); }
+}
+
+.points-number {
+    font-size: 72px;
+    font-weight: bold;
+    color: #ffcc00;
+    text-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+    display: block;
+    font-family: 'Michroma', monospace;
+}
+
+.points-label {
+    font-size: 18px;
+    color: #ffcc99;
+    display: block;
+    margin-top: 10px;
+}
+
+.reward-message {
+    color: white;
+    font-size: 18px;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border-left: 4px solid #00ff00;
+}
+
+.reward-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.reward-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px 20px;
+    min-width: 150px;
+}
+
+.reward-stat .stat-label {
+    display: block;
+    color: #aaaaff;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.reward-stat .stat-value {
+    display: block;
+    color: #00ff00;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Michroma', monospace;
+}
+
+.reward-footer {
+    position: relative;
+    z-index: 2;
+    padding: 0 30px 30px;
+}
+
+.reward-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(90deg, #00cc66, #00ff88);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+.reward-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
+}
+
+/* КНОПКИ ДЕЙСТВИЙ */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.action-btn {
+    padding: 15px 30px;
+    background: linear-gradient(90deg, #6200ff, #ff00ff);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    min-width: 200px;
+}
+
+.action-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(98, 0, 255, 0.5);
+}
+
+#share-btn {
+    background: linear-gradient(90deg, #0088ff, #00ccff);
+}
+
+/* АДАПТИВНОСТЬ */
+@media (max-width: 768px) {
+    .daily-gift-section,
+    .points-stats-section,
+    .rewards-history,
+    .system-info {
+        padding: 30px 20px;
+    }
+    
+    .section-header h2 {
+        font-size: 28px;
+    }
+    
+    .section-header p {
+        font-size: 16px;
+    }
+    
+    .gift-box {
+        padding: 20px;
+    }
+    
+    .gift-icon {
+        font-size: 60px;
+    }
+    
+    .gift-text h3 {
+        font-size: 24px;
+    }
+    
+    .gift-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .reward-amount {
+        padding: 30px 20px;
+    }
+    
+    .points-number {
+        font-size: 56px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header h2 {
+        font-size: 24px;
+    }
+    
+    .gift-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .gift-timer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .reward-stats {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .reward-stat {
+        width: 100%;
+        max-width: 200px;
+    }
+}
