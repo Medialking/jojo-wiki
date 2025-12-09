@@ -35,6 +35,9 @@ window.onload = async function() {
             
             // Проверяем реферальные бонусы
             await checkReferralBonus();
+            
+            // Подписываемся на обновления очков в реальном времени
+            setupRealtimeUpdates();
         }
     }, 400);
 };
@@ -64,6 +67,33 @@ function createParticles() {
     }
 }
 
+// ПОДПИСКА НА ОБНОВЛЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ
+function setupRealtimeUpdates() {
+    // Слушаем изменения в holiday_points
+    database.ref('holiday_points/' + userId).on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            const newData = snapshot.val();
+            
+            // Проверяем, увеличились ли очки
+            if (pointsData && newData.total_points > pointsData.total_points) {
+                const diff = newData.total_points - pointsData.total_points;
+                
+                // Показываем уведомление если это не ежедневный подарок
+                const now = new Date();
+                const lastClaim = localStorage.getItem('last_daily_claim_' + userId);
+                
+                if (!lastClaim || (now - new Date(lastClaim)) > 5000) {
+                    showNotification(`🎉 +${diff} новогодних очков!`, 'success');
+                }
+            }
+            
+            // Обновляем данные и интерфейс
+            pointsData = newData;
+            updateUI();
+        }
+    });
+}
+
 // ПРОВЕРКА АВТОРИЗАЦИИ
 async function checkAuth() {
     userId = localStorage.getItem('jojoland_userId');
@@ -87,7 +117,7 @@ async function loadPointsData() {
         
         if (snapshot.exists()) {
             pointsData = snapshot.val();
-            console.log('Данные очков загружены:', pointsData);
+            console.log('✅ Данные очков загружены:', pointsData);
         } else {
             // Создаем новую запись
             pointsData = {
@@ -102,12 +132,62 @@ async function loadPointsData() {
             };
             
             await database.ref('holiday_points/' + userId).set(pointsData);
-            console.log('Новая запись очков создана');
+            console.log('✅ Новая запись очков создана');
         }
     } catch (error) {
-        console.error('Ошибка загрузки данных очков:', error);
+        console.error('❌ Ошибка загрузки данных очков:', error);
         showError('Ошибка загрузки данных');
         pointsData = null;
+    }
+}
+
+// ПРОВЕРКА РЕФЕРАЛЬНЫХ БОНУСОВ
+async function checkReferralBonus() {
+    try {
+        console.log('🔍 Проверка реферальных бонусов для:', userId);
+        
+        // 1. Проверяем, получил ли пользователь бонус за регистрацию
+        const userSnapshot = await database.ref('users/' + userId).once('value');
+        if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            
+            if (userData.referral_bonus_received && !localStorage.getItem('referral_bonus_shown_' + userId)) {
+                showNotification(
+                    `🎁 Вы получили ${userData.referral_bonus_received} новогодних очков за регистрацию по реферальной ссылке!`,
+                    'success'
+                );
+                localStorage.setItem('referral_bonus_shown_' + userId, 'true');
+            }
+        }
+        
+        // 2. Проверяем, получил ли пользователь очки за приглашение друзей
+        const refSnapshot = await database.ref('referrals/' + userId).once('value');
+        if (refSnapshot.exists()) {
+            const refData = refSnapshot.val();
+            
+            // Проверяем последних приглашенных
+            if (refData.referrals_list && refData.referrals_list.length > 0) {
+                const unshownRefs = refData.referrals_list.filter(ref => {
+                    const storageKey = `ref_reward_shown_${userId}_${ref.user_id}`;
+                    return !localStorage.getItem(storageKey);
+                });
+                
+                unshownRefs.forEach(ref => {
+                    const points = ref.inviter_points || ref.points_rewarded || 0;
+                    if (points > 0) {
+                        showNotification(
+                            `🤝 Вы получили ${points} новогодних очков за приглашение друга ${ref.nickname}!`,
+                            'success'
+                        );
+                        const storageKey = `ref_reward_shown_${userId}_${ref.user_id}`;
+                        localStorage.setItem(storageKey, 'true');
+                    }
+                });
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка проверки реферального бонуса:', error);
     }
 }
 
@@ -211,6 +291,9 @@ async function openDailyGift() {
         
         // Сохраняем в Firebase
         await database.ref('holiday_points/' + userId).set(newPointsData);
+        
+        // Сохраняем время получения подарка
+        localStorage.setItem('last_daily_claim_' + userId, now.toISOString());
         
         // Обновляем локальные данные
         pointsData = newPointsData;
@@ -416,7 +499,20 @@ function updateRewardsHistory() {
         });
         
         let typeText = 'Ежедневный подарок';
-        let desc = `Серия: ${reward.streak} дней`;
+        let icon = '🎁';
+        
+        if (reward.type === 'referral_bonus') {
+            typeText = 'Реферальный бонус';
+            icon = '🤝';
+        } else if (reward.type === 'referral_reward') {
+            typeText = 'Награда за приглашение';
+            icon = '👥';
+        }
+        
+        let desc = `Серия: ${reward.streak || 1} дней`;
+        if (reward.type && reward.type.includes('referral')) {
+            desc = reward.description || 'Реферальная награда';
+        }
         
         return `
             <div class="reward-item">
@@ -425,7 +521,7 @@ function updateRewardsHistory() {
                     <small>${time}</small>
                 </div>
                 <div class="reward-info">
-                    <div class="reward-type">${typeText}</div>
+                    <div class="reward-type">${icon} ${typeText}</div>
                     <div class="reward-desc">${desc}</div>
                 </div>
                 <div class="reward-points">+${reward.points}</div>
@@ -450,37 +546,6 @@ function updateUI() {
     // Обновляем историю наград
     updateRewardsHistory();
 }
-
-// НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
-function setupEventListeners() {
-    // Открытие подарка
-    const giftBox = document.getElementById('daily-gift');
-    giftBox.addEventListener('click', async function() {
-        if (!this.classList.contains('disabled') && canClaimGift()) {
-            await openDailyGift();
-        }
-    });
-    
-    // Кнопка "Поделиться"
-    const shareBtn = document.getElementById('share-btn');
-    shareBtn.addEventListener('click', function() {
-        const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${pointsData.total_points || 0} очков! Присоединяйся: ${window.location.origin}`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'JojoLand Новогодние очки',
-                text: shareText,
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                alert('Текст скопирован в буфер обмена! Поделитесь с друзьями!');
-            });
-        }
-    });
-}
-
-// ==================== ФУНКЦИИ ДЛЯ ТОПА ИГРОКОВ ====================
 
 // ЗАГРУЗКА ТОПА ИГРОКОВ
 async function loadTopPlayers() {
@@ -703,8 +768,7 @@ async function updateUIWithTop() {
     await loadTopPlayers();
 }
 
-// ==================== НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ ====================
-
+// НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
 function setupEventListeners() {
     // Открытие подарка
     const giftBox = document.getElementById('daily-gift');
@@ -716,39 +780,43 @@ function setupEventListeners() {
     
     // Кнопка "Обновить топ"
     const refreshBtn = document.getElementById('refresh-top-btn');
-    refreshBtn.addEventListener('click', async function() {
-        this.disabled = true;
-        this.innerHTML = '🔄 Загрузка...';
-        
-        await loadTopPlayers();
-        
-        this.disabled = false;
-        this.innerHTML = '🔄 Обновить топ';
-        
-        // Анимация обновления
-        this.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            this.style.transform = 'scale(1)';
-        }, 150);
-    });
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '🔄 Загрузка...';
+            
+            await loadTopPlayers();
+            
+            this.disabled = false;
+            this.innerHTML = '🔄 Обновить топ';
+            
+            // Анимация обновления
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+    }
     
     // Кнопка "Поделиться"
     const shareBtn = document.getElementById('share-btn');
-    shareBtn.addEventListener('click', function() {
-        const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${pointsData.total_points || 0} очков! Присоединяйся: ${window.location.origin}`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'JojoLand Новогодние очки',
-                text: shareText,
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                showNotification('Текст скопирован в буфер обмена! Поделитесь с друзьями!', 'success');
-            });
-        }
-    });
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function() {
+            const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${pointsData.total_points || 0} очков! Присоединяйся: ${window.location.origin}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'JojoLand Новогодние очки',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showNotification('Текст скопирован в буфер обмена! Поделитесь с друзьями!', 'success');
+                });
+            }
+        });
+    }
 }
 
 // ПОКАЗ УВЕДОМЛЕНИЯ
@@ -790,75 +858,6 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// В файле points.js добавить:
-async function checkReferralBonus() {
-    try {
-        const snapshot = await database.ref('users/' + userId).once('value');
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            if (userData.referral_bonus_received) {
-                // Показываем уведомление о полученном бонусе
-                showNotification(`Вы получили ${userData.referral_bonus_received} очков за регистрацию по реферальной ссылке!`, 'success');
-                
-                // Убираем флаг, чтобы не показывать повторно
-                await database.ref('users/' + userId).update({
-                    referral_bonus_received: null
-                });
-            }
-        }
-    } catch (error) {
-        console.error('Ошибка проверки реферального бонуса:', error);
-    }
-}
-
-// ==================== ОБНОВЛЯЕМ ЗАГРУЗКУ СТРАНИЦЫ ====================
-
-// Замени функцию window.onload на:
-window.onload = async function() {
-    createParticles();
-    
-    // Анимация загрузки
-    document.getElementById("loader").style.opacity = "0";
-    setTimeout(async () => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
-        
-        // Проверяем авторизацию
-        if (await checkAuth()) {
-            // Загружаем данные очков
-            await loadPointsData();
-            
-            // Обновляем отображение с топом
-            await updateUIWithTop();
-            
-            // Настраиваем обработчики событий
-            setupEventListeners();
-            
-            // Обновляем таймер
-            updateCountdown();
-            
-            // Обновляем дни до конца акции
-            updateDaysLeft();
-        }
-    }, 400);
-};
-
-// Добавляем анимацию для уведомления
-const notificationStyle = document.createElement('style');
-notificationStyle.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(notificationStyle);
-
 // ПОКАЗ ОШИБКИ
 function showError(message) {
     const errorDiv = document.createElement('div');
@@ -894,3 +893,19 @@ function showError(message) {
         }, 300);
     }, 5000);
 }
+
+// Добавляем анимацию для уведомления
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(notificationStyle);
