@@ -41,7 +41,7 @@
         <div class="daily-gift-section">
             <div class="section-header">
                 <h2>🎁 Ежедневный подарок</h2>
-                <p>Заходи каждый день до 1 января и получай новогодние очки!</p>
+                <p>Заходи каждый день до 1 января 2026 и получай новогодние очки!</p>
             </div>
             
             <div class="gift-box" id="daily-gift">
@@ -151,6 +151,39 @@
             </div>
         </div>
 
+        <!-- ТОП ИГРОКОВ -->
+        <div class="top-players-section">
+            <h2 class="section-title">🏆 Топ-10 игроков</h2>
+            <p class="section-subtitle">Самые активные собиратели новогодних очков</p>
+            
+            <div class="top-players-container">
+                <!-- Топ будет загружаться через JS -->
+                <div class="top-players-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка рейтинга...</p>
+                </div>
+                <div class="top-players-list" id="top-players-list">
+                    <!-- Игроки будут добавляться через JS -->
+                </div>
+                
+                <div class="user-position-card" id="user-position-card" style="display: none;">
+                    <div class="position-header">
+                        <h3>📊 Ваша позиция</h3>
+                    </div>
+                    <div class="position-body">
+                        <div class="position-rank" id="user-rank">-</div>
+                        <div class="position-info">
+                            <div class="position-nickname" id="user-top-nickname">-</div>
+                            <div class="position-points">
+                                <span class="points-label">Очки:</span>
+                                <span class="points-value" id="user-top-points">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ИНФОРМАЦИЯ О СИСТЕМЕ -->
         <div class="system-info">
             <h2 class="section-title">ℹ️ О системе очков</h2>
@@ -159,7 +192,7 @@
                 <div class="system-card">
                     <div class="system-icon">🎄</div>
                     <h3>Новогоднее событие</h3>
-                    <p>Акция проходит с <strong>1 декабря 2025</strong> по <strong>1 января 2026</strong></p>
+                    <p>Акция проходит с <strong>15 декабря 2024</strong> по <strong>1 января 2026</strong></p>
                 </div>
                 
                 <div class="system-card">
@@ -175,9 +208,9 @@
                 </div>
                 
                 <div class="system-card">
-                    <div class="system-icon">🏪</div>
-                    <h3>Скоро в магазине</h3>
-                    <p>В будущем можно будет обменять очки на эксклюзивные предметы на сервере</p>
+                    <div class="system-icon">🏆</div>
+                    <h3>Рейтинг игроков</h3>
+                    <p>Соревнуйтесь с другими игроками и попадите в топ-10 лучших!</p>
                 </div>
             </div>
         </div>
@@ -186,6 +219,7 @@
         <div class="action-buttons">
             <a href="index.html" class="action-btn">🏠 На главную</a>
             <a href="profile.html" class="action-btn">👤 Мой профиль</a>
+            <button class="action-btn" id="refresh-top-btn">🔄 Обновить топ</button>
             <button class="action-btn" id="share-btn">📢 Поделиться</button>
         </div>
     </div>
@@ -232,6 +266,9 @@
         <div class="reward-footer">
             <button id="close-reward" class="reward-btn">Продолжить</button>
             <p class="modal-note">Следующий подарок будет доступен через 24 часа</p>
+            <p class="modal-note" style="margin-top: 10px; font-size: 11px;">
+                Акция продлена до 1 января 2026 года!
+            </p>
         </div>
     </div>
 </div>
