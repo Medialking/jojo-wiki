@@ -221,7 +221,7 @@ nav {
 .tgk-btn::before { background: #ff0066; }
 .tg-btn::before { background: #0088cc; }
 .donate-btn::before { background: #ff9900; }
-.wiki-btn::before { background: #00cc66; }
+.referral-btn::before { background: #00bfff; }
 .points-btn::before { background: #ff0000; }
 
 .main-btn:hover .btn-icon {
