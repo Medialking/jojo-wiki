@@ -488,6 +488,364 @@ function setupEventListeners() {
     });
 }
 
+// ==================== ФУНКЦИИ ДЛЯ ТОПА ИГРОКОВ ====================
+
+// ЗАГРУЗКА ТОПА ИГРОКОВ
+async function loadTopPlayers() {
+    try {
+        const loadingElement = document.querySelector('.top-players-loading');
+        const listElement = document.getElementById('top-players-list');
+        const positionCard = document.getElementById('user-position-card');
+        
+        // Показываем загрузку
+        loadingElement.style.display = 'flex';
+        listElement.innerHTML = '';
+        positionCard.style.display = 'none';
+        
+        // Получаем все данные очков
+        const snapshot = await database.ref('holiday_points').once('value');
+        
+        if (!snapshot.exists()) {
+            showNoPlayersMessage();
+            loadingElement.style.display = 'none';
+            return;
+        }
+        
+        const allPointsData = snapshot.val();
+        const players = [];
+        const userId = localStorage.getItem('jojoland_userId');
+        let userInTop = false;
+        
+        // Собираем данные всех игроков
+        for (const playerId in allPointsData) {
+            const pointsData = allPointsData[playerId];
+            const totalPoints = pointsData.total_points || pointsData.totalPoints || 0;
+            
+            // Получаем никнейм из users
+            const userSnapshot = await database.ref('users/' + playerId).once('value');
+            let nickname = 'Игрок';
+            
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+                nickname = userData.nickname || 'Игрок';
+            }
+            
+            players.push({
+                id: playerId,
+                nickname: nickname,
+                points: totalPoints,
+                streak: pointsData.current_streak || pointsData.currentStreak || 0,
+                gifts: Object.keys(pointsData.daily_gifts || {}).length,
+                isCurrentUser: playerId === userId
+            });
+        }
+        
+        // Сортируем по убыванию очков
+        players.sort((a, b) => b.points - a.points);
+        
+        // Берем топ-10
+        const topPlayers = players.slice(0, 10);
+        
+        // Обновляем отображение
+        updateTopPlayersList(topPlayers);
+        
+        // Показываем позицию текущего пользователя
+        if (userId) {
+            const userIndex = players.findIndex(p => p.id === userId);
+            if (userIndex !== -1) {
+                const userPlayer = players[userIndex];
+                updateUserPosition(userPlayer, userIndex + 1);
+                positionCard.style.display = 'block';
+                
+                // Проверяем, есть ли пользователь в топе
+                userInTop = topPlayers.some(p => p.id === userId);
+                
+                // Если пользователя нет в топе, добавляем его карточку отдельно
+                if (!userInTop && userIndex >= 10) {
+                    showUserBelowTop(userPlayer, userIndex + 1);
+                }
+            }
+        }
+        
+        loadingElement.style.display = 'none';
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки топа:', error);
+        document.querySelector('.top-players-loading').innerHTML = `
+            <div style="color: #ff4444; text-align: center;">
+                <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+                <p>Ошибка загрузки рейтинга</p>
+            </div>
+        `;
+    }
+}
+
+// ОБНОВЛЕНИЕ СПИСКА ТОПА
+function updateTopPlayersList(players) {
+    const listElement = document.getElementById('top-players-list');
+    
+    if (players.length === 0) {
+        showNoPlayersMessage();
+        return;
+    }
+    
+    listElement.innerHTML = players.map((player, index) => {
+        const rank = index + 1;
+        let rankClass = 'other';
+        let medalIcon = '🏅';
+        
+        if (rank === 1) {
+            rankClass = 'gold';
+            medalIcon = '🥇';
+        } else if (rank === 2) {
+            rankClass = 'silver';
+            medalIcon = '🥈';
+        } else if (rank === 3) {
+            rankClass = 'bronze';
+            medalIcon = '🥉';
+        }
+        
+        return `
+            <div class="player-card ${player.isCurrentUser ? 'current-user' : ''}">
+                <div class="player-rank ${rankClass}">
+                    ${rank}
+                </div>
+                <div class="player-info">
+                    <div class="player-name">
+                        ${medalIcon} ${player.nickname}
+                        ${player.isCurrentUser ? ' <span style="color: #00ff00; font-size: 14px;">(Вы)</span>' : ''}
+                    </div>
+                    <div class="player-stats">
+                        <div class="player-stat">
+                            <span class="stat-icon">🔥</span>
+                            <span>Серия: ${player.streak} дн.</span>
+                        </div>
+                        <div class="player-stat">
+                            <span class="stat-icon">🎁</span>
+                            <span>Подарков: ${player.gifts}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="player-points">
+                    ${player.points}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ПОКАЗ СООБЩЕНИЯ ЕСЛИ НЕТ ИГРОКОВ
+function showNoPlayersMessage() {
+    const listElement = document.getElementById('top-players-list');
+    listElement.innerHTML = `
+        <div class="empty-rewards">
+            <div class="empty-icon">👥</div>
+            <p>Пока нет игроков в рейтинге</p>
+            <small>Станьте первым, собрав новогодние очки!</small>
+        </div>
+    `;
+}
+
+// ОБНОВЛЕНИЕ ПОЗИЦИИ ПОЛЬЗОВАТЕЛЯ
+function updateUserPosition(player, rank) {
+    document.getElementById('user-rank').textContent = rank;
+    document.getElementById('user-top-nickname').textContent = player.nickname;
+    document.getElementById('user-top-points').textContent = player.points;
+}
+
+// ПОКАЗ ПОЛЬЗОВАТЕЛЯ НИЖЕ ТОПА
+function showUserBelowTop(player, rank) {
+    const listElement = document.getElementById('top-players-list');
+    
+    const userCard = document.createElement('div');
+    userCard.className = 'player-card current-user';
+    userCard.style.background = 'linear-gradient(135deg, rgba(98, 0, 255, 0.15), rgba(255, 0, 255, 0.15))';
+    userCard.style.borderColor = '#6200ff';
+    userCard.style.marginTop = '20px';
+    userCard.style.opacity = '0.8';
+    
+    userCard.innerHTML = `
+        <div style="text-align: center; width: 100%; padding: 10px;">
+            <div style="color: #aaaaff; font-size: 12px; margin-bottom: 5px;">Ваша позиция в общем рейтинге:</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div style="background: linear-gradient(135deg, #6200ff, #ff00ff); 
+                          color: white; 
+                          width: 40px; 
+                          height: 40px; 
+                          border-radius: 50%; 
+                          display: flex; 
+                          align-items: center; 
+                          justify-content: center;
+                          font-weight: bold;
+                          font-size: 18px;">
+                    ${rank}
+                </div>
+                <div style="text-align: left;">
+                    <div style="color: white; font-weight: bold;">${player.nickname}</div>
+                    <div style="color: #00ff00; font-family: Michroma; font-size: 18px;">${player.points} очков</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    listElement.appendChild(userCard);
+}
+
+// ОБНОВЛЕНИЕ ВСЕГО UI С ТОПОМ
+async function updateUIWithTop() {
+    if (!pointsData) return;
+    
+    // Обновляем статистику
+    document.getElementById('total-points').textContent = pointsData.total_points || 0;
+    document.getElementById('gifts-opened').textContent = Object.keys(pointsData.daily_gifts || {}).length;
+    document.getElementById('streak-days').textContent = pointsData.current_streak || 0;
+    document.getElementById('max-streak').textContent = pointsData.max_streak || 0;
+    
+    // Обновляем визуализацию серии
+    updateStreakVisual();
+    
+    // Обновляем историю наград
+    updateRewardsHistory();
+    
+    // Загружаем топ игроков
+    await loadTopPlayers();
+}
+
+// ==================== НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ ====================
+
+function setupEventListeners() {
+    // Открытие подарка
+    const giftBox = document.getElementById('daily-gift');
+    giftBox.addEventListener('click', async function() {
+        if (!this.classList.contains('disabled') && canClaimGift()) {
+            await openDailyGift();
+        }
+    });
+    
+    // Кнопка "Обновить топ"
+    const refreshBtn = document.getElementById('refresh-top-btn');
+    refreshBtn.addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '🔄 Загрузка...';
+        
+        await loadTopPlayers();
+        
+        this.disabled = false;
+        this.innerHTML = '🔄 Обновить топ';
+        
+        // Анимация обновления
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 150);
+    });
+    
+    // Кнопка "Поделиться"
+    const shareBtn = document.getElementById('share-btn');
+    shareBtn.addEventListener('click', function() {
+        const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${pointsData.total_points || 0} очков! Присоединяйся: ${window.location.origin}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'JojoLand Новогодние очки',
+                text: shareText,
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(shareText).then(() => {
+                showNotification('Текст скопирован в буфер обмена! Поделитесь с друзьями!', 'success');
+            });
+        }
+    });
+}
+
+// ПОКАЗ УВЕДОМЛЕНИЯ
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(0, 204, 102, 0.9)' : 'rgba(255, 68, 68, 0.9)'};
+        border: 1px solid ${type === 'success' ? '#00cc66' : '#ff4444'};
+        border-radius: 10px;
+        padding: 15px 25px;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+        max-width: 300px;
+        font-size: 14px;
+    `;
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">
+            ${type === 'success' ? '✅ Успешно!' : '⚠️ Ошибка'}
+        </div>
+        <div>${message}</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// ==================== ОБНОВЛЯЕМ ЗАГРУЗКУ СТРАНИЦЫ ====================
+
+// Замени функцию window.onload на:
+window.onload = async function() {
+    createParticles();
+    
+    // Анимация загрузки
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(async () => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+        
+        // Проверяем авторизацию
+        if (await checkAuth()) {
+            // Загружаем данные очков
+            await loadPointsData();
+            
+            // Обновляем отображение с топом
+            await updateUIWithTop();
+            
+            // Настраиваем обработчики событий
+            setupEventListeners();
+            
+            // Обновляем таймер
+            updateCountdown();
+            
+            // Обновляем дни до конца акции
+            updateDaysLeft();
+        }
+    }, 400);
+};
+
+// Добавляем анимацию для уведомления
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(notificationStyle);
+
 // ПОКАЗ ОШИБКИ
 function showError(message) {
     const errorDiv = document.createElement('div');
