@@ -369,7 +369,7 @@
             <a href="index.html" class="action-btn">🏠 На главную</a>
             <a href="points.html" class="action-btn">🎄 Новогодние очки</a>
             <a href="wiki.html" class="action-btn">📘 Wiki & Гайды</a>
-            <button class="action-btn" id="logout-btn">🚪 Сменить аккаунт</button>
+            <button class="action-btn" id="logout-btn-profile">🚪 Выйти из аккаунта</button>
         </div>
 
         <a href="index.html" class="back-btn">← Вернуться на главную</a>
@@ -384,7 +384,7 @@
 // Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-    authDomain: "jojoland-chat.firebaseapp.com",
+    authDomain: "jojoland-chat.firebasestorage.app",
     databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
     projectId: "jojoland-chat",
     storageBucket: "jojoland-chat.firebasestorage.app",
@@ -463,8 +463,7 @@ async function loadUserProfile() {
     const userId = localStorage.getItem('jojoland_userId');
     
     if (!nickname || !userId) {
-        // Если нет данных, перенаправляем на главную
-        showError('Сначала нужно ввести ник на главной странице');
+        showError('Сначала нужно войти в аккаунт на главной странице');
         setTimeout(() => {
             window.location.href = 'index.html';
         }, 3000);
@@ -472,21 +471,18 @@ async function loadUserProfile() {
     }
     
     try {
-        // Загружаем данные из Firebase
         const snapshot = await database.ref('users/' + userId).once('value');
         
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            console.log('Данные пользователя:', userData); // Для отладки
+            console.log('Данные пользователя:', userData);
             displayUserData(userData, userId, nickname);
             
-            // Обновляем последний визит
             await updateLastVisit(userId, userData);
         } else {
-            // Если пользователь не найден в БД
             document.getElementById('user-nickname').textContent = nickname;
             document.getElementById('user-id').textContent = `ID: ${userId}`;
-            showError('Данные пользователя не найдены в базе. Создайте новый аккаунт на главной странице.');
+            showError('Данные пользователя не найдены в базе.');
         }
     } catch (error) {
         console.error('Ошибка загрузки профиля:', error);
@@ -504,8 +500,6 @@ async function updateLastVisit(userId, userData) {
             lastVisit: currentTime,
             visitsCount: visitsCount
         });
-        
-        console.log('Визит обновлен:', { lastVisit: currentTime, visitsCount }); // Для отладки
     } catch (error) {
         console.error('Ошибка обновления визита:', error);
     }
@@ -513,23 +507,19 @@ async function updateLastVisit(userId, userData) {
 
 // ОТОБРАЖЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
 function displayUserData(userData, userId, nickname) {
-    // Основная информация
     document.getElementById('user-nickname').textContent = nickname || userData.nickname || 'Игрок';
     document.getElementById('user-id').textContent = `ID: ${userId}`;
     
-    // Аватар (если есть)
     if (userData.avatar) {
         document.getElementById('user-avatar').textContent = userData.avatar;
     }
     
-    // Статистика - ИСПРАВЛЕНО!
     const createdAt = userData.createdAt || userData.createdat || userData.registeredAt;
     const lastVisit = userData.lastVisit || userData.lastvisit || createdAt;
     
     document.getElementById('register-date').textContent = formatDate(createdAt);
     document.getElementById('last-visit').textContent = formatTime(lastVisit);
     
-    // Уровень активности (на основе visitsCount)
     const visits = userData.visitsCount || userData.visitscount || 1;
     let activityLevel = 'Новичок';
     if (visits > 5) activityLevel = 'Активный';
@@ -538,17 +528,13 @@ function displayUserData(userData, userId, nickname) {
     if (visits > 50) activityLevel = 'Легенда';
     document.getElementById('activity-level').textContent = activityLevel;
     
-    // Новогодние очки
     const points = userData.holidayPoints?.current || 
                    userData.holidaypoints?.current || 
                    userData.points || 
                    0;
     document.getElementById('holiday-points').textContent = points;
     
-    // Бейджи
     displayBadges(userData, visits);
-    
-    // Достижения
     displayAchievements(userData, visits, points);
 }
 
@@ -689,7 +675,6 @@ function showError(message) {
         container.appendChild(errorDiv);
     }
     
-    // Автоматически скрыть через 5 секунд
     setTimeout(() => {
         errorDiv.style.opacity = '0';
         errorDiv.style.transition = 'opacity 0.5s';
@@ -703,12 +688,13 @@ function showError(message) {
 
 // ВЫХОД ИЗ АККАУНТА
 document.addEventListener('DOMContentLoaded', function() {
-    const logoutBtn = document.getElementById('logout-btn');
+    const logoutBtn = document.getElementById('logout-btn-profile');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
-            if (confirm('Вы уверены, что хотите сменить аккаунт?\nВаш текущий ник будет удален из этого браузера.')) {
+            if (confirm('Вы уверены, что хотите выйти из аккаунта?\nДля входа снова потребуется пароль.')) {
                 localStorage.removeItem('jojoland_nickname');
                 localStorage.removeItem('jojoland_userId');
+                localStorage.removeItem('jojoland_loggedIn');
                 window.location.href = 'index.html';
             }
         });
@@ -719,22 +705,14 @@ document.addEventListener('DOMContentLoaded', function() {
 window.onload = async function() {
     createParticles();
     
-    // Анимация загрузки
     document.getElementById("loader").style.opacity = "0";
     setTimeout(() => {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
         
-        // Загружаем профиль
         loadUserProfile();
     }, 400);
 };
-
-// ДЛЯ ОТЛАДКИ - показать все данные в консоли
-console.log('Профиль загружен. Данные из localStorage:', {
-    nickname: localStorage.getItem('jojoland_nickname'),
-    userId: localStorage.getItem('jojoland_userId')
-});
 </script>
 
 </body>
