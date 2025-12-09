@@ -21,29 +21,21 @@ let pointsData = null;
 window.onload = async function() {
     createParticles();
     
-    // Анимация загрузки
     document.getElementById("loader").style.opacity = "0";
     setTimeout(async () => {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
         
-        // Проверяем авторизацию
-        await checkAuth();
-        
-        // Загружаем данные очков
-        await loadPointsData();
-        
-        // Обновляем отображение
-        updateUI();
-        
-        // Настраиваем обработчики событий
-        setupEventListeners();
-        
-        // Обновляем таймер
-        updateCountdown();
-        
-        // Обновляем дни до конца акции
-        updateDaysLeft();
+        if (await checkAuth()) {
+            await loadPointsData();
+            await updateUIWithTop();
+            setupEventListeners();
+            updateCountdown();
+            updateDaysLeft();
+            
+            // Проверяем реферальные бонусы
+            await checkReferralBonus();
+        }
     }, 400);
 };
 
@@ -796,6 +788,27 @@ function showNotification(message, type = 'info') {
             }
         }, 300);
     }, 3000);
+}
+
+// В файле points.js добавить:
+async function checkReferralBonus() {
+    try {
+        const snapshot = await database.ref('users/' + userId).once('value');
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            if (userData.referral_bonus_received) {
+                // Показываем уведомление о полученном бонусе
+                showNotification(`Вы получили ${userData.referral_bonus_received} очков за регистрацию по реферальной ссылке!`, 'success');
+                
+                // Убираем флаг, чтобы не показывать повторно
+                await database.ref('users/' + userId).update({
+                    referral_bonus_received: null
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка проверки реферального бонуса:', error);
+    }
 }
 
 // ==================== ОБНОВЛЯЕМ ЗАГРУЗКУ СТРАНИЦЫ ====================
