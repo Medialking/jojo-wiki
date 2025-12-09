@@ -3,234 +3,686 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Жалоба</title>
-
+    <title>🛡️ Подать жалобу | JojoLand</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: 'Trebuchet MS', sans-serif;
-            background: linear-gradient(135deg, #200030, #4a0066, #200030);
-            color: white;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-purple: #1a0030;
+            --secondary-purple: #2a0040;
+            --accent-pink: #ff0066;
+            --accent-blue: #00ccff;
+            --neon-glow: 0 0 20px;
+            --text-light: #f0e6ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple), #150020);
+            color: var(--text-light);
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
 
+        /* Фоновые анимации */
+        .background-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-lock {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.1;
+            color: var(--accent-pink);
+            animation: float 20s infinite linear;
+            z-index: -1;
+        }
+
+        .floating-lock:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .floating-lock:nth-child(2) { top: 20%; right: 10%; animation-delay: 4s; }
+        .floating-lock:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 8s; }
+        .floating-lock:nth-child(4) { bottom: 20%; right: 20%; animation-delay: 12s; }
+        .floating-lock:nth-child(5) { top: 40%; left: 50%; animation-delay: 16s; }
+        .floating-lock:nth-child(6) { bottom: 50%; right: 5%; animation-delay: 20s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(90deg); }
+            50% { transform: translateY(0) rotate(180deg); }
+            75% { transform: translateY(20px) rotate(270deg); }
+        }
+
+        /* Контейнер */
         .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 25px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            position: relative;
+            z-index: 1;
         }
 
-        h1 {
-            text-align: center;
-            text-shadow: 0 0 12px #ff00bf;
-            margin-bottom: 35px;
-            font-size: 32px;
-        }
-
-        .back {
-            display: inline-block;
-            margin-bottom: 25px;
-            padding: 10px 20px;
-            background: #99006b;
+        /* Кнопка назад */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #99006b, #cc0099);
             color: white;
             text-decoration: none;
-            border-radius: 10px;
-            box-shadow: 0 0 12px #ff00d0;
-            transition: 0.3s;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(255, 0, 208, 0.4);
+            transition: all 0.3s ease;
             font-weight: 600;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .back:hover {
-            background: #cc0099;
-            transform: scale(1.05);
+        .back-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .back-btn:hover:before {
+            left: 100%;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 0, 208, 0.6);
+        }
+
+        /* Заголовок с резиновым эффектом */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            background: linear-gradient(90deg, var(--accent-pink), #ff73f5, var(--accent-pink));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 0, 191, 0.5);
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #c2b3ff;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        @keyframes shine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Карточки */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         .card {
-            background: rgba(255,255,255,0.06);
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 15px;
-            border: 1px solid rgba(255,0,200,0.4);
-            box-shadow: 0 0 15px #ff00d0;
-            backdrop-filter: blur(6px);
-            transition: 0.3s;
+            background: linear-gradient(145deg, rgba(40, 0, 60, 0.8), rgba(20, 0, 40, 0.9));
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-pink), #ff00ff);
+            z-index: 2;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 25px #ff00ff;
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(255, 0, 191, 0.3);
         }
 
-        .card h2 {
-            margin-top: 0;
-            color: #ff73f5;
-            text-shadow: 0 0 8px #ff00e1;
-            font-size: 24px;
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
-        .card p, li {
-            color: #f3d9ff;
-            line-height: 1.5;
-            font-size: 16px;
+        .card-icon {
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--accent-pink), #ff66cc);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--neon-glow) rgba(255, 0, 191, 0.5);
+            animation: pulse 2s infinite;
         }
 
-        ul {
-            padding-left: 20px;
+        .card-title {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #ff73f5, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
         }
 
-        .important {
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Правила */
+        .rules-list {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .rules-list li {
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .rules-list li:before {
+            content: '⚠️';
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 1.2rem;
+        }
+
+        .rules-list li .important {
             color: #ff9cff;
             font-weight: bold;
-            text-shadow: 0 0 6px #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
         }
 
+        /* Анкета */
+        .form-guide {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid var(--accent-pink);
+        }
+
+        .form-step {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .form-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .step-title {
+            color: #ffb3ff;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-title i {
+            color: var(--accent-pink);
+        }
+
+        .step-desc {
+            color: #d9ccff;
+            margin-left: 30px;
+            font-size: 0.95rem;
+        }
+
+        /* Пример заполнения */
         .example-box {
-            background: rgba(255,255,255,0.08);
-            padding: 15px;
-            margin-top: 10px;
-            border-left: 4px solid #ff00bf;
-            border-radius: 10px;
-            font-size: 15px;
-            color: #ffeaff;
-            line-height: 1.5;
+            background: linear-gradient(135deg, rgba(255, 0, 102, 0.1), rgba(155, 0, 255, 0.1));
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 0, 191, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .example-box:before {
+            content: '📝 Пример';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 0, 191, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #ffb3ff;
+        }
+
+        .example-line {
+            margin-bottom: 10px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #ffddff;
+        }
+
+        /* Кнопка отправки */
+        .send-container {
+            text-align: center;
+            margin-top: 40px;
         }
 
         .send-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 25px;
-            background: #b300a8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, var(--accent-pink), #cc0099);
             color: white;
             text-decoration: none;
-            border-radius: 10px;
-            box-shadow: 0 0 12px #ff00d0;
-            transition: 0.3s;
-            font-weight: 600;
-            font-size: 16px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(255, 0, 191, 0.4);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .send-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #cc0099, var(--accent-pink));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .send-btn:hover:before {
+            opacity: 1;
         }
 
         .send-btn:hover {
-            background: #d600c9;
-            transform: scale(1.08);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 0, 191, 0.6);
+            letter-spacing: 1px;
         }
 
-        /* ------ 📱 Адаптация для мобильных ------ */
-        @media (max-width: 600px) {
-            .container {
-                width: 92%;
-                padding: 15px;
-            }
+        .send-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
 
-            h1 {
-                font-size: 24px;
-                margin-bottom: 20px;
-            }
+        /* Щит эффект */
+        .shield-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at center, transparent 30%, rgba(255, 0, 191, 0.1) 70%);
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
 
-            .back {
-                padding: 8px 16px;
-                font-size: 14px;
-                margin-bottom: 15px;
-                width: auto;
-                display: inline-block;
-            }
+        .card:hover .shield-effect {
+            opacity: 1;
+        }
 
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
             .card {
-                padding: 18px;
-                margin: 15px 0;
-                border-radius: 12px;
+                padding: 20px;
             }
-
-            .card h2 {
-                font-size: 20px;
+            
+            .card-title {
+                font-size: 1.5rem;
             }
-
-            .card p, li {
-                font-size: 15px;
-            }
-
-            .example-box {
-                padding: 12px;
-                font-size: 14px;
-            }
-
+            
             .send-btn {
                 width: 100%;
-                text-align: center;
-                padding: 14px;
-                font-size: 16px;
-                box-sizing: border-box;
-            }
-
-            ul {
-                padding-left: 18px;
+                padding: 20px;
             }
         }
 
-        /* Для очень маленьких экранов */
-        @media (max-width: 400px) {
-            h1 {
-                font-size: 22px;
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
             }
             
-            .card h2 {
-                font-size: 18px;
+            .card-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
             }
             
-            .container {
-                padding: 12px;
+            .rules-list li {
+                padding-left: 35px;
+                font-size: 1rem;
             }
         }
+
+        /* Футер */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a699cc;
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .footer-links a {
+            color: #c2b3ff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-pink);
+        }
+
+        /* Анимация появления */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card, .send-container {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.3s; }
+        .send-container { animation-delay: 0.5s; }
     </style>
 </head>
 
 <body>
-<div class="container">
+    <!-- Фоновые элементы -->
+    <div class="background-shapes">
+        <div class="floating-lock">🔒</div>
+        <div class="floating-lock">🛡️</div>
+        <div class="floating-lock">⚖️</div>
+        <div class="floating-lock">⚠️</div>
+        <div class="floating-lock">🔐</div>
+        <div class="floating-lock">🛡️</div>
+    </div>
 
-    <a class="back" href="obzhalovanie.html">← Назад</a>
+    <div class="container">
+        <!-- Кнопка назад -->
+        <a class="back-btn" href="obzhalovanie.html">
+            <i class="fas fa-arrow-left"></i> Назад к выбору
+        </a>
 
-    <h1>⚠️ Подать жалобу</h1>
+        <!-- Заголовок -->
+        <div class="header">
+            <h1 class="title">🛡️ Подать жалобу</h1>
+            <p class="subtitle">Заполни форму правильно — это ускорит рассмотрение твоей жалобы модераторами</p>
+        </div>
 
-    <!-- Правила -->
-    <div class="card">
-        <h2>📌 Правила подачи жалобы</h2>
-        <ul>
-            <li>1️⃣ <span class="important">Жалоба без доказательств не рассматривается.</span></li>
-            <li>2️⃣ Жалоба, заполненная не по форме, автоматически игнорируется.</li>
-            <li>3️⃣ Сообщения, отправленные в 2–3 частях, не принимаются — отправь жалобу одним сообщением.</li>
-        </ul>
+        <!-- Основной контент -->
+        <div class="cards-container">
+            <!-- Карточка правил -->
+            <div class="card">
+                <div class="shield-effect"></div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h2 class="card-title">📌 Правила подачи жалобы</h2>
+                </div>
+                
+                <ul class="rules-list">
+                    <li>
+                        <span class="important">Жалоба без доказательств не рассматривается.</span>
+                        <br>Прикрепляй скриншоты или видео нарушения.
+                    </li>
+                    <li>
+                        Жалоба, заполненная не по форме, автоматически игнорируется.
+                        <br>Следуй шаблону ниже.
+                    </li>
+                    <li>
+                        Сообщения, отправленные в 2–3 частях, не принимаются.
+                        <br>Отправляй жалобу одним сообщением.
+                    </li>
+                    <li>
+                        Ложные жалобы могут привести к наказанию заявителя.
+                        <br>Будь честен и предоставляй достоверную информацию.
+                    </li>
+                </ul>
 
-        <div class="example-box">
-            ✔ Пожалуйста, соблюдай правила — это ускорит обработку твоей жалобы.
+                <div class="form-guide">
+                    <div class="step-title">
+                        <i class="fas fa-check-circle"></i> Совет от модераторов
+                    </div>
+                    <div class="step-desc">
+                        Соблюдай правила подачи — это гарантирует быстрое рассмотрение твоей жалобы в течение 24 часов.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Карточка анкеты -->
+            <div class="card">
+                <div class="shield-effect"></div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h2 class="card-title">📝 Анкета жалобы</h2>
+                </div>
+                
+                <p>Заполни шаблон ниже и отправь его модератору одним сообщением.</p>
+
+                <div class="form-guide">
+                    <div class="form-step">
+                        <div class="step-title">
+                            <i class="fas fa-user"></i> 1. Ник заявителя
+                        </div>
+                        <div class="step-desc">Твой текущий игровой никнейм</div>
+                    </div>
+                    
+                    <div class="form-step">
+                        <div class="step-title">
+                            <i class="fas fa-user-times"></i> 2. Ник нарушителя
+                        </div>
+                        <div class="step-desc">Ник игрока, который нарушил правила</div>
+                    </div>
+                    
+                    <div class="form-step">
+                        <div class="step-title">
+                            <i class="fas fa-clock"></i> 3. Время нарушения
+                        </div>
+                        <div class="step-desc">Дата и время (например: 10.01.2025 15:30)</div>
+                    </div>
+                    
+                    <div class="form-step">
+                        <div class="step-title">
+                            <i class="fas fa-clipboard-list"></i> 4. Описание происшествия
+                        </div>
+                        <div class="step-desc">Подробно опиши что произошло, как и при каких обстоятельствах</div>
+                    </div>
+                    
+                    <div class="form-step">
+                        <div class="step-title">
+                            <i class="fas fa-camera"></i> 5. Доказательство
+                        </div>
+                        <div class="step-desc">Ссылка на видео (YouTube) или скриншот нарушения</div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 20px; color: #ffb3ff;">
+                    <i class="fas fa-lightbulb"></i> 📌 Пример заполнения:
+                </p>
+
+                <div class="example-box">
+                    <div class="example-line">1. MatrixXR</div>
+                    <div class="example-line">2. DevilKiller</div>
+                    <div class="example-line">3. 10.01.2025 15:30</div>
+                    <div class="example-line">4. Игрок убил меня без причин, когда я стоял в безопасной зоне возле спавна.</div>
+                    <div class="example-line">5. https://youtu.be/пример_видео_нарушения</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <div class="send-container">
+            <a class="send-btn" href="chat.html" target="_blank">
+                <i class="fas fa-paper-plane"></i> 📩 Отправить жалобу модератору
+            </a>
+            <p style="margin-top: 15px; color: #a699cc; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> После отправки ожидай ответа модератора в течение 24 часов
+            </p>
+        </div>
+
+        <!-- Футер -->
+        <div class="footer">
+            <p>© 2025 JojoLand | Система модерации и жалоб</p>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
+                <a href="#"><i class="fas fa-book"></i> Правила сервера</a>
+                <a href="#"><i class="fas fa-shield-alt"></i> Безопасность</a>
+            </div>
         </div>
     </div>
 
-    <!-- Анкета -->
-    <div class="card">
-        <h2>📝 Анкета жалобы</h2>
-
-        <p>Заполни шаблон ниже и отправь его модератору.</p>
-
-        <div class="example-box">
-            <b>1. Ник заявителя:</b> твой игровой ник.<br>
-            <b>2. Ник нарушителя:</b> ник игрока, который нарушил правила.<br>
-            <b>3. Время нарушения:</b> например, 10.01.2025 15:30.<br>
-            <b>4. Полное описание происшествия:</b> что произошло, как и при каких обстоятельствах.<br>
-            <b>5. Доказательство:</b> ссылка на видео или скриншот.
-        </div>
-
-        <p style="margin-top: 20px;">📌 Пример заполнения:</p>
-
-        <div class="example-box">
-            1. MatrixXR<br>
-            2. DevilKiller<br>
-            3. 10.01.2025 15:30<br>
-            4. Игрок убил меня без причин, когда я стоял в безопасной зоне.<br>
-            5. https://youtu.be/пример
-        </div>
-
-        <a class="send-btn" href="chat.html" target="_blank">📩 Отправить жалобу</a>
-    </div>
-
-</div>
+    <script>
+        // Анимация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            // Анимация кнопки отправки при наведении
+            const sendBtn = document.querySelector('.send-btn');
+            if (sendBtn) {
+                sendBtn.addEventListener('mouseenter', function() {
+                    this.style.letterSpacing = '2px';
+                });
+                
+                sendBtn.addEventListener('mouseleave', function() {
+                    this.style.letterSpacing = 'normal';
+                });
+            }
+            
+            // Эффект параллакса для фона
+            document.addEventListener('mousemove', function(e) {
+                const locks = document.querySelectorAll('.floating-lock');
+                const mouseX = e.clientX / window.innerWidth;
+                const mouseY = e.clientY / window.innerHeight;
+                
+                locks.forEach((lock, index) => {
+                    const speed = 0.05 + (index * 0.01);
+                    const x = (mouseX * 100 * speed) - 50;
+                    const y = (mouseY * 100 * speed) - 50;
+                    
+                    lock.style.transform = `translate(${x}px, ${y}px) rotate(${index * 60}deg)`;
+                });
+            });
+            
+            // Анимация карточек при прокрутке
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
 </body>
 </html>
