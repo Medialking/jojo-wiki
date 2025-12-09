@@ -3,288 +3,914 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Правила ТГК</title>
-
+    <title>Правила ТГК | JojoLand</title>
+    
+    <!-- Игровые шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: 'Trebuchet MS', sans-serif;
-            background: linear-gradient(135deg, #001528, #003f66, #001528);
-            color: white;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, #001a33 0%, #003f66 30%, #001a33 100%);
+            color: #ffffff;
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
 
+        /* Анимация волн фона */
+        .bg-waves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100px;
+            background: linear-gradient(90deg, 
+                rgba(0, 180, 255, 0.1) 0%,
+                rgba(0, 150, 255, 0.05) 50%,
+                rgba(0, 180, 255, 0.1) 100%);
+            animation: waveFlow 20s linear infinite;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: -5s;
+            opacity: 0.5;
+            height: 80px;
+        }
+
+        .wave:nth-child(3) {
+            animation-delay: -10s;
+            opacity: 0.3;
+            height: 120px;
+        }
+
+        @keyframes waveFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Контейнер */
         .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 25px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            position: relative;
+            z-index: 1;
         }
 
-        h1 {
-            text-align: center;
-            text-shadow: 0 0 12px #00c8ff;
-            font-size: 38px;
-            margin-bottom: 10px;
-        }
-
-        h2.section-title {
-            margin-top: 35px;
-            margin-bottom: 12px;
-            font-size: 28px;
-            text-shadow: 0 0 10px #00aaff;
-        }
-
-        .card {
-            background: rgba(255,255,255,0.07);
-            padding: 20px;
-            margin: 18px 0;
-            border-left: 4px solid #00c3ff;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 12px #009dff;
-            line-height: 1.55;
-        }
-
-        .num {
-            font-weight: bold;
-            color: #6ad9ff;
-            font-size: 18px;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        a.back {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: #006d99;
+        /* Кнопка назад */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #0066cc, #00aaff);
             color: white;
             text-decoration: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #00a3ff;
-            transition: 0.2s;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
             font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 102, 204, 0.3);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        a.back:hover {
-            background: #0099d9;
-            box-shadow: 0 0 15px #00c8ff;
+        .back-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: 0.5s;
         }
 
-        /* ------ 📱 Адаптация для мобильных ------ */
-        @media (max-width: 600px) {
+        .back-btn:hover::before {
+            left: 100%;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.5);
+            border-color: #00ffff;
+        }
+
+        /* Заголовок */
+        .main-title {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+
+        .title-text {
+            background: linear-gradient(90deg, #00aaff, #00ffff, #00aaff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% auto;
+            animation: shine 3s linear infinite;
+            text-shadow: 0 0 30px rgba(0, 170, 255, 0.3);
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .title-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 36px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        .title-icon.left {
+            left: -60px;
+        }
+
+        .title-icon.right {
+            right: -60px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-50%); }
+            50% { transform: translateY(-70%); }
+        }
+
+        /* Заголовки разделов */
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 25px;
+            padding: 15px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #00ccff;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                #00ccff, 
+                transparent);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, #00ccff, transparent);
+        }
+
+        /* Карточки правил */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .rule-card {
+            background: linear-gradient(145deg, 
+                rgba(0, 100, 200, 0.15) 0%, 
+                rgba(0, 150, 255, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(0, 180, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rule-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at top right, 
+                rgba(0, 200, 255, 0.1), 
+                transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .rule-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: #00ffff;
+            box-shadow: 0 20px 40px rgba(0, 150, 255, 0.4);
+        }
+
+        .rule-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Номер правила */
+        .rule-number {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: #6ad9ff;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(106, 217, 255, 0.3);
+        }
+
+        .rule-icon {
+            font-size: 20px;
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+
+        /* Текст правила */
+        .rule-text {
+            flex-grow: 1;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #ccccff;
+            margin-bottom: 15px;
+        }
+
+        /* Специальные отметки */
+        .rule-special {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #00ffff;
+            font-size: 14px;
+            color: #aaffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rule-special::before {
+            content: '✔';
+            color: #00ffaa;
+            font-weight: bold;
+        }
+
+        /* Блок наказаний */
+        .punishments-block {
+            background: linear-gradient(135deg, 
+                rgba(255, 100, 100, 0.1) 0%, 
+                rgba(255, 50, 50, 0.05) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 50px 0;
+            border: 2px solid rgba(255, 100, 100, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .punishments-block::before {
+            content: '⚠️';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 40px;
+            opacity: 0.2;
+            transform: rotate(15deg);
+        }
+
+        .punishments-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            color: #ff6666;
+            margin-bottom: 25px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .punishments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .punishment-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 100, 100, 0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .punishment-item:hover {
+            background: rgba(255, 100, 100, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .punishment-icon {
+            font-size: 24px;
+            color: #ff9999;
+            flex-shrink: 0;
+        }
+
+        .punishment-text {
+            flex-grow: 1;
+            color: #ffcccc;
+        }
+
+        .punishment-detail {
+            font-size: 14px;
+            color: #ffaaaa;
+            margin-top: 5px;
+        }
+
+        /* Информационный блок */
+        .info-block {
+            background: linear-gradient(135deg, 
+                rgba(0, 255, 200, 0.1) 0%, 
+                rgba(0, 200, 255, 0.05) 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 40px 0;
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            position: relative;
+        }
+
+        .info-block::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 18px;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(0, 255, 200, 0.2), 
+                transparent);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .info-block:hover::after {
+            opacity: 1;
+        }
+
+        .info-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .info-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .info-icon {
+            color: #00ffaa;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Футер */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            background: rgba(0, 50, 100, 0.2);
+            border-radius: 15px;
+            border-top: 1px solid rgba(0, 150, 255, 0.3);
+            color: #88ccff;
+            font-size: 14px;
+        }
+
+        /* Анимация появления */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Задержки для анимации */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
             .container {
-                width: 92%;
-                padding: 15px;
+                padding: 20px 15px;
             }
-
-            h1 {
+            
+            .main-title {
+                font-size: 32px;
+                margin-bottom: 30px;
+            }
+            
+            .title-icon {
+                display: none;
+            }
+            
+            .section-title {
                 font-size: 26px;
-                margin-bottom: 5px;
+                margin: 40px 0 20px;
             }
-
-            h2.section-title {
-                font-size: 22px;
-                margin-top: 25px;
-                margin-bottom: 8px;
+            
+            .rules-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
             }
-
-            .card {
-                padding: 15px;
-                margin: 12px 0;
-                border-left-width: 3px;
-                border-radius: 10px;
-                line-height: 1.5;
+            
+            .rule-card {
+                padding: 20px;
+                min-height: auto;
             }
-
-            .num {
-                font-size: 16px;
-                margin-bottom: 6px;
+            
+            .punishments-grid,
+            .info-items {
+                grid-template-columns: 1fr;
             }
-
-            a.back {
-                padding: 8px 16px;
+            
+            .back-btn {
+                padding: 10px 20px;
                 font-size: 14px;
-                margin-bottom: 15px;
-                display: inline-block;
-                width: auto;
+                margin-bottom: 20px;
             }
+        }
 
-            /* Улучшаем читаемость текста на мобильных */
-            .card > div:not(.num) {
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 28px;
+            }
+            
+            .section-title {
+                font-size: 22px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .rule-card {
+                padding: 18px;
+            }
+            
+            .rule-number {
+                font-size: 16px;
+            }
+            
+            .rule-text {
                 font-size: 15px;
             }
-        }
-
-        /* Для очень маленьких экранов */
-        @media (max-width: 400px) {
-            h1 {
+            
+            .punishments-title {
                 font-size: 24px;
             }
-
-            h2.section-title {
-                font-size: 20px;
-            }
-
-            .container {
-                padding: 12px;
-            }
-
-            .card {
-                padding: 12px;
-                line-height: 1.45;
-            }
-
-            .num {
-                font-size: 15px;
-            }
-
-            .card > div:not(.num) {
-                font-size: 14px;
-            }
-
-            /* Улучшаем последнюю карточку с наказаниями */
-            .card p {
-                margin: 8px 0;
-                font-size: 14px;
-            }
-        }
-
-        /* Для вертикальной ориентации */
-        @media (max-width: 600px) and (orientation: portrait) {
-            .container {
-                padding-bottom: 30px;
+            
+            .punishment-item {
+                padding: 15px;
             }
         }
     </style>
 </head>
 
 <body>
-<div class="container">
-
-    <a class="back" href="index.html">← Назад</a>
-
-    <h1>📘 Правила ТГК</h1>
-
-    <!-- 1. Общение -->
-    <h2 class="section-title">1. Общение 👥</h2>
-
-    <div class="card">
-        <span class="num">💀 1.1 Спам</span>
-        Запрещено засорять чат повторяющимися сообщениями, смайлами, ссылками.
-        Также запрещено намеренно ставить множество реакций для спама.
+    <!-- Волны фона -->
+    <div class="bg-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
     </div>
 
-    <div class="card">
-        <span class="num">💀 1.2 Оскорбления и конфликты</span>
-        Нельзя оскорблять игроков, администрацию или их родственников.
-        Лёгкая нецензурная лексика допускается, если не направлена на человека.
+    <div class="container">
+        <!-- Кнопка назад -->
+        <a class="back-btn fade-in" href="index.html">
+            <span>←</span>
+            <span>Назад на главную</span>
+        </a>
+
+        <!-- Главный заголовок -->
+        <h1 class="main-title fade-in">
+            <div class="title-wrapper">
+                <span class="title-icon left">📘</span>
+                <span class="title-text">ПРАВИЛА ТГК</span>
+                <span class="title-icon right">⚡</span>
+            </div>
+        </h1>
+
+        <!-- 1. Общение -->
+        <h2 class="section-title fade-in">
+            <span>👥</span>
+            <span>1. ОБЩЕНИЕ</span>
+        </h2>
+        
+        <div class="rules-grid">
+            <div class="rule-card fade-in delay-1">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>1.1 Спам</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено засорять чат повторяющимися сообщениями, смайлами, ссылками.
+                    Также запрещено намеренно ставить множество реакций для спама.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-2">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>1.2 Оскорбления</span>
+                </div>
+                <div class="rule-text">
+                    Нельзя оскорблять игроков, администрацию или их родственников.
+                    Лёгкая нецензурная лексика допускается, если не направлена на человека.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-3">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>1.3 Дискриминация</span>
+                </div>
+                <div class="rule-text">
+                    Любые формы унижения, дискриминации или расизма запрещены.
+                    Уважайте каждого участника сообщества.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-4">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>1.4 Провокации</span>
+                </div>
+                <div class="rule-text">
+                    Запрещены намеренные провокации, попытки подставить игроков.
+                    Спорные вопросы решаются с администрацией.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-5">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>1.5 18+ контент</span>
+                </div>
+                <div class="rule-text">
+                    Запрещены 18+ изображения, гифки, фото, а также нацистская символика.
+                    Соблюдайте возрастные ограничения.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-1">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>1.6 Опасные действия</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено подталкивать игроков к действиям, способным навредить их устройству или безопасности.
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Реклама -->
+        <h2 class="section-title fade-in">
+            <span>📎</span>
+            <span>2. РЕКЛАМА И ССЫЛКИ</span>
+        </h2>
+        
+        <div class="rules-grid">
+            <div class="rule-card fade-in delay-2">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>2.1 Сторонние проекты</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено размещать ссылки на другие сервера, магазины, группы или проекты.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-3">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>2.2 Личные ссылки</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено отправлять ссылки на ресурсы или приватные чаты с целью обмана или спама.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-4">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>2.3 Общая реклама</span>
+                </div>
+                <div class="rule-text">
+                    Запрещена реклама любых проектов, не связанных с сервером.
+                </div>
+                <div class="rule-special">
+                    Разрешено: позвать игрока 1×1 на практис-сервер — 1 раз
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Чаты и команды -->
+        <h2 class="section-title fade-in">
+            <span>⚙️</span>
+            <span>3. ЧАТЫ И КОМАНДЫ</span>
+        </h2>
+        
+        <div class="rules-grid">
+            <div class="rule-card fade-in delay-5">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>3.1 Массовые упоминания</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено без причины упоминать игроков или администрацию через @ник.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-1">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>3.2 Выдача себя за админа</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено утверждать, что вы администратор группы или сервера.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-2">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>3.3 Спам бота Ирис</span>
+                </div>
+                <div class="rule-text">
+                    Запрещено использовать чат-бота Ирис в целях спама.
+                </div>
+            </div>
+
+            <div class="rule-card fade-in delay-3">
+                <div class="rule-number">
+                    <span class="rule-icon">💀</span>
+                    <span>3.4 Оскорбительные ники</span>
+                </div>
+                <div class="rule-text">
+                    Ники и названия групп с оскорблениями или провокациями запрещены.
+                </div>
+            </div>
+        </div>
+
+        <!-- Наказания -->
+        <div class="punishments-block fade-in">
+            <div class="punishments-title">
+                <span>⚠️</span>
+                <span>СИСТЕМА НАКАЗАНИЙ</span>
+                <span>⚡</span>
+            </div>
+            
+            <div class="punishments-grid">
+                <div class="punishment-item fade-in delay-1">
+                    <div class="punishment-icon">🔹</div>
+                    <div class="punishment-text">
+                        <strong>Мут в группе</strong>
+                        <div class="punishment-detail">от 1 часа до 24 часов</div>
+                    </div>
+                </div>
+
+                <div class="punishment-item fade-in delay-2">
+                    <div class="punishment-icon">🔹</div>
+                    <div class="punishment-text">
+                        <strong>Бан в группе</strong>
+                        <div class="punishment-detail">от 1 дня до перманентного</div>
+                    </div>
+                </div>
+
+                <div class="punishment-item fade-in delay-3">
+                    <div class="punishment-icon">🔹</div>
+                    <div class="punishment-text">
+                        <strong>Серьёзные нарушения</strong>
+                        <div class="punishment-detail">удаление без предупреждения</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информационный блок -->
+        <div class="info-block fade-in">
+            <div class="info-items">
+                <div class="info-item fade-in delay-1">
+                    <div class="info-icon">📋</div>
+                    <div>Администрация может изменять правила в любое время</div>
+                </div>
+
+                <div class="info-item fade-in delay-2">
+                    <div class="info-icon">⚖️</div>
+                    <div>Наказание может быть увеличено/уменьшено по ситуации</div>
+                </div>
+
+                <div class="info-item fade-in delay-3">
+                    <div class="info-icon">3️⃣</div>
+                    <div>Система предупреждений (лимит 3/3)</div>
+                </div>
+
+                <div class="info-item fade-in delay-4">
+                    <div class="info-icon">🛡️</div>
+                    <div>Модерация вправе решать спорные ситуации</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Футер -->
+        <div class="footer fade-in">
+            <p>© 2025 JojoLand • Правила ТГК чата</p>
+            <p>Telegram группа: @Jojolandpe</p>
+            <p>Соблюдайте правила для комфортного общения! 🤝</p>
+        </div>
     </div>
 
-    <div class="card">
-        <span class="num">💀 1.3 Дискриминация и расизм</span>
-        Любые формы унижения, дискриминации или расизма запрещены.
-    </div>
+    <script>
+        // Анимация волн
+        function createWaves() {
+            const wavesContainer = document.querySelector('.bg-waves');
+            for (let i = 0; i < 5; i++) {
+                const wave = document.createElement('div');
+                wave.className = 'wave';
+                wave.style.animationDelay = `-${i * 4}s`;
+                wave.style.opacity = `${0.1 + i * 0.1}`;
+                wave.style.height = `${80 + i * 20}px`;
+                wavesContainer.appendChild(wave);
+            }
+        }
 
-    <div class="card">
-        <span class="num">💀 1.4 Провокации</span>
-        Запрещены намеренные провокации, попытки подставить игроков.
-    </div>
+        // Анимация появления элементов при прокрутке
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.fade-in');
+            const windowHeight = window.innerHeight;
+            
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                
+                if (elementTop < windowHeight * 0.85) {
+                    element.style.animationPlayState = 'running';
+                }
+            });
+        }
 
-    <div class="card">
-        <span class="num">💀 1.5 18+ контент и запрещённая символика</span>
-        Запрещены 18+ изображения, гифки, фото, а также нацистская символика.
-    </div>
+        // Эффект параллакса для волн
+        function parallaxEffect() {
+            const scrolled = window.pageYOffset;
+            const waves = document.querySelectorAll('.wave');
+            
+            waves.forEach((wave, index) => {
+                const speed = 0.2 + (index * 0.1);
+                const yPos = -(scrolled * speed);
+                wave.style.transform = `translateX(-50%) translateY(${yPos}px)`;
+            });
+        }
 
-    <div class="card">
-        <span class="num">💀 1.6 Опасные действия</span>
-        Запрещено подталкивать игроков к действиям, способным навредить их устройству или безопасности.
-    </div>
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            createWaves();
+            
+            // Настройка анимаций
+            document.querySelectorAll('.fade-in').forEach((el, index) => {
+                el.style.animationDelay = `${(index % 5) * 0.1}s`;
+                el.style.animationPlayState = 'paused';
+            });
+            
+            // Запускаем начальные анимации
+            setTimeout(() => {
+                animateOnScroll();
+            }, 500);
+            
+            // Слушатели событий
+            window.addEventListener('scroll', () => {
+                animateOnScroll();
+                parallaxEffect();
+            });
+            
+            // Анимация при наведении на карточки
+            document.querySelectorAll('.rule-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.zIndex = '10';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.zIndex = '1';
+                });
+            });
+            
+            // Эффект для кнопки "Назад"
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('mouseenter', () => {
+                    backBtn.style.background = 'linear-gradient(90deg, #0088cc, #00ccff)';
+                });
+                
+                backBtn.addEventListener('mouseleave', () => {
+                    backBtn.style.background = 'linear-gradient(90deg, #0066cc, #00aaff)';
+                });
+            }
+            
+            // Обновление анимации заголовка
+            const titleText = document.querySelector('.title-text');
+            setInterval(() => {
+                titleText.style.animation = 'none';
+                setTimeout(() => {
+                    titleText.style.animation = 'shine 3s linear infinite';
+                }, 10);
+            }, 8000);
+        });
 
-    <!-- 2. Реклама -->
-    <h2 class="section-title">2. Реклама и ссылки 📎</h2>
-
-    <div class="card">
-        <span class="num">💀 2.1 Реклама сторонних проектов</span>
-        Запрещено размещать ссылки на другие сервера, магазины, группы или проекты.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 2.2 Личные ссылки</span>
-        Запрещено отправлять ссылки на ресурсы или приватные чаты с целью обмана или спама.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 2.3 Общая реклама</span>
-        Запрещена реклама любых проектов, не связанных с сервером.
-        <br>✔ Разрешено: позвать игрока 1×1 на практис-сервер — 1 раз.
-    </div>
-
-    <!-- 3. Чаты и команды -->
-    <h2 class="section-title">3. Чаты и команды ⚙️</h2>
-
-    <div class="card">
-        <span class="num">💀 3.1 Массовые упоминания</span>
-        Запрещено без причины упоминать игроков или администрацию через @ник.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.2 Выдача себя за админа</span>
-        Запрещено утверждать, что вы администратор группы или сервера.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.3 Спам бота Ирис</span>
-        Запрещено использовать чат-бота Ирис в целях спама.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.4 Оскорбительные ники</span>
-        Ники и названия групп с оскорблениями или провокациями запрещены.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.5 Продажа аккаунтов/предметов</span>
-        Запрещена продажа, обмен или передача игровых ценностей за реальные деньги.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.6 Угрозы и слив персональных данных</span>
-        Запрещены угрозы, шантаж, доксинг, деанон и публикация личной информации.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.7 Подставы</span>
-        Запрещено вводить игроков в заблуждение или выдумывать правила.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.8 Оскорбление сервера</span>
-        Нельзя оскорблять сервер или пытаться его дискредитировать.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.9 Дезинформация администрации</span>
-        Запрещено предоставлять ложную или неполную информацию модерации.
-    </div>
-
-    <div class="card">
-        <span class="num">💀 3.10 Распространение читов</span>
-        Запрещено распространять чит-файлы или запрещённые RP.
-    </div>
-
-    <!-- Наказания -->
-    <h2 class="section-title">⚠️ Наказания</h2>
-
-    <div class="card">
-        <p>🔹 <b>Мут в группе:</b> от 1 часа до 24 часов</p>
-        <p>🔹 <b>Бан в группе:</b> от 1 дня до перманентного</p>
-        <p>🔹 Серьёзные нарушения → удаление без предупреждения</p>
-        <p>💡 Администрация может изменять правила в любое время</p>
-        <p>💡 Наказание может быть увеличено/уменьшено по ситуации</p>
-        <p>💡 Есть система предупреждений (лимит 3/3)</p>
-    </div>
-
-</div>
+        // Плавный скролл к элементам
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
