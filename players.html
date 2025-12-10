@@ -184,6 +184,30 @@
             font-size: 28px;
             margin-right: 15px;
             border: 2px solid #ffcc00;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .player-avatar .avatar-initial {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
         }
         
         .player-info {
@@ -370,6 +394,11 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         /* НИЧЕГО НЕ НАЙДЕНО */
@@ -672,6 +701,32 @@ async function getUserPoints(userId) {
     }
 }
 
+// ==================== ПОЛУЧЕНИЕ АВАТАРА ИГРОКА ====================
+async function getUserAvatar(userId) {
+    try {
+        // Проверяем кэш в localStorage
+        const cachedAvatar = localStorage.getItem(`jojoland_avatar_${userId}`);
+        if (cachedAvatar) {
+            return cachedAvatar;
+        }
+        
+        // Получаем из базы данных
+        const snapshot = await database.ref('users/' + userId).once('value');
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            if (userData.avatar && userData.avatar.startsWith('data:image')) {
+                // Сохраняем в кэш
+                localStorage.setItem(`jojoland_avatar_${userId}`, userData.avatar);
+                return userData.avatar;
+            }
+        }
+        return 'default';
+    } catch (error) {
+        console.error('Ошибка загрузки аватара:', error);
+        return 'default';
+    }
+}
+
 // ==================== ПОЛУЧЕНИЕ СТАТУСА ОНЛАЙН ====================
 function getOnlineStatus(userData) {
     if (!userData.lastVisit) return 'offline';
@@ -697,7 +752,7 @@ function formatDate(dateString) {
 }
 
 // ==================== СОЗДАНИЕ КАРТОЧКИ ИГРОКА ====================
-function createPlayerCard(player, points = 0) {
+function createPlayerCard(player, points = 0, avatar = null) {
     const rank = player.rank || 'player';
     const onlineStatus = getOnlineStatus(player);
     const createdAt = formatDate(player.createdAt || player.registeredAt);
@@ -723,10 +778,41 @@ function createPlayerCard(player, points = 0) {
         return '';
     }
     
+    // Создаем HTML для аватара
+    let avatarHTML = '';
+    if (avatar && avatar !== 'default') {
+        // Если есть кастомный аватар
+        avatarHTML = `
+            <img src="${avatar}" alt="${player.nickname}" 
+                 onerror="this.style.display='none'; 
+                          document.querySelector('#avatar-fallback-${userId}').style.display='flex';">
+            <div id="avatar-fallback-${userId}" class="avatar-initial" style="display: none;">
+                ${player.nickname?.charAt(0).toUpperCase() || '👤'}
+            </div>
+        `;
+    } else {
+        // Если нет аватара, показываем первую букву ника
+        avatarHTML = `
+            <div class="avatar-initial">
+                ${player.nickname?.charAt(0).toUpperCase() || '👤'}
+            </div>
+        `;
+    }
+    
+    // Определяем цвет рамки аватара по рангу
+    const avatarBorderColor = {
+        'admin': '#ff4444',
+        'moderator': '#00ccff',
+        'vip': '#ffcc00',
+        'player': '#6200ff'
+    };
+    
     return `
         <div class="player-card ${rank}" data-user-id="${userId}" data-rank="${rank}">
             <div class="player-header">
-                <div class="player-avatar">${player.nickname?.charAt(0).toUpperCase() || '👤'}</div>
+                <div class="player-avatar" style="border-color: ${avatarBorderColor[rank]};">
+                    ${avatarHTML}
+                </div>
                 <div class="player-info">
                     <h4 class="player-name">
                         ${player.nickname || 'Неизвестно'}
@@ -893,8 +979,11 @@ async function displayPlayers(players, containerId, showPagination = true) {
         
         // Отображаем игроков текущей страницы
         for (const player of pagePlayers) {
-            const points = await getUserPoints(player.userId || player.id);
-            container.innerHTML += createPlayerCard(player, points);
+            const [points, avatar] = await Promise.all([
+                getUserPoints(player.userId || player.id),
+                getUserAvatar(player.userId || player.id)
+            ]);
+            container.innerHTML += createPlayerCard(player, points, avatar);
         }
         
         // Обновляем пагинацию
@@ -903,8 +992,11 @@ async function displayPlayers(players, containerId, showPagination = true) {
     } else {
         // Отображаем всех игроков (для админов/модераторов/VIP)
         for (const player of players) {
-            const points = await getUserPoints(player.userId || player.id);
-            container.innerHTML += createPlayerCard(player, points);
+            const [points, avatar] = await Promise.all([
+                getUserPoints(player.userId || player.id),
+                getUserAvatar(player.userId || player.id)
+            ]);
+            container.innerHTML += createPlayerCard(player, points, avatar);
         }
     }
 }
@@ -1024,6 +1116,11 @@ function filterPlayers(filter) {
     displayPlayers(filteredPlayers, 'players-container', true);
 }
 
+// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ СПИСКОВ
+let adminsList = [];
+let moderatorsList = [];
+let vipList = [];
+
 // ==================== ОТОБРАЖЕНИЕ ВСЕХ ИГРОКОВ ПО ФИЛЬТРУ ====================
 async function displayAllPlayersByFilter(players, title) {
     // Скрываем все категории
@@ -1080,9 +1177,13 @@ async function displayAllPlayersByFilter(players, title) {
         return;
     }
     
+    // Загружаем аватары и очки для всех игроков
     for (const player of players) {
-        const points = await getUserPoints(player.userId || player.id);
-        container.innerHTML += createPlayerCard(player, points);
+        const [points, avatar] = await Promise.all([
+            getUserPoints(player.userId || player.id),
+            getUserAvatar(player.userId || player.id)
+        ]);
+        container.innerHTML += createPlayerCard(player, points, avatar);
     }
     
     // Скрываем пагинацию
@@ -1161,14 +1262,29 @@ function showNoResults(containerId, message = 'Ничего не найдено.
     }
 }
 
-// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ СПИСКОВ
-let adminsList = [];
-let moderatorsList = [];
-let vipList = [];
+// ==================== ОЧИСТКА КЭША АВАТАРОВ ====================
+function clearAvatarCache() {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('jojoland_avatar_')) {
+            keysToRemove.push(key);
+        }
+    }
+    
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    console.log(`Очищен кэш ${keysToRemove.length} аватаров`);
+}
 
 // ==================== ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ ====================
 async function initPlayersPage() {
     try {
+        // Очищаем старый кэш аватаров (опционально)
+        // clearAvatarCache();
+        
         // Загружаем всех игроков и разделяем по рангам
         const [admins, moderators, vip, regular, all] = await loadAllPlayers();
         
