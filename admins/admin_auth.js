@@ -102,4 +102,12 @@ async function adminLogin(password) {
 
 // ==================== ВЫХОД ИЗ АДМИН-ПАНЕЛИ ====================
 function adminLogout() {
-    const adminName = localStorage.getItem('adminName')
+    const adminName = localStorage.getItem('adminName') || 'Администратор';
+    localStorage.removeItem(ADMIN_CONFIG.SESSION_KEY);
+    localStorage.removeItem('adminPassword');
+    localStorage.removeItem('adminName');
+    return { 
+        success: true, 
+        message: `Выход выполнен для ${adminName}` 
+    };
+}
