@@ -720,6 +720,7 @@ async function registerUser(nickname, password) {
         const userData = {
             nickname: nickname,
             passwordHash: hashPassword(password),
+            rank: 'player',
             createdAt: now.toISOString(),
             lastVisit: now.toISOString(),
             visitsCount: 1,
