@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Логи JojoLand</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <!-- Единая авторизация -->
+    <script src="admin_auth.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a2a, #1a1a4a, #0a0a2a);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Навигация */
+        .admin-nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,0,255,0.3);
+        }
+        
+        .admin-nav a {
+            padding: 10px 20px;
+            background: rgba(0,100,255,0.2);
+            color: #6ab7ff;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid rgba(0,100,255,0.4);
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        
+        .admin-nav a:hover {
+            background: rgba(0,100,255,0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Панель управления */
+        .control-panel {
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid #0066ff;
+            margin-bottom: 25px;
+        }
+        
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #6ab7ff;
+            font-weight: bold;
+        }
+        
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .btn-apply { background: linear-gradient(90deg, #0066ff, #0099ff); color: white; }
+        .btn-export { background: linear-gradient(90deg, #00cc00, #00ff00); color: #003300; }
+        .btn-clear { background: linear-gradient(90deg, #ff6600, #ff9900); color: white; }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        /* Логи */
+        .logs-container {
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid #0066ff;
+        }
+        
+        .log-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .log-type-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .log-type-btn.active {
+            background: rgba(0,100,255,0.4);
+            border: 1px solid #0066ff;
+        }
+        
+        .log-list {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .log-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #0066ff;
+            transition: 0.3s;
+        }
+        
+        .log-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .log-type {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .type-info { background: rgba(0,150,255,0.2); color: #0096ff; }
+        .type-success { background: rgba(0,255,0,0.2); color: #00ff00; }
+        .type-warning { background: rgba(255,153,0,0.2); color: #ff9900; }
+        .type-error { background: rgba(255,0,0,0.2); color: #ff0000; }
+        .type-security { background: rgba(255,0,255,0.2); color: #ff00ff; }
+        
+        .log-time {
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .log-content {
+            color: #ccccff;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+        
+        .log-details {
+            color: #888;
+            font-size: 12px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* Полосы прокрутки */
+        .log-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .log-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .log-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #0066ff, #0099ff);
+            border-radius: 10px;
+        }
+        
+        /* Загрузка */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #aaa;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .control-panel, .logs-container {
+                padding: 20px;
+            }
+            
+            .filters-row {
+                flex-direction: column;
+            }
+            
+            .log-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-container"></div>
+    <div id="notification-container"></div>
+    <div class="container">
+        <!-- Навигация -->
+        <div class="admin-nav">
+            <a href="index.html">🏠 Главная</a>
+            <a href="admin_support.html">🛡️ Поддержка</a>
+            <a href="admin_users.html">👥 Игроки</a>
+            <a href="admin_stats.html">📊 Статистика</a>
+            <a href="admin_logs.html" style="background: rgba(0,100,255,0.4);">📋 Логи</a>
+            <button onclick="logout()" style="margin-left: auto; padding: 10px 20px; background: rgba(255,0,0,0.2); color: #ff6666; border: 1px solid #ff6666; border-radius: 25px; cursor: pointer;">
+                🚪 Выйти
+            </button>
+        </div>
+        
+        <!-- Панель управления -->
+        <div class="control-panel">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label>📅 Дата с:</label>
+                    <input type="date" id="dateFrom" value="">
+                </div>
+                
+                <div class="filter-group">
+                    <label>📅 Дата по:</label>
+                    <input type="date" id="dateTo" value="">
+                </div>
+                
+                <div class="filter-group">
+                    <label>👤 Админ:</label>
+                    <select id="adminFilter">
+                        <option value="">Все админы</option>
+                        <!-- Будет заполнено скриптом -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>🎯 Тип действия:</label>
+                    <select id="actionFilter">
+                        <option value="">Все действия</option>
+                        <option value="login">Вход в систему</option>
+                        <option value="logout">Выход из системы</option>
+                        <option value="answer">Ответ на обращение</option>
+                        <option value="close">Закрытие обращения</option>
+                        <option value="delete">Удаление обращения</option>
+                        <option value="auto_delete">Автоудаление</option>
+                        <option value="warn">Предупреждение игрока</option>
+                        <option value="mute">Мут игрока</option>
+                        <option value="ban">Бан игрока</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn btn-apply" onclick="applyFilters()">
+                    🔍 Применить фильтры
+                </button>
+                <button class="action-btn btn-export" onclick="exportLogs()">
+                    📥 Экспорт логов
+                </button>
+                <button class="action-btn btn-clear" onclick="clearOldLogs()">
+                    🗑️ Очистить старые логи
+                </button>
+            </div>
+        </div>
+        
+        <!-- Фильтры типов логов -->
+        <div class="logs-container">
+            <div class="log-filters">
+                <button class="log-type-btn active" onclick="filterLogType('all')">
+                    📋 Все логи
+                </button>
+                <button class="log-type-btn" onclick="filterLogType('info')">
+                    ℹ️ Информация
+                </button>
+                <button class="log-type-btn" onclick="filterLogType('success')">
+                    ✅ Успех
+                </button>
+                <button class="log-type-btn" onclick="filterLogType('warning')">
+                    ⚠️ Предупреждения
+                </button>
+                <button class="log-type-btn" onclick="filterLogType('error')">
+                    ❌ Ошибки
+                </button>
+                <button class="log-type-btn" onclick="filterLogType('security')">
+                    🔒 Безопасность
+                </button>
+            </div>
+            
+            <div class="log-list" id="logList">
+                <div class="loading">Загрузка логов...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== НАСТРОЙКИ ====================
+        const ADMIN_PASSWORD = "Jojoland2024!";
+        const LOGS_PER_PAGE = 50;
+        
+        // ==================== FIREBASE КОНФИГ ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebaseapp.com",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ==================== ПЕРЕМЕННЫЕ ====================
+        let allLogs = [];
+        let filteredLogs = [];
+        let currentLogType = 'all';
+        
+        // ==================== АВТОРИЗАЦИЯ ====================
+        // ==================== АВТОРИЗАЦИЯ ====================
+async function checkAuth() {
+    try {
+        // Загружаем навигацию
+        const navResponse = await fetch('admin_nav.html');
+        const navHtml = await navResponse.text();
+        document.getElementById('nav-container').innerHTML = navHtml;
+        
+        // Проверяем авторизацию через единую систему
+        const auth = await checkAdminAuth();
+        
+        if (!auth.success) {
+            // Если не авторизован, редирект на главную админки
+            window.location.href = 'admin_main.html';
+            return;
+        }
+        
+        // Если авторизован, продолжаем загрузку
+        loadLogs(); // Ваш существующий код инициализации
+        
+    } catch (error) {
+        console.error('Ошибка проверки авторизации:', error);
+        window.location.href = 'admin_main.html';
+    }
+}
+
+function logout() {
+    adminLogout();
+    window.location.href = '../index.html';
+}
+        
+        // ==================== ЗАГРУЗКА ЛОГОВ ====================
+        async function loadLogs() {
+            try {
+                // Загружаем логи админов
+                const adminLogsSnapshot = await database.ref('admin_actions')
+                    .orderByChild('timestamp')
+                    .once('value');
+                
+                // Загружаем логи тикетов
+                const ticketLogsSnapshot = await database.ref('admin_log')
+                    .orderByChild('timestamp')
+                    .once('value');
+                
+                allLogs = [];
+                
+                // Обрабатываем логи админов
+                if (adminLogsSnapshot.exists()) {
+                    adminLogsSnapshot.forEach(childSnapshot => {
+                        const log = childSnapshot.val();
+                        log.id = childSnapshot.key;
+                        log.source = 'admin_actions';
+                        allLogs.push(log);
+                    });
+                }
+                
+                // Обрабатываем логи тикетов
+                if (ticketLogsSnapshot.exists()) {
+                    ticketLogsSnapshot.forEach(childSnapshot => {
+                        const log = childSnapshot.val();
+                        log.id = childSnapshot.key;
+                        log.source = 'ticket_logs';
+                        allLogs.push(log);
+                    });
+                }
+                
+                // Сортируем по времени (новые сверху)
+                allLogs.sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Заполняем список админов для фильтра
+                updateAdminList();
+                
+                // Применяем фильтры
+                applyFilters();
+                
+                // Автообновление каждые 30 секунд
+                setInterval(loadLogs, 30000);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки логов:', error);
+                document.getElementById('logList').innerHTML = 
+                    '<div class="loading" style="color: #ff6666;">Ошибка загрузки логов</div>';
+            }
+        }
+        
+        function updateAdminList() {
+            const adminFilter = document.getElementById('adminFilter');
+            const admins = new Set();
+            
+            allLogs.forEach(log => {
+                if (log.adminName) {
+                    admins.add(log.adminName);
+                }
+            });
+            
+            // Очищаем текущие опции (кроме первой)
+            while (adminFilter.options.length > 1) {
+                adminFilter.remove(1);
+            }
+            
+            // Добавляем админов
+            admins.forEach(admin => {
+                const option = document.createElement('option');
+                option.value = admin;
+                option.textContent = admin;
+                adminFilter.appendChild(option);
+            });
+        }
+        
+        // ==================== ФИЛЬТРАЦИЯ ====================
+        function filterLogType(type) {
+            currentLogType = type;
+            
+            // Обновляем активные кнопки
+            document.querySelectorAll('.log-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            applyFilters();
+        }
+        
+        function applyFilters() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const adminFilter = document.getElementById('adminFilter').value;
+            const actionFilter = document.getElementById('actionFilter').value;
+            
+            let fromTime = dateFrom ? new Date(dateFrom).getTime() : 0;
+            let toTime = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : Date.now();
+            
+            filteredLogs = allLogs.filter(log => {
+                // Фильтр по дате
+                if (log.timestamp < fromTime || log.timestamp > toTime) {
+                    return false;
+                }
+                
+                // Фильтр по админу
+                if (adminFilter && log.adminName !== adminFilter) {
+                    return false;
+                }
+                
+                // Фильтр по действию
+                if (actionFilter && log.action !== actionFilter) {
+                    return false;
+                }
+                
+                // Фильтр по типу лога
+                if (currentLogType !== 'all') {
+                    const logType = getLogType(log);
+                    if (logType !== currentLogType) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            updateLogList();
+        }
+        
+        function getLogType(log) {
+            const action = log.action || '';
+            const description = log.description || '';
+            
+            // Определяем тип по действию
+            if (action.includes('error') || action.includes('fail') || description.includes('Ошибка')) {
+                return 'error';
+            }
+            
+            if (action.includes('warn') || action.includes('mute') || action.includes('ban')) {
+                return 'warning';
+            }
+            
+            if (action.includes('login') || action.includes('logout')) {
+                return 'security';
+            }
+            
+            if (action.includes('success') || action.includes('отправлен') || action.includes('закрыт')) {
+                return 'success';
+            }
+            
+            return 'info';
+        }
+        
+        function getTypeClass(log) {
+            const type = getLogType(log);
+            return `type-${type}`;
+        }
+        
+        function getTypeText(log) {
+            const type = getLogType(log);
+            const texts = {
+                'info': 'ℹ️ Информация',
+                'success': '✅ Успех',
+                'warning': '⚠️ Предупреждение',
+                'error': '❌ Ошибка',
+                'security': '🔒 Безопасность'
+            };
+            return texts[type] || 'ℹ️ Информация';
+        }
+        
+        // ==================== ОТОБРАЖЕНИЕ ЛОГОВ ====================
+        function updateLogList() {
+            const logList = document.getElementById('logList');
+            
+            if (filteredLogs.length === 0) {
+                logList.innerHTML = `
+                    <div class="loading">
+                        📭 Логов по выбранным фильтрам не найдено
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            const displayedLogs = filteredLogs.slice(0, LOGS_PER_PAGE);
+            
+            displayedLogs.forEach(log => {
+                const date = new Date(log.timestamp);
+                const dateStr = date.toLocaleDateString('ru-RU');
+                const timeStr = date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                
+                const typeClass = getTypeClass(log);
+                const typeText = getTypeText(log);
+                
+                html += `
+                    <div class="log-item">
+                        <div class="log-header">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <span class="log-type ${typeClass}">${typeText}</span>
+                                <strong style="color: #6ab7ff;">${log.adminName || 'Система'}</strong>
+                            </div>
+                            <div class="log-time">
+                                ${dateStr} ${timeStr}
+                            </div>
+                        </div>
+                        
+                        <div class="log-content">
+                            ${log.description || log.action || 'Действие'}
+                        </div>
+                        
+                        <div class="log-details">
+                            <span>🎯 Действие: ${log.action || 'Не указано'}</span>
+                            ${log.ticketId ? `<span>📋 Тикет: ${log.ticketId}</span>` : ''}
+                            ${log.adminIP ? `<span>🌐 IP: ${log.adminIP}</span>` : ''}
+                            ${log.source === 'ticket_logs' ? `<span>📁 Источник: Тикеты</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Показываем количество логов
+            if (filteredLogs.length > LOGS_PER_PAGE) {
+                html += `
+                    <div style="text-align: center; color: #aaa; padding: 20px;">
+                        Показано ${LOGS_PER_PAGE} из ${filteredLogs.length} логов
+                    </div>
+                `;
+            }
+            
+            logList.innerHTML = html;
+            
+            // Прокручиваем вверх
+            logList.scrollTop = 0;
+        }
+        
+        // ==================== ДЕЙСТВИЯ ====================
+        function exportLogs() {
+            if (filteredLogs.length === 0) {
+                alert('❌ Нет логов для экспорта');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(filteredLogs, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `jojoland_logs_export_${Date.now()}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            alert(`📥 Экспортировано ${filteredLogs.length} логов`);
+        }
+        
+        async function clearOldLogs() {
+            if (!confirm('⚠️ Удалить логи старше 30 дней?\nЭто действие нельзя отменить!')) {
+                return;
+            }
+            
+            const monthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+            const oldLogs = allLogs.filter(log => log.timestamp < monthAgo);
+            
+            if (oldLogs.length === 0) {
+                alert('📭 Старых логов не найдено');
+                return;
+            }
+            
+            try {
+                // Удаляем из базы данных
+                const updates = {};
+                oldLogs.forEach(log => {
+                    updates[`${log.source}/${log.id}`] = null;
+                });
+                
+                await database.ref().update(updates);
+                
+                alert(`🗑️ Удалено ${oldLogs.length} старых логов`);
+                
+                // Перезагружаем логи
+                loadLogs();
+                
+            } catch (error) {
+                console.error('Ошибка удаления логов:', error);
+                alert('❌ Ошибка удаления логов');
+            }
+        }
+        
+        // ==================== ИНИЦИАЛИЗАЦИЯ ДАТ ====================
+        function initDates() {
+            const today = new Date();
+            const monthAgo = new Date();
+            monthAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('dateFrom').value = monthAgo.toISOString().split('T')[0];
+            document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        }
+        
+        // ==================== ЗАПУСК ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            initDates();
+        });
+    </script>
+</body>
+</html>
