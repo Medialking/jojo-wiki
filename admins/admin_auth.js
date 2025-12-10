@@ -5,6 +5,13 @@ const ADMIN_CONFIG = {
     SESSION_KEY: "admin_session_active"
 };
 
+// Добавьте функцию для смены пароля
+function setAdminPassword(newPassword) {
+    ADMIN_CONFIG.PASSWORD = newPassword;
+    localStorage.setItem('admin_preferred_password', newPassword);
+    return { success: true, message: 'Пароль обновлён' };
+}
+
 // ==================== ПРОВЕРКА АВТОРИЗАЦИИ ====================
 async function checkAdminAuth() {
     try {
