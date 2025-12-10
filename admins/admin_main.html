@@ -197,7 +197,7 @@
             <!-- Заголовок -->
             <div class="page-header">
                 <h1 class="page-title">👑 Панель Администратора</h1>
-                <p class="page-subtitle">Центр управления проектом JojoLand. Все инструменты для эффективной модерации и администрирования</p>
+                <p class="page-subtitle">Центр управления проектом JojoLand</p>
             </div>
             
             <!-- Панель быстрого доступа -->
@@ -207,21 +207,21 @@
                 <div class="dashboard-card card-support" onclick="window.location.href='admin_support.html'">
                     <div class="card-icon">🛡️</div>
                     <h3 class="card-title">Техподдержка</h3>
-                    <p class="card-desc">Обращения игроков, ответы на вопросы, решение проблем</p>
+                    <p class="card-desc">Обращения игроков, ответы на вопросы</p>
                     <div style="margin-top: 15px; color: #6ab7ff;" id="support-count">Загрузка...</div>
                 </div>
                 
                 <div class="dashboard-card card-users" onclick="window.location.href='admin_users.html'">
                     <div class="card-icon">👥</div>
                     <h3 class="card-title">Игроки</h3>
-                    <p class="card-desc">Список всех пользователей, статистика, модерация</p>
+                    <p class="card-desc">Список всех пользователей, статистика</p>
                     <div style="margin-top: 15px; color: #00cc66;" id="users-count">Загрузка...</div>
                 </div>
                 
                 <div class="dashboard-card card-stats" onclick="window.location.href='admin_stats.html'">
                     <div class="card-icon">📊</div>
                     <h3 class="card-title">Статистика</h3>
-                    <p class="card-desc">Графики, аналитика, отчеты по активности</p>
+                    <p class="card-desc">Графики, аналитика, отчеты</p>
                 </div>
                 
                 <div class="dashboard-card card-logs" onclick="window.location.href='admin_logs.html'">
@@ -233,10 +233,10 @@
                 <div class="dashboard-card card-rights" onclick="window.location.href='admin_rights.html'">
                     <div class="card-icon">⚡</div>
                     <h3 class="card-title">Управление правами</h3>
-                    <p class="card-desc">Назначение админов, модераторов, управление рангами</p>
+                    <p class="card-desc">Назначение админов, модераторов</p>
                 </div>
                 
-                <div class="dashboard-card card-profile" onclick="window.open('profile.html', '_blank')">
+                <div class="dashboard-card card-profile" onclick="window.open('../profile.html', '_blank')">
                     <div class="card-icon">👤</div>
                     <h3 class="card-title">Мой профиль</h3>
                     <p class="card-desc">Перейти к своему профилю игрока</p>
@@ -279,9 +279,6 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-        // Глобальные переменные
-        window.database = database;
-        
         // Анимация загрузки
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -294,22 +291,18 @@
                 const auth = await checkAdminAuth();
                 
                 if (!auth.success) {
-                    // Если не авторизован, показываем окно входа
                     showLoginModal();
                     return;
                 }
                 
-                // Если авторизован, скрываем загрузчик и показываем контент
+                // Если авторизован, показываем контент
                 setTimeout(() => {
                     document.getElementById('loader').style.opacity = '0';
                     setTimeout(() => {
                         document.getElementById('loader').style.display = 'none';
                         document.getElementById('content').style.display = 'block';
                         
-                        // Загружаем данные
                         loadDashboardData();
-                        
-                        // Автообновление каждые 30 секунд
                         setInterval(loadDashboardData, 30000);
                         
                     }, 400);
@@ -320,7 +313,6 @@
                 document.getElementById('loader').innerHTML = `
                     <div style="text-align: center; color: #ff6666;">
                         <p style="font-size: 20px;">❌ Ошибка загрузки</p>
-                        <p style="margin-top: 10px;">${error.message}</p>
                         <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #0066ff; color: white; border: none; border-radius: 10px; cursor: pointer;">
                             Перезагрузить
                         </button>
@@ -351,7 +343,7 @@
                         <div class="error-message" id="loginError"></div>
                         
                         <div style="margin-top: 20px;">
-                            <a href="index.html" style="color: #6ab7ff; text-decoration: none;">
+                            <a href="../index.html" style="color: #6ab7ff; text-decoration: none;">
                                 ← Вернуться на главную
                             </a>
                         </div>
@@ -469,15 +461,12 @@
         // Функция загрузки данных для дашборда
         async function loadDashboardData() {
             try {
-                // Загружаем статистику
                 const stats = await getQuickStats();
                 updateQuickStats(stats);
                 
-                // Загружаем последние действия
                 const actions = await getRecentActions();
                 updateRecentActions(actions);
                 
-                // Обновляем счетчики
                 updateCounters(stats);
                 
             } catch (error) {
@@ -488,7 +477,6 @@
         // Получение быстрой статистики
         async function getQuickStats() {
             try {
-                // Получаем все необходимые данные
                 const [usersSnapshot, ticketsSnapshot, logsSnapshot] = await Promise.all([
                     database.ref('users').once('value'),
                     database.ref('support_tickets').once('value'),
@@ -503,11 +491,9 @@
                     todayLogs: 0
                 };
                 
-                // Подсчет пользователей
                 if (usersSnapshot.exists()) {
                     stats.totalUsers = usersSnapshot.numChildren();
                     
-                    // Подсчет админов
                     usersSnapshot.forEach(child => {
                         const user = child.val();
                         if (user.rank === 'admin') {
@@ -516,11 +502,9 @@
                     });
                 }
                 
-                // Подсчет тикетов
                 if (ticketsSnapshot.exists()) {
                     stats.totalTickets = ticketsSnapshot.numChildren();
                     
-                    // Подсчет новых тикетов
                     const today = Date.now() - (24 * 60 * 60 * 1000);
                     ticketsSnapshot.forEach(child => {
                         const ticket = child.val();
@@ -530,7 +514,6 @@
                     });
                 }
                 
-                // Подсчет логов за сегодня
                 if (logsSnapshot.exists()) {
                     const today = Date.now() - (24 * 60 * 60 * 1000);
                     logsSnapshot.forEach(child => {
@@ -599,7 +582,7 @@
                     });
                 }
                 
-                return actions.reverse(); // Новые сверху
+                return actions.reverse();
                 
             } catch (error) {
                 console.error('Ошибка получения действий:', error);
