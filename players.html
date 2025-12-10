@@ -305,7 +305,6 @@
         <div class="search-section">
             <input type="text" id="search-input" class="search-input" placeholder="Введите ник игрока для поиска...">
             
-            <!-- УДАЛЕН ФИЛЬТР "VIP игроки" -->
             <div class="filter-buttons" id="filter-buttons">
                 <button class="filter-btn active" data-filter="all">Все игроки</button>
                 <button class="filter-btn" data-filter="online">Онлайн</button>
@@ -365,7 +364,6 @@
         card.dataset.id = playerData.userId;
 
         // Генерация ссылки на аватар. Используем placeholder с первой буквой ника, если URL нет.
-        // NOTE: Предполагается, что `playerData` содержит `avatarUrl` или его можно получить.
         const firstLetter = playerData.nickname.charAt(0).toUpperCase();
         const placeholderUrl = `https://placehold.co/100x100/360066/ffffff?text=${firstLetter}&font=Orbitron`;
         const avatarUrl = playerData.avatarUrl || placeholderUrl;
@@ -417,19 +415,20 @@
             listContainer.appendChild(card);
         });
     }
-
+    
     // ==================== ФУНКЦИИ ДАННЫХ И ФИЛЬТРАЦИИ ====================
 
     // Загрузка данных игроков
     async function loadPlayersData() {
+        console.log('Начало загрузки данных игроков...');
         try {
-            // Путь к коллекции игроков в публичных данных Firebase (если используется Firestore, но тут RTDB)
-            // В RTDB просто читаем из 'users'
+            // Чтение из коллекции 'users'
             const snapshot = await database.ref('users').once('value');
             const usersObject = snapshot.val();
             
             if (!usersObject) {
                 allPlayers = [];
+                console.log('Данные игроков не найдены.');
                 return;
             }
 
@@ -441,16 +440,18 @@
                     points: usersObject[userId].points || 0,
                     isOnline: usersObject[userId].isOnline || false, // Предполагаем поле isOnline
                     avatarUrl: usersObject[userId].avatarUrl || null, // Предполагаем поле avatarUrl
-                    // Поле userStatus (VIP) игнорируется
                 }))
                 .sort((a, b) => b.points - a.points); // Сортировка по убыванию очков
+
+            console.log(`Загружено игроков: ${allPlayers.length}`);
 
             // Вызываем начальный рендер
             filterAndRender();
 
         } catch (error) {
             console.error('Ошибка при загрузке данных игроков:', error);
-            showError('Не удалось загрузить данные игроков.');
+            // Вместо выброса, показываем ошибку и позволяем странице загрузиться
+            showError('Не удалось загрузить данные игроков. Проверьте подключение.');
         }
     }
 
@@ -470,8 +471,7 @@
         if (currentFilter === 'online') {
             filteredPlayers = filteredPlayers.filter(player => player.isOnline);
         } 
-        // Логика 'vip' удалена
-
+        
         renderPlayers(filteredPlayers);
     }
 
@@ -497,6 +497,7 @@
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => filterPlayers(btn.dataset.filter));
         });
+        console.log('Обработчики событий установлены.');
     }
 
     // ==================== ПОКАЗАТЬ ОШИБКУ ====================\
@@ -519,26 +520,41 @@
         `;
         
         const container = document.querySelector('.players-container');
-        if (container) {
-            container.insertBefore(errorDiv, container.querySelector('.search-section'));
+        const header = document.querySelector('.page-header');
+        // Добавляем сообщение об ошибке перед заголовком
+        if (container && header) {
+            container.insertBefore(errorDiv, header.nextSibling);
         }
     }
-
 
     // ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
     window.onload = async function() {
         createParticles();
         
-        // Анимация загрузки
-        document.getElementById("loader").style.opacity = "0";
-        setTimeout(async () => {
+        try {
+            // 1. Загрузка данных
+            await loadPlayersData();
+            
+            // 2. Установка обработчиков
+            setupEventListeners();
+
+            // 3. ПРАВИЛЬНОЕ СКРЫТИЕ ЗАГРУЗЧИКА ПОСЛЕ ГОТОВНОСТИ ДАННЫХ
+            document.getElementById("loader").style.opacity = "0";
+            setTimeout(() => {
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("content").style.opacity = "1";
+                console.log('Страница полностью загружена.');
+            }, 400); // Даем время для плавного исчезновения
+            
+        } catch (error) {
+            // В случае критической ошибки (например, неверный конфиг Firebase)
+            console.error("Критическая ошибка инициализации:", error);
+            showError("Критическая ошибка при запуске страницы. Проверьте консоль.");
+            
+            // Обеспечиваем, чтобы загрузчик все равно скрылся
             document.getElementById("loader").style.display = "none";
             document.getElementById("content").style.opacity = "1";
-            
-            await loadPlayersData();
-            setupEventListeners();
-            
-        }, 400);
+        }
     };
 </script>
 
