@@ -16,12 +16,10 @@ async function checkAdminAuth() {
             return { success: false, message: 'Пользователь не авторизован' };
         }
         
-        // Проверяем пароль
         if (adminSession !== 'active' || adminPassword !== ADMIN_CONFIG.PASSWORD) {
             return { success: false, message: 'Неверный пароль или сессия истекла' };
         }
         
-        // Проверяем права (админ или супер-админ)
         if (currentUserId === ADMIN_CONFIG.SUPER_ADMIN_ID) {
             return { 
                 success: true, 
@@ -31,7 +29,6 @@ async function checkAdminAuth() {
             };
         }
         
-        // Проверяем в базе данных
         const adminSnapshot = await database.ref('admins/' + currentUserId).once('value');
         const userSnapshot = await database.ref('users/' + currentUserId).once('value');
         
@@ -81,19 +78,14 @@ async function adminLogin(password) {
             return { success: false, message: 'Сначала войдите в аккаунт' };
         }
         
-        // Проверяем права
         const authResult = await checkAdminAuth();
         if (!authResult.success) {
             return authResult;
         }
         
-        // Сохраняем сессию
         localStorage.setItem(ADMIN_CONFIG.SESSION_KEY, 'active');
         localStorage.setItem('adminPassword', ADMIN_CONFIG.PASSWORD);
         localStorage.setItem('adminName', authResult.adminName);
-        
-        // Логируем вход
-        await logAdminAction('login', 'Вход в админ-панель');
         
         return { 
             success: true, 
@@ -110,52 +102,4 @@ async function adminLogin(password) {
 
 // ==================== ВЫХОД ИЗ АДМИН-ПАНЕЛИ ====================
 function adminLogout() {
-    const adminName = localStorage.getItem('adminName') || 'Администратор';
-    
-    // Логируем выход
-    logAdminAction('logout', 'Выход из админ-панели');
-    
-    localStorage.removeItem(ADMIN_CONFIG.SESSION_KEY);
-    localStorage.removeItem('adminPassword');
-    localStorage.removeItem('adminName');
-    
-    return { success: true, message: `Выход выполнен (${adminName})` };
-}
-
-// ==================== ЛОГИРОВАНИЕ ДЕЙСТВИЙ ====================
-async function logAdminAction(action, description, targetId = null) {
-    try {
-        const adminId = localStorage.getItem('jojoland_userId') || 'system';
-        const adminName = localStorage.getItem('adminName') || 'Администратор';
-        
-        // Получаем IP
-        let ip = 'unknown';
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            ip = data.ip;
-        } catch (e) {}
-        
-        const logEntry = {
-            action: action,
-            description: description,
-            adminId: adminId,
-            adminName: adminName,
-            adminIP: ip,
-            targetId: targetId,
-            timestamp: Date.now()
-        };
-        
-        await database.ref('admin_logs').push(logEntry);
-        
-    } catch (error) {
-        console.error('Ошибка логирования:', error);
-    }
-}
-
-// Экспортируем функции
-window.ADMIN_CONFIG = ADMIN_CONFIG;
-window.checkAdminAuth = checkAdminAuth;
-window.adminLogin = adminLogin;
-window.adminLogout = adminLogout;
-window.logAdminAction = logAdminAction;
+    const adminName = localStorage.getItem('adminName')
