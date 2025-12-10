@@ -8,6 +8,9 @@
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <!-- Единая авторизация -->
+    <script src="admin_auth.js"></script>
     
     <style>
         * {
@@ -250,6 +253,8 @@
     </style>
 </head>
 <body>
+    <div id="nav-container"></div>
+    <div id="notification-container"></div>
     <div class="container">
         <!-- Навигация -->
         <div class="admin-nav">
@@ -368,31 +373,36 @@
         let currentLogType = 'all';
         
         // ==================== АВТОРИЗАЦИЯ ====================
-        function checkAuth() {
-            const adminSession = localStorage.getItem('adminSession');
-            const adminPassword = localStorage.getItem('adminPassword');
-            
-            if (adminSession === 'active' && adminPassword === ADMIN_PASSWORD) {
-                loadLogs();
-                return;
-            }
-            
-            const password = prompt('Введите пароль админа:');
-            if (password === ADMIN_PASSWORD) {
-                localStorage.setItem('adminSession', 'active');
-                localStorage.setItem('adminPassword', ADMIN_PASSWORD);
-                loadLogs();
-            } else {
-                alert('❌ Неверный пароль!');
-                window.location.href = 'index.html';
-            }
+        // ==================== АВТОРИЗАЦИЯ ====================
+async function checkAuth() {
+    try {
+        // Загружаем навигацию
+        const navResponse = await fetch('admin_nav.html');
+        const navHtml = await navResponse.text();
+        document.getElementById('nav-container').innerHTML = navHtml;
+        
+        // Проверяем авторизацию через единую систему
+        const auth = await checkAdminAuth();
+        
+        if (!auth.success) {
+            // Если не авторизован, редирект на главную админки
+            window.location.href = 'admin_main.html';
+            return;
         }
         
-        function logout() {
-            localStorage.removeItem('adminSession');
-            localStorage.removeItem('adminPassword');
-            window.location.href = 'index.html';
-        }
+        // Если авторизован, продолжаем загрузку
+        loadLogs(); // Ваш существующий код инициализации
+        
+    } catch (error) {
+        console.error('Ошибка проверки авторизации:', error);
+        window.location.href = 'admin_main.html';
+    }
+}
+
+function logout() {
+    adminLogout();
+    window.location.href = '../index.html';
+}
         
         // ==================== ЗАГРУЗКА ЛОГОВ ====================
         async function loadLogs() {
