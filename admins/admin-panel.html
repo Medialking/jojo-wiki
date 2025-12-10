@@ -488,7 +488,6 @@
                 const auth = await checkAdminAuth();
                 
                 if (!auth.success) {
-                    // Если не авторизован, редирект на главную админки
                     window.location.href = 'admin_main.html';
                     return;
                 }
@@ -500,10 +499,7 @@
                         document.getElementById('loader').style.display = 'none';
                         document.getElementById('content').style.display = 'block';
                         
-                        // Загружаем список администрации
                         loadStaffList();
-                        
-                        // Автообновление каждые 30 секунд
                         setInterval(loadStaffList, 30000);
                         
                     }, 400);
@@ -541,7 +537,6 @@
             }
             
             try {
-                // Проверяем существование пользователя
                 const userSnapshot = await database.ref('users/' + userId).once('value');
                 
                 if (!userSnapshot.exists()) {
@@ -551,7 +546,6 @@
                 
                 const userData = userSnapshot.val();
                 
-                // Подтверждение
                 const rankNames = {
                     'admin': 'Администратора 👑',
                     'moderator': 'Модератора ⚡', 
@@ -568,18 +562,15 @@
                 
                 if (!confirmation) return;
                 
-                // Обновляем ранг
                 const updates = {
                     rank: newRank
                 };
                 
-                // Добавляем дополнительную информацию для админов/модераторов
                 if (newRank === 'admin') {
                     updates.adminSince = new Date().toISOString();
                     updates.adminReason = reason;
                     updates.promotedBy = localStorage.getItem('jojoland_userId') || 'system';
                     
-                    // Добавляем в список админов
                     await database.ref('admins/' + userId).set(true);
                     
                 } else if (newRank === 'moderator') {
@@ -587,13 +578,11 @@
                     updates.moderatorReason = reason;
                     updates.promotedBy = localStorage.getItem('jojoland_userId') || 'system';
                 } else if (newRank === 'player') {
-                    // Если понижаем до игрока, удаляем из списка админов
                     await database.ref('admins/' + userId).remove();
                 }
                 
                 await database.ref('users/' + userId).update(updates);
                 
-                // Логируем действие
                 await logAdminAction(
                     'grant_rank', 
                     `Назначил ранг "${newRank}" пользователю ${userData.nickname || userId}`,
@@ -602,11 +591,9 @@
                 
                 showNotification('success', 'Успех', `Ранг пользователя изменен на "${newRank}"`);
                 
-                // Очищаем форму
                 document.getElementById('grant-user-id').value = '';
                 document.getElementById('grant-reason').value = '';
                 
-                // Обновляем список
                 loadStaffList();
                 
             } catch (error) {
@@ -632,7 +619,6 @@
             }
             
             try {
-                // Проверяем существование пользователя
                 const userSnapshot = await database.ref('users/' + userId).once('value');
                 
                 if (!userSnapshot.exists()) {
@@ -643,13 +629,11 @@
                 const userData = userSnapshot.val();
                 const currentRank = userData.rank || 'player';
                 
-                // Если уже игрок, нечего удалять
                 if (currentRank === 'player' && newRank === 'player') {
                     showNotification('warning', 'Внимание', 'У пользователя уже нет специальных прав');
                     return;
                 }
                 
-                // Подтверждение
                 const confirmation = confirm(
                     `⚠️ ВНИМАНИЕ!\n\n` +
                     `Вы собираетесь удалить права у пользователя:\n` +
@@ -663,7 +647,6 @@
                 
                 if (!confirmation) return;
                 
-                // Обновляем ранг
                 const updates = {
                     rank: newRank,
                     rightsRemoved: new Date().toISOString(),
@@ -671,14 +654,12 @@
                     removedBy: localStorage.getItem('jojoland_userId') || 'system'
                 };
                 
-                // Удаляем из списка админов если нужно
                 if (currentRank === 'admin' && newRank !== 'admin') {
                     await database.ref('admins/' + userId).remove();
                 }
                 
                 await database.ref('users/' + userId).update(updates);
                 
-                // Логируем действие
                 await logAdminAction(
                     'remove_rights', 
                     `Удалил права у пользователя ${userData.nickname || userId} (${currentRank} → ${newRank})`,
@@ -687,11 +668,9 @@
                 
                 showNotification('success', 'Успех', 'Права пользователя удалены');
                 
-                // Очищаем форму
                 document.getElementById('remove-user-id').value = '';
                 document.getElementById('remove-reason').value = '';
                 
-                // Обновляем список
                 loadStaffList();
                 
             } catch (error) {
@@ -717,14 +696,12 @@
                 let foundUser = null;
                 let userId = null;
                 
-                // Сначала проверяем по ID
                 const userById = await database.ref('users/' + searchValue).once('value');
                 
                 if (userById.exists()) {
                     foundUser = userById.val();
                     userId = searchValue;
                 } else {
-                    // Если не нашли по ID, ищем по нику
                     const usersSnapshot = await database.ref('users').once('value');
                     
                     if (usersSnapshot.exists()) {
@@ -747,7 +724,6 @@
                     return;
                 }
                 
-                // Показываем информацию о пользователе
                 const rankNames = {
                     'admin': '👑 Администратор',
                     'moderator': '⚡ Модератор',
@@ -844,7 +820,6 @@
                 const staffList = document.getElementById('staff-list');
                 staffList.innerHTML = '<div style="text-align: center; padding: 30px; color: #aaa;">Загрузка...</div>';
                 
-                // Получаем всех пользователей
                 const usersSnapshot = await database.ref('users').once('value');
                 
                 if (!usersSnapshot.exists()) {
@@ -855,7 +830,6 @@
                 const staffMembers = [];
                 const users = usersSnapshot.val();
                 
-                // Собираем пользователей с правами (админы, модераторы, VIP)
                 for (const userId in users) {
                     const userData = users[userId];
                     const userRank = userData.rank || 'player';
@@ -869,15 +843,13 @@
                     }
                 }
                 
-                // Сортируем по важности ранга
                 const rankOrder = { 'admin': 3, 'moderator': 2, 'vip': 1 };
                 staffMembers.sort((a, b) => {
                     const rankA = rankOrder[a.rank] || 0;
                     const rankB = rankOrder[b.rank] || 0;
-                    return rankB - rankA; // По убыванию
+                    return rankB - rankA;
                 });
                 
-                // Отображаем список
                 if (staffMembers.length === 0) {
                     staffList.innerHTML = '<div style="text-align: center; padding: 30px; color: #aaa;">Нет пользователей с правами</div>';
                     return;
@@ -951,7 +923,7 @@
         
         // Просмотр профиля пользователя
         function viewUserProfile(userId) {
-            window.open(`profile.html?view=${userId}`, '_blank');
+            window.open(`../profile.html?view=${userId}`, '_blank');
         }
         
         // ==================== УТИЛИТЫ ====================
@@ -969,10 +941,8 @@
             
             container.appendChild(notification);
             
-            // Показываем
             setTimeout(() => notification.classList.add('show'), 10);
             
-            // Автоматически скрываем
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => {
