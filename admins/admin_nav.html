@@ -1,7 +1,7 @@
 <!-- Общая навигация для всех админ-страниц -->
 <div class="admin-nav">
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <a href="index.html">🏠 Главная сайта</a>
+        <a href="../index.html">🏠 Главная сайта</a>
         <a href="admin_main.html">👑 Главная админки</a>
         <a href="admin_support.html">🛡️ Поддержка</a>
         <a href="admin_users.html">👥 Игроки</a>
@@ -111,7 +111,7 @@ async function handleAdminLogout() {
         const result = adminLogout();
         if (result.success) {
             alert(result.message);
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         }
     }
 }
