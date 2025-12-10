@@ -290,13 +290,16 @@
                 </div>
             </section>
             
+            <div id="errorMessageContainer"></div>
+
+            <!-- СООБЩЕНИЕ О ЗАГРУЗКЕ (Перемещено за пределы playersList) -->
+            <div id="loadingMessage" class="message-box" style="display: block;">Загрузка данных об игроках...</div>
+
             <!-- СПИСОК ИГРОКОВ -->
             <div id="playersList" class="players-list">
                 <!-- Карточки игроков будут вставляться сюда -->
-                <div class="message-box" id="loadingMessage">Загрузка данных об игроках...</div>
             </div>
             
-            <div id="errorMessageContainer"></div>
         </div>
     </div>
 
@@ -380,7 +383,11 @@
                 // Отображаем список с текущим фильтром
                 filterAndRenderPlayers();
                 
-                document.getElementById('loadingMessage').style.display = 'none';
+                // Скрываем сообщение о загрузке после получения данных
+                const loadingMessageEl = document.getElementById('loadingMessage');
+                if (loadingMessageEl) { // Защитная проверка
+                    loadingMessageEl.style.display = 'none';
+                }
 
             }, (error) => {
                 console.error('Ошибка получения данных об игроках:', error);
@@ -482,8 +489,10 @@
                 <div>${message}</div>
             `;
             const container = document.getElementById('errorMessageContainer');
-            container.innerHTML = '';
-            container.appendChild(errorDiv);
+            if (container) {
+                container.innerHTML = '';
+                container.appendChild(errorDiv);
+            }
         }
 
         // ==================== ФОНОВЫЕ ПАРТЫКЛЫ (ПРОСТАЯ РЕАЛИЗАЦИЯ) ====================
@@ -559,10 +568,13 @@
             initializeEvents();
             
             // Анимация загрузки
-            document.getElementById("loader").style.opacity = "0";
+            const loaderEl = document.getElementById("loader");
+            const contentEl = document.getElementById("content");
+
+            if (loaderEl) loaderEl.style.opacity = "0";
             setTimeout(() => {
-                document.getElementById("loader").style.display = "none";
-                document.getElementById("content").style.opacity = "1";
+                if (loaderEl) loaderEl.style.display = "none";
+                if (contentEl) contentEl.style.opacity = "1";
             }, 400);
         };
     </script>
