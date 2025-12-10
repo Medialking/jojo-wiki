@@ -128,7 +128,7 @@ async function logAdminAction(action, description, targetId = null) {
         const adminId = localStorage.getItem('jojoland_userId') || 'system';
         const adminName = localStorage.getItem('adminName') || 'Администратор';
         
-        // Получаем IP (упрощенный вариант)
+        // Получаем IP
         let ip = 'unknown';
         try {
             const response = await fetch('https://api.ipify.org?format=json');
@@ -153,20 +153,9 @@ async function logAdminAction(action, description, targetId = null) {
     }
 }
 
-// ==================== УТИЛИТЫ ====================
-function requireAuth(redirectUrl = 'index.html') {
-    const auth = checkAdminAuth();
-    if (!auth.success) {
-        window.location.href = redirectUrl;
-        return false;
-    }
-    return auth;
-}
-
 // Экспортируем функции
 window.ADMIN_CONFIG = ADMIN_CONFIG;
 window.checkAdminAuth = checkAdminAuth;
 window.adminLogin = adminLogin;
 window.adminLogout = adminLogout;
 window.logAdminAction = logAdminAction;
-window.requireAuth = requireAuth;
