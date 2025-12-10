@@ -79,28 +79,31 @@ async function adminLogin(password) {
         if (password !== ADMIN_CONFIG.PASSWORD) {
             return { success: false, message: 'Неверный пароль' };
         }
-        
+
         const currentUserId = localStorage.getItem('jojoland_userId');
         if (!currentUserId) {
             return { success: false, message: 'Сначала войдите в аккаунт' };
         }
-        
+
+        // ✅ СНАЧАЛА сохраняем сессию
+        localStorage.setItem(ADMIN_CONFIG.SESSION_KEY, 'active');
+        localStorage.setItem('adminPassword', password);
+
+        // ✅ ТОЛЬКО ПОТОМ проверяем доступ
         const authResult = await checkAdminAuth();
         if (!authResult.success) {
             return authResult;
         }
-        
-        localStorage.setItem(ADMIN_CONFIG.SESSION_KEY, 'active');
-        localStorage.setItem('adminPassword', ADMIN_CONFIG.PASSWORD);
+
         localStorage.setItem('adminName', authResult.adminName);
-        
-        return { 
-            success: true, 
+
+        return {
+            success: true,
             message: 'Вход выполнен успешно',
             adminName: authResult.adminName,
             isSuperAdmin: authResult.isSuperAdmin
         };
-        
+
     } catch (error) {
         console.error('Ошибка входа:', error);
         return { success: false, message: 'Ошибка входа в систему' };
