@@ -906,7 +906,7 @@ function setupAvatarUpload() {
             });
             
             // Обновляем UI
-            displayAvatar(compressedImage);
+            displayAvatar(compressedImage, userId);
             showError('Фото профиля обновлено!'); // Используем сущ. функцию для уведомления (зеленый цвет можно настроить в CSS, но пока так)
             
         } catch (error) {
@@ -960,12 +960,17 @@ function compressImage(file) {
 }
 
 // Отображение аватара
-function displayAvatar(base64Image) {
+function displayAvatar(base64Image, userId) {
     const avatarEl = document.getElementById('user-avatar');
     // Добавляем оверлей для редактирования (если это свой профиль)
     const overlayHtml = `<div class="avatar-edit-overlay">📷</div>`;
     
     avatarEl.innerHTML = `<img src="${base64Image}" alt="Avatar">${overlayHtml}`;
+    
+    // Также обновляем аватар в localStorage для быстрого доступа
+    if (userId === localStorage.getItem('jojoland_userId')) {
+        localStorage.setItem(`jojoland_avatar_${userId}`, base64Image);
+    }
 }
 
 // ==================== ПОЛУЧЕНИЕ РАНГА ПОЛЬЗОВАТЕЛЯ ====================
@@ -1156,7 +1161,7 @@ async function loadUserProfile() {
             
             // Если есть кастомный аватар, отображаем его
             if (hasCustomAvatar) {
-                displayAvatar(userData.avatar);
+                displayAvatar(userData.avatar, userId);
             }
 
             // Обновляем последний визит (только для своего профиля)
@@ -1214,7 +1219,7 @@ async function loadOtherUserProfile(viewUserId) {
         
         // Если есть кастомный аватар, отображаем его
         if (hasCustomAvatar) {
-            displayAvatar(userData.avatar);
+            displayAvatar(userData.avatar, viewUserId);
         }
 
         // Меняем заголовки
@@ -1487,6 +1492,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('jojoland_nickname');
                 localStorage.removeItem('jojoland_userId');
                 localStorage.removeItem('jojoland_loggedIn');
+                // Очищаем кэш аватаров при выходе
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('jojoland_avatar_')) {
+                        localStorage.removeItem(key);
+                    }
+                }
                 window.location.href = 'index.html';
             }
         });
