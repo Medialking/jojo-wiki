@@ -12,6 +12,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Единая авторизация -->
+    <script src="admin_auth.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -240,7 +243,7 @@
     <div class="container">
         <!-- Навигация -->
         <div class="admin-nav">
-            <a href="index.html">🏠 Главная</a>
+            <a href="admin_main.html">🏠 Главная админки</a>
             <a href="admin_support.html">🛡️ Поддержка</a>
             <a href="admin_users.html">👥 Игроки</a>
             <a href="admin_stats.html" style="background: rgba(0,100,255,0.4);">📊 Статистика</a>
@@ -370,9 +373,6 @@
     </div>
 
     <script>
-        // ==================== НАСТРОЙКИ ====================
-        const ADMIN_PASSWORD = "Jojoland2024!";
-        
         // ==================== FIREBASE КОНФИГ ====================
         const firebaseConfig = {
             apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
@@ -393,30 +393,29 @@
         let charts = {};
         
         // ==================== АВТОРИЗАЦИЯ ====================
-        function checkAuth() {
-            const adminSession = localStorage.getItem('adminSession');
-            const adminPassword = localStorage.getItem('adminPassword');
-            
-            if (adminSession === 'active' && adminPassword === ADMIN_PASSWORD) {
+        async function checkAuth() {
+            try {
+                // Проверяем авторизацию через единую систему
+                const auth = await checkAdminAuth();
+                
+                if (!auth.success) {
+                    // Если не авторизован, редирект на главную админки
+                    window.location.href = 'admin_main.html';
+                    return;
+                }
+                
+                // Если авторизован, продолжаем загрузку
                 initStats();
-                return;
-            }
-            
-            const password = prompt('Введите пароль админа:');
-            if (password === ADMIN_PASSWORD) {
-                localStorage.setItem('adminSession', 'active');
-                localStorage.setItem('adminPassword', ADMIN_PASSWORD);
-                initStats();
-            } else {
-                alert('❌ Неверный пароль!');
-                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+                window.location.href = 'admin_main.html';
             }
         }
         
         function logout() {
-            localStorage.removeItem('adminSession');
-            localStorage.removeItem('adminPassword');
-            window.location.href = 'index.html';
+            adminLogout();
+            window.location.href = '../index.html';
         }
         
         // ==================== ЗАГРУЗКА ДАННЫХ ====================
