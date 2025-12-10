@@ -1,6 +1,6 @@
 // ==================== ОБЩИЕ НАСТРОЙКИ ====================
 const ADMIN_CONFIG = {
-    PASSWORD: "Jojoland2024!",
+    PASSWORD: "74568921mm",
     SUPER_ADMIN_ID: "limdo7572",
     SESSION_KEY: "admin_session_active"
 };
