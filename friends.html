@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Друзья — JojoLand</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#040013; --panel:#0a0a1a; --accent:#00e5ff; --accent-2:#8a00ff; --muted:#b3e0ff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Orbitron,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#030012 0%,#070019 100%);color:var(--muted);min-height:100vh}
+    .wrap{max-width:1100px;margin:30px auto;padding:24px}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    header img{width:56px;height:56px}
+    h1{font-size:28px;margin:0;color:white}
+    .grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
+
+    /* left */
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(138,0,255,0.12);padding:16px;border-radius:12px}
+    .section-title{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;padding-right:6px}
+    .card{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;background:rgba(255,255,255,0.015);border:1px solid rgba(0,0,0,0.35)}
+    .card .left{display:flex;align-items:center;gap:10px}
+    .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(90deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051221}
+    .nick{font-weight:700}
+    .status{font-size:12px;color:#9adcfb}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;color:#02111b;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:700}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+
+    /* right */
+    .search-bar{display:flex;gap:8px;margin-bottom:12px}
+    .search-bar input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+    .empty{padding:30px;text-align:center;color:#8899aa}
+
+    /* responsive */
+    @media(max-width:920px){.grid{grid-template-columns:1fr}.panel{max-height:none}}
+
+    /* subtle neon glow */
+    .neon{box-shadow:0 6px 30px rgba(0,229,255,0.07),0 0 18px rgba(138,0,255,0.03)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="images/logo.png" alt="logo">
+      <div>
+        <h1>Друзья — JojoLand</h1>
+        <div style="font-size:13px;color:var(--muted)">Добавляйте друзей, общайтесь и смотрите их статус</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div>
+        <div class="panel neon">
+          <div class="section-title">Входящие запросы</div>
+          <div id="incoming-list" class="list"></div>
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.02)">
+          <div class="section-title">Исходящие запросы</div>
+          <div id="outgoing-list" class="list"></div>
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.02)">
+          <div class="section-title">Ваши друзья</div>
+          <div id="friends-list" class="list"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel neon">
+          <div class="section-title">Найти игрока</div>
+          <div class="search-bar">
+            <input id="search-input" placeholder="По нику или ID" />
+            <button id="search-btn" class="btn">Поиск</button>
+          </div>
+
+          <div id="search-results" class="list"></div>
+
+          <div style="margin-top:18px;" class="section-title">Подсказка</div>
+          <div class="empty">Можно отправлять запросы как по ID, так и по нику — при успешном совпадении появится кнопка «Добавить в друзья».</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+  // ---------- CONFIG ----------
+  // Если у вас уже есть global firebaseConfig (в points.js или другом файле), будет использован он.
+  // Иначе вставьте сюда ваш firebaseConfig объект.
+  const firebaseConfig = window.firebaseConfig || {
+    /* paste your firebaseConfig here if not defined elsewhere */
+  };
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.database();
+
+  // ---------- HELPERS ----------
+  const uid = localStorage.getItem('jojoland_userId');
+  const nickname = localStorage.getItem('jojoland_nickname') || 'Игрок';
+
+  if (!uid) {
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;background:#060018">Вы не авторизованы. Пожалуйста, войдите через главную страницу.</div>';
+    throw new Error('not authenticated');
+  }
+
+  function el(tag, cls){ const d=document.createElement(tag); if(cls) d.className=cls; return d }
+
+  // ---------- PRESENCE ----------
+  const statusRef = db.ref('status/' + uid);
+  function goOnline(){ statusRef.set({ online: true, lastSeen: Date.now() }); statusRef.onDisconnect().set({ online:false, lastSeen: Date.now() }); }
+  goOnline();
+
+  // ---------- FRIENDS API ----------
+  function sendFriendRequest(targetId){
+    if(targetId===uid)return alert('Нельзя добавить себя');
+    db.ref(`friends/${uid}/outgoing/${targetId}`).set(true);
+    db.ref(`friends/${targetId}/incoming/${uid}`).set(true);
+    alert('Запрос отправлен');
+  }
+
+  function acceptFriendRequest(fromId){
+    const time = Date.now();
+    db.ref(`friends/${uid}/confirmed/${fromId}`).set({ since: time });
+    db.ref(`friends/${fromId}/confirmed/${uid}`).set({ since: time });
+    db.ref(`friends/${uid}/incoming/${fromId}`).remove();
+    db.ref(`friends/${fromId}/outgoing/${uid}`).remove();
+  }
+
+  function declineFriendRequest(fromId){
+    db.ref(`friends/${uid}/incoming/${fromId}`).remove();
+    db.ref(`friends/${fromId}/outgoing/${uid}`).remove();
+  }
+
+  function removeFriend(friendId){
+    db.ref(`friends/${uid}/confirmed/${friendId}`).remove();
+    db.ref(`friends/${friendId}/confirmed/${uid}`).remove();
+  }
+
+  // ---------- LOADERS & UI ----------
+  const incomingList = document.getElementById('incoming-list');
+  const outgoingList = document.getElementById('outgoing-list');
+  const friendsList = document.getElementById('friends-list');
+  const searchResults = document.getElementById('search-results');
+  const searchInput = document.getElementById('search-input');
+  const searchBtn = document.getElementById('search-btn');
+
+  function userCardTemplate(id, nick, status){
+    const card = el('div','card');
+    const left = el('div','left');
+    const avatar = el('div','avatar'); avatar.textContent = (nick||id).slice(0,2).toUpperCase();
+    const nameWrap = el('div');
+    const name = el('div'); name.innerHTML = `<div class="nick">${nick||id}</div><div class="status">${status}</div>`;
+    left.appendChild(avatar); left.appendChild(name);
+    card.appendChild(left);
+    return card;
+  }
+
+  // incoming
+  db.ref(`friends/${uid}/incoming`).on('value', snap => {
+    incomingList.innerHTML='';
+    if(!snap.exists()) return incomingList.innerHTML='<div class="empty">Нет входящих запросов</div>';
+    snap.forEach(ch=>{
+      const fromId = ch.key;
+      // get from user nic
+      db.ref(`users/${fromId}/nickname`).once('value').then(nkSnap=>{
+        const nick = nkSnap.val() || fromId;
+        const card = userCardTemplate(fromId, nick, 'Запрос');
+        const accept = el('button','btn'); accept.textContent='Принять'; accept.onclick=()=>acceptFriendRequest(fromId);
+        const decline = el('button','btn ghost'); decline.textContent='Отклонить'; decline.onclick=()=>declineFriendRequest(fromId);
+        card.appendChild(accept); card.appendChild(decline);
+        incomingList.appendChild(card);
+      })
+    })
+  });
+
+  // outgoing
+  db.ref(`friends/${uid}/outgoing`).on('value', snap => {
+    outgoingList.innerHTML='';
+    if(!snap.exists()) return outgoingList.innerHTML='<div class="empty">Нет outgoing запросов</div>';
+    snap.forEach(ch=>{
+      const targetId = ch.key;
+      db.ref(`users/${targetId}/nickname`).once('value').then(nkSnap=>{
+        const nick = nkSnap.val() || targetId;
+        const card = userCardTemplate(targetId, nick, 'Ожидает');
+        const cancel = el('button','btn ghost'); cancel.textContent='Отменить'; cancel.onclick=()=>{
+          db.ref(`friends/${uid}/outgoing/${targetId}`).remove();
+          db.ref(`friends/${targetId}/incoming/${uid}`).remove();
+        }
+        card.appendChild(cancel);
+        outgoingList.appendChild(card);
+      })
+    })
+  });
+
+  // confirmed friends with online status
+  db.ref(`friends/${uid}/confirmed`).on('value', snap => {
+    friendsList.innerHTML='';
+    if(!snap.exists()) return friendsList.innerHTML='<div class="empty">У вас нет друзей</div>';
+    snap.forEach(ch=>{
+      const friendId = ch.key;
+      db.ref(`users/${friendId}/nickname`).once('value').then(nkSnap=>{
+        const nick = nkSnap.val() || friendId;
+        db.ref(`status/${friendId}`).on('value', s => {
+          const st = s.exists() && s.val().online ? 'В сети' : (s.exists() ? ('Последний раз: ' + new Date(s.val().lastSeen).toLocaleString()) : 'Неизвестно');
+          const card = userCardTemplate(friendId, nick, st);
+          const write = el('button','btn'); write.textContent='Написать'; write.onclick = ()=> openMailCompose(friendId);
+          const remove = el('button','btn ghost'); remove.textContent='Удалить'; remove.onclick=()=>{ if(confirm('Удалить друга?')) removeFriend(friendId); };
+          // replace or append
+          card.appendChild(write); card.appendChild(remove);
+
+          // if already exists, replace node
+          const existing = Array.from(friendsList.children).find(n=> n.querySelector('.nick') && n.querySelector('.nick').textContent===nick);
+          if(existing) friendsList.replaceChild(card, existing); else friendsList.appendChild(card);
+        })
+      })
+    })
+  });
+
+  // SEARCH: naive scan of users by nickname or id (optimize on large DB)
+  searchBtn.addEventListener('click', ()=>doSearch(searchInput.value.trim()));
+  searchInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(searchInput.value.trim()); });
+
+  async function doSearch(q){
+    searchResults.innerHTML='';
+    if(!q) return searchResults.innerHTML='<div class="empty">Введите ник или ID</div>';
+    const usersRef = db.ref('users');
+    const snap = await usersRef.once('value');
+    const res=[];
+    snap.forEach(ch=>{
+      const id = ch.key; const data = ch.val(); const nick = (data && data.nickname) ? data.nickname : id;
+      if(id.toLowerCase().includes(q.toLowerCase()) || nick.toLowerCase().includes(q.toLowerCase())) res.push({id,nick});
+    });
+    if(res.length===0) return searchResults.innerHTML='<div class="empty">Не найдено</div>';
+    res.slice(0,50).forEach(user=>{
+      const card = userCardTemplate(user.id, user.nick, '—');
+      const add = el('button','btn'); add.textContent='Добавить в друзья'; add.onclick=()=>sendFriendRequest(user.id);
+      card.appendChild(add);
+      searchResults.appendChild(card);
+    })
+  }
+
+  // --- small mail compose integration placeholder ---
+  function openMailCompose(targetId){
+    const text = prompt('Написать сообщение ' + targetId + ':');
+    if(!text) return;
+    const msgId = db.ref().push().key;
+    const time = Date.now();
+    const msg = { from: uid, to: targetId, text, time };
+    db.ref(`mail/${targetId}/inbox/${msgId}`).set(msg);
+    db.ref(`mail/${uid}/sent/${msgId}`).set(msg);
+    alert('Сообщение отправлено');
+  }
+
+  // tidy: disconnect presence on unload
+  window.addEventListener('beforeunload', ()=>{ statusRef.set({online:false,lastSeen:Date.now()}); });
+
+  </script>
+</body>
+</html>
