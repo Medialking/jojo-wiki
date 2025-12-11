@@ -410,7 +410,13 @@
             font-weight: 500;
         }
         
-        /* КНОПКА ПРОФИЛЯ */
+        /* КНОПКИ ДЕЙСТВИЙ */
+        .player-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
         .view-profile-btn {
             width: 100%;
             padding: 14px;
@@ -434,6 +440,61 @@
             border-color: var(--primary);
             color: white;
             transform: translateY(-1px);
+        }
+        
+        /* СТИЛИ ДЛЯ КНОПОК ДРУЗЕЙ */
+        .friend-btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid;
+        }
+        
+        .friend-btn.add-friend {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+        }
+        
+        .friend-btn.add-friend:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .friend-btn.remove-friend {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
+        
+        .friend-btn.remove-friend:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .friend-btn.pending {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+            cursor: not-allowed;
+        }
+        
+        .friend-btn.pending:hover {
+            transform: none;
+            background: rgba(245, 158, 11, 0.1);
         }
         
         /* ПАГИНАЦИЯ */
@@ -752,6 +813,8 @@
             <a href="index.html" class="nav-link">🏠 Главная</a>
             <a href="profile.html" class="nav-link">👤 Профиль</a>
             <a href="players.html" class="nav-link active">👥 Игроки</a>
+            <a href="friends.html" class="nav-link">🤝 Друзья</a>
+            <a href="messages.html" class="nav-link">✉️ Сообщения</a>
             <a href="points.html" class="nav-link">🎄 Очки</a>
         </nav>
     </div>
@@ -789,6 +852,10 @@
                 <button class="filter-btn" data-filter="moderator">
                     <span>⚡</span>
                     Модераторы
+                </button>
+                <button class="filter-btn" data-filter="friends">
+                    <span>🤝</span>
+                    Мои друзья
                 </button>
             </div>
         </div>
@@ -837,6 +904,196 @@ let currentPage = 1;
 const playersPerPage = 9;
 let allPlayers = [];
 let filteredPlayers = [];
+let currentUserId = null;
+let currentUserNickname = null;
+
+// ==================== СИСТЕМА ДРУЗЕЙ ====================
+
+// Проверка, является ли пользователь другом
+async function isUserFriend(userId) {
+    try {
+        if (!currentUserId) return false;
+        
+        const snapshot = await database.ref(`friends/${currentUserId}/${userId}`).once('value');
+        return snapshot.exists() && snapshot.val().status === 'accepted';
+    } catch (error) {
+        console.error('Ошибка проверки друга:', error);
+        return false;
+    }
+}
+
+// Проверка, отправлена ли заявка
+async function hasSentRequest(userId) {
+    try {
+        if (!currentUserId) return false;
+        
+        const snapshot = await database.ref(`sent_requests/${currentUserId}/${userId}`).once('value');
+        return snapshot.exists() && snapshot.val().status === 'pending';
+    } catch (error) {
+        console.error('Ошибка проверки заявки:', error);
+        return false;
+    }
+}
+
+// Проверка, есть ли приглашение от этого пользователя
+async function hasInvitationFrom(userId) {
+    try {
+        if (!currentUserId) return false;
+        
+        const snapshot = await database.ref(`friend_requests/${currentUserId}/${userId}`).once('value');
+        return snapshot.exists() && snapshot.val().status === 'pending';
+    } catch (error) {
+        console.error('Ошибка проверки приглашения:', error);
+        return false;
+    }
+}
+
+// Отправить заявку в друзья
+async function addFriend(userId, nickname) {
+    if (!currentUserId) {
+        alert('Для добавления в друзья нужно войти в аккаунт');
+        return;
+    }
+    
+    if (currentUserId === userId) {
+        alert('Нельзя добавить себя в друзья');
+        return;
+    }
+    
+    if (confirm(`Добавить "${nickname}" в друзья?`)) {
+        try {
+            const timestamp = Date.now();
+            
+            // Сохраняем заявку для получателя
+            await database.ref(`friend_requests/${userId}/${currentUserId}`).set({
+                fromNickname: currentUserNickname,
+                timestamp: timestamp,
+                status: 'pending'
+            });
+            
+            // Сохраняем информацию об отправленной заявке
+            await database.ref(`sent_requests/${currentUserId}/${userId}`).set({
+                toNickname: nickname,
+                timestamp: timestamp,
+                status: 'pending'
+            });
+            
+            alert('Заявка в друзья отправлена!');
+            
+            // Обновляем кнопку на карточке
+            const card = document.querySelector(`.player-card[data-user-id="${userId}"]`);
+            if (card) {
+                const friendBtn = card.querySelector('.friend-btn');
+                if (friendBtn) {
+                    friendBtn.innerHTML = '<span>⏳</span> Заявка отправлена';
+                    friendBtn.className = 'friend-btn pending';
+                    friendBtn.onclick = null;
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка отправки заявки:', error);
+            alert('Ошибка отправки заявки');
+        }
+    }
+}
+
+// Принять заявку в друзья
+async function acceptFriendRequest(userId) {
+    try {
+        const timestamp = Date.now();
+        
+        // Получаем данные отправителя
+        const fromUserSnapshot = await database.ref(`users/${userId}`).once('value');
+        const fromUserData = fromUserSnapshot.val();
+        
+        // Добавляем друг друга в списки друзей
+        await database.ref(`friends/${currentUserId}/${userId}`).set({
+            nickname: fromUserData.nickname,
+            status: 'accepted',
+            since: timestamp
+        });
+        
+        await database.ref(`friends/${userId}/${currentUserId}`).set({
+            nickname: currentUserNickname,
+            status: 'accepted',
+            since: timestamp
+        });
+        
+        // Удаляем заявку
+        await database.ref(`friend_requests/${currentUserId}/${userId}`).remove();
+        await database.ref(`sent_requests/${userId}/${currentUserId}`).remove();
+
+        alert('Заявка в друзья принята!');
+        
+        // Обновляем кнопку на карточке
+        const card = document.querySelector(`.player-card[data-user-id="${userId}"]`);
+        if (card) {
+            const friendBtn = card.querySelector('.friend-btn');
+            if (friendBtn) {
+                friendBtn.innerHTML = '<span>👥</span> В друзьях';
+                friendBtn.className = 'friend-btn remove-friend';
+                friendBtn.onclick = () => removeFriend(userId);
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка принятия заявки:', error);
+        alert('Ошибка принятия заявки');
+    }
+}
+
+// Удалить друга
+async function removeFriend(userId) {
+    if (confirm('Удалить из друзей?')) {
+        try {
+            // Удаляем из друзей
+            await database.ref(`friends/${currentUserId}/${userId}`).remove();
+            await database.ref(`friends/${userId}/${currentUserId}`).remove();
+            
+            alert('Удален из друзей');
+            
+            // Обновляем кнопку на карточке
+            const card = document.querySelector(`.player-card[data-user-id="${userId}"]`);
+            if (card) {
+                const friendBtn = card.querySelector('.friend-btn');
+                if (friendBtn) {
+                    friendBtn.innerHTML = '<span>➕</span> Добавить в друзья';
+                    friendBtn.className = 'friend-btn add-friend';
+                    friendBtn.onclick = () => {
+                        const nickname = card.querySelector('.player-name').textContent;
+                        addFriend(userId, nickname);
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка удаления друга:', error);
+            alert('Ошибка удаления друга');
+        }
+    }
+}
+
+// Получить список друзей
+async function getFriendsList() {
+    try {
+        if (!currentUserId) return [];
+        
+        const snapshot = await database.ref(`friends/${currentUserId}`).once('value');
+        if (!snapshot.exists()) return [];
+        
+        const friendsData = snapshot.val();
+        const friends = [];
+        
+        for (const friendId in friendsData) {
+            if (friendsData[friendId].status === 'accepted') {
+                friends.push(friendId);
+            }
+        }
+        
+        return friends;
+    } catch (error) {
+        console.error('Ошибка получения списка друзей:', error);
+        return [];
+    }
+}
 
 // ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
 
@@ -926,12 +1183,41 @@ function formatDate(dateString) {
 }
 
 // Создание карточки игрока
-function createPlayerCard(player, points = 0, avatar = null) {
+async function createPlayerCard(player) {
     const userId = player.userId || player.id;
     const rank = player.rank || 'player';
     const onlineStatus = getOnlineStatus(player);
     const createdAt = formatDate(player.createdAt || player.registeredAt);
     const visits = player.visitsCount || 1;
+    
+    // Получаем очки и аватар
+    const [points, avatar] = await Promise.all([
+        getUserPoints(userId),
+        getUserAvatar(userId)
+    ]);
+    
+    // Проверяем статус дружбы
+    let friendStatus = 'none';
+    let friendAction = '';
+    
+    if (currentUserId && currentUserId !== userId) {
+        const isFriend = await isUserFriend(userId);
+        const hasRequest = await hasSentRequest(userId);
+        const hasInvitation = await hasInvitationFrom(userId);
+        
+        if (isFriend) {
+            friendStatus = 'friend';
+            friendAction = `removeFriend('${userId}')`;
+        } else if (hasRequest) {
+            friendStatus = 'pending';
+        } else if (hasInvitation) {
+            friendStatus = 'invitation';
+            friendAction = `acceptFriendRequest('${userId}')`;
+        } else {
+            friendStatus = 'none';
+            friendAction = `addFriend('${userId}', '${player.nickname}')`;
+        }
+    }
     
     // Статус текстом
     const statusText = {
@@ -958,6 +1244,46 @@ function createPlayerCard(player, points = 0, avatar = null) {
     
     // Запасной вариант аватара
     const fallbackLetter = player.nickname?.charAt(0).toUpperCase() || '?';
+    
+    // HTML для кнопки друга
+    let friendButtonHTML = '';
+    if (currentUserId && currentUserId !== userId) {
+        let btnText = '';
+        let btnIcon = '';
+        let btnClass = '';
+        
+        switch(friendStatus) {
+            case 'friend':
+                btnText = 'В друзьях';
+                btnIcon = '👥';
+                btnClass = 'remove-friend';
+                break;
+            case 'pending':
+                btnText = 'Заявка отправлена';
+                btnIcon = '⏳';
+                btnClass = 'pending';
+                break;
+            case 'invitation':
+                btnText = 'Принять заявку';
+                btnIcon = '✅';
+                btnClass = 'add-friend';
+                break;
+            default:
+                btnText = 'Добавить в друзья';
+                btnIcon = '➕';
+                btnClass = 'add-friend';
+                break;
+        }
+        
+        friendButtonHTML = `
+            <button class="friend-btn ${btnClass}" 
+                    onclick="${friendAction}" 
+                    ${friendStatus === 'pending' ? 'disabled' : ''}>
+                <span>${btnIcon}</span>
+                ${btnText}
+            </button>
+        `;
+    }
     
     return `
         <div class="player-card ${rank}" data-user-id="${userId}">
@@ -998,10 +1324,13 @@ function createPlayerCard(player, points = 0, avatar = null) {
                 </div>
             </div>
             
-            <button class="view-profile-btn" onclick="viewPlayerProfile('${userId}')">
-                <span>👁️</span>
-                Посмотреть профиль
-            </button>
+            <div class="player-actions">
+                <button class="view-profile-btn" onclick="viewPlayerProfile('${userId}')">
+                    <span>👁️</span>
+                    Посмотреть профиль
+                </button>
+                ${friendButtonHTML}
+            </div>
         </div>
     `;
 }
@@ -1086,14 +1415,21 @@ async function displayPlayers(players, containerId) {
     const endIndex = startIndex + playersPerPage;
     const pagePlayers = players.slice(startIndex, endIndex);
     
-    // Отображаем игроков текущей страницы
-    for (const player of pagePlayers) {
-        const [points, avatar] = await Promise.all([
-            getUserPoints(player.userId || player.id),
-            getUserAvatar(player.userId || player.id)
-        ]);
-        container.innerHTML += createPlayerCard(player, points, avatar);
+    // Показываем загрузку для каждой карточки
+    for (let i = 0; i < Math.min(pagePlayers.length, playersPerPage); i++) {
+        container.innerHTML += `
+            <div class="player-card">
+                <div class="loading-spinner-small"></div>
+            </div>
+        `;
     }
+    
+    // Загружаем и отображаем игроков асинхронно
+    const cardsHTML = await Promise.all(
+        pagePlayers.map(player => createPlayerCard(player))
+    );
+    
+    container.innerHTML = cardsHTML.join('');
     
     // Обновляем пагинацию
     updatePagination(totalPages);
@@ -1160,7 +1496,7 @@ function changePage(page) {
 }
 
 // Фильтрация игроков
-function filterPlayers(filter) {
+async function filterPlayers(filter) {
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
@@ -1176,6 +1512,15 @@ function filterPlayers(filter) {
             break;
         case 'moderator':
             filtered = allPlayers.filter(player => player.rank === 'moderator');
+            break;
+        case 'friends':
+            if (!currentUserId) {
+                alert('Для просмотра друзей нужно войти в аккаунт');
+                filtered = [...allPlayers];
+                break;
+            }
+            const friendsList = await getFriendsList();
+            filtered = allPlayers.filter(player => friendsList.includes(player.userId || player.id));
             break;
         case 'all':
         default:
@@ -1265,9 +1610,27 @@ function setupBackToTop() {
     });
 }
 
+// Проверка авторизации
+function checkAuth() {
+    const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
+    const nickname = localStorage.getItem('jojoland_nickname');
+    const userId = localStorage.getItem('jojoland_userId');
+    
+    if (isLoggedIn && nickname && userId) {
+        currentUserId = userId;
+        currentUserNickname = nickname;
+        return true;
+    }
+    
+    return false;
+}
+
 // Инициализация страницы
 async function initPlayersPage() {
     try {
+        // Проверяем авторизацию
+        checkAuth();
+        
         // Загружаем всех игроков
         allPlayers = await loadAllPlayers();
         filteredPlayers = [...allPlayers];
