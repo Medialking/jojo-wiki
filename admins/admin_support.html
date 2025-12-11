@@ -8,9 +8,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-
+    
     <script src="admin_common.js"></script>
-
+    
     <script src="admin_auth.js"></script>
     
     <style>
@@ -33,7 +33,7 @@
             margin: 0 auto;
         }
         
-        /* Навигация (Должна быть подключена через admin_nav.html) */
+        /* Навигация */
         .admin-nav {
             display: flex;
             gap: 15px;
@@ -115,55 +115,82 @@
         .stat-number {
             font-size: 24px;
             font-weight: bold;
-            color: #00ccff;
+            color: #00ff00;
+            margin-bottom: 5px;
         }
         
-        /* Фильтры и поиск */
-        .filter-panel {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 15px;
-            border: 1px solid #333;
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        /* Фильтры */
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        
+        .filter-section h4 {
+            color: #6ab7ff;
+            margin-bottom: 10px;
+            font-size: 16px;
         }
         
         .filter-buttons {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
+            flex-direction: column;
+            gap: 8px;
         }
         
         .filter-btn {
             padding: 10px 15px;
+            background: rgba(255,255,255,0.05);
             border: none;
-            border-radius: 20px;
-            background: rgba(0,100,255,0.2);
-            color: #6ab7ff;
+            border-radius: 10px;
+            color: white;
+            text-align: left;
             cursor: pointer;
             transition: 0.3s;
-            font-weight: bold;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         
         .filter-btn:hover, .filter-btn.active {
-            background: #0066ff;
-            color: white;
+            background: rgba(0,100,255,0.3);
+            border-left: 4px solid #0066ff;
         }
         
         .filter-count {
-            background: rgba(255,255,255,0.2);
+            margin-left: auto;
+            background: rgba(255,255,255,0.1);
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 12px;
         }
         
+        /* Основная панель */
+        .main-panel {
+            background: rgba(0,0,0,0.6);
+            border-radius: 25px;
+            padding: 25px;
+            border: 2px solid #0066ff;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
         .search-box {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            flex: 1;
+            max-width: 400px;
         }
         
         .search-box input {
@@ -173,681 +200,772 @@
             border-radius: 25px;
             background: rgba(255,255,255,0.1);
             color: white;
+            font-size: 16px;
         }
         
         .search-box button {
-            padding: 12px 20px;
-            background: #ff00ff;
-            color: white;
+            padding: 12px 25px;
             border: none;
             border-radius: 25px;
+            background: linear-gradient(90deg, #0066ff, #0099ff);
+            color: white;
+            font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
         }
         
-        .search-box button:hover {
-            background: #cc00cc;
-        }
-        
-        /* Основной контент (Список тикетов) */
-        .main-content {
-            /* flex-grow: 1; */
+        /* Список тикетов */
+        .tickets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
         }
         
         .ticket-item {
-            background: rgba(0,0,0,0.6);
-            border-left: 5px solid #00ccff;
-            transition: 0.3s;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
             cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid transparent;
+            position: relative;
         }
         
         .ticket-item:hover {
-            background: rgba(0,0,0,0.8);
+            background: rgba(255,255,255,0.1);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            border-color: #0066ff;
         }
         
-        .status-new { border-left-color: #ff00ff; }
-        .status-read { border-left-color: #ff9900; }
-        .status-answered { border-left-color: #00ff99; }
-        .status-closed { border-left-color: #666; }
-
-        .admin-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .status-new { background: rgba(255,0,255,0.2); color: #ff00ff; }
-        .status-read { background: rgba(255,153,0,0.2); color: #ff9900; }
-        .status-answered { background: rgba(0,255,153,0.2); color: #00ff99; }
-        .status-closed { background: rgba(100,100,100,0.2); color: #aaa; }
-
-        /* Детали тикета */
-        .ticket-detail {
-            position: fixed;
-            top: 0;
-            right: -500px; /* Скрыто справа */
-            width: 480px;
-            height: 100%;
-            background: #1a1a4a;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
-            z-index: 100;
-            transition: right 0.4s ease-out;
-            padding: 25px;
-            overflow-y: auto;
-            border-left: 3px solid #00ccff;
+        .ticket-item.active {
+            background: rgba(0,100,255,0.3);
+            border-color: #00ccff;
         }
         
-        .ticket-detail.show {
-            right: 0;
-        }
-        
-        .detail-header h2 {
-            color: #ffcc00;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
-        }
-        
-        .detail-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-        
-        .detail-item strong {
-            color: #6ab7ff;
-            display: block;
-            margin-bottom: 5px;
-        }
-        
-        .message-container {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .message-item {
-            background: rgba(0,0,0,0.4);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .message-header {
+        .ticket-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
         
-        .sender-name {
+        .ticket-meta {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .ticket-title {
             font-weight: bold;
-            color: #00ff99;
+            color: #6ab7ff;
+            font-size: 16px;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
-        .sender-name.admin {
-            color: #ffcc00;
+        /* Детальная панель */
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -500px; /* Скрыто по умолчанию */
+            width: 500px;
+            height: 100%;
+            background: #1a1a4a;
+            border-left: 2px solid #0066ff;
+            z-index: 100;
+            padding: 25px;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            transition: right 0.4s ease-out;
+            display: flex;
+            flex-direction: column;
         }
         
-        .message-text {
-            color: white;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        /* Форма ответа */
-        .response-form {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+        .detail-panel.open {
+            right: 0;
         }
         
-        .response-form textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #0066ff;
-            border-radius: 8px;
-            color: white;
-            resize: vertical;
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
         }
         
-        .response-form button {
-            padding: 10px 20px;
-            background: #00ff99;
-            color: #1a1a4a;
+        .detail-header h3 {
+            margin: 0;
+            color: #00ccff;
+        }
+        
+        .close-btn {
+            background: none;
             border: none;
-            border-radius: 8px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .close-btn:hover {
+            color: #ff3333;
+            transform: rotate(90deg);
+        }
+        
+        .detail-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 15px; /* Для скроллбара */
+        }
+        
+        .detail-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .detail-section h4 {
+            color: #6ab7ff;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
+        
+        .detail-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        
+        .detail-actions button {
+            flex-grow: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
         }
         
-        .response-form button:hover {
-            background: #00cc66;
+        .btn-reply {
+            background: linear-gradient(90deg, #00ccff, #0066ff);
+            color: white;
         }
         
-        /* Кнопка закрытия боковой панели */
-        .close-btn {
-            position: sticky;
-            top: 0;
-            right: 0;
+        .btn-close {
+            background: linear-gradient(90deg, #ff9900, #ff6600);
+            color: white;
+        }
+        
+        .btn-delete {
             background: #ff3333;
             color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 0 0 0 15px;
-            cursor: pointer;
-            font-weight: bold;
-            float: right;
-            z-index: 101;
-            box-shadow: -2px 2px 5px rgba(0,0,0,0.5);
         }
         
-        .ticket-timer {
-            font-size: 10px;
-            background: #ffcc00;
-            color: black;
-            padding: 2px 6px;
+        .detail-description {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #ccccff;
+        }
+        
+        .detail-proofs {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+        
+        .detail-reply-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 102, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .detail-reply-box textarea {
+            width: 100%;
+            padding: 10px;
             border-radius: 5px;
-            margin-left: 10px;
+            border: 1px solid #0066ff;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            min-height: 100px;
+            resize: vertical;
+            margin-bottom: 10px;
         }
         
-        /* Загрузка */
-        .loader {
-            text-align: center;
-            padding: 50px;
-            color: #00ccff;
+        .detail-reply-box button {
+            padding: 10px 15px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
         
-        .loader i {
-            font-size: 30px;
-            animation: spin 1s linear infinite;
+        /* Стили для скроллбара */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
         
-        .error-message { color: #ff3333; margin-top: 10px; font-size: 14px; min-height: 20px; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes modalAppear { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
         
+        ::-webkit-scrollbar-thumb {
+            background: #0066ff;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ccff;
+        }
         
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="admin-nav" id="admin-nav">
-             <p style="color: red;">Пожалуйста, убедитесь, что вы подключили admin_nav.html и admin_common.js!</p>
+        <div class="admin-nav">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <a href="../index.html">🏠 Главная сайта</a>
+                <a href="admin_main.html">👑 Главная админки</a>
+                <a href="admin_support.html" class="active">🛡️ Поддержка</a>
+                <a href="admin_users.html">👥 Игроки</a>
+                <a href="admin_stats.html">📊 Статистика</a>
+                <a href="admin_logs.html">📋 Логи</a>
+                <a href="admin_rights.html">⚡ Управление правами</a>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="admin-name-display" style="color: #6ab7ff; font-size: 14px;">
+                    </span>
+                <button onclick="adminLogout()" class="logout-btn">
+                    🚪 Выйти
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-container">
+            <aside class="sidebar">
+                <div class="admin-info">
+                    <div class="admin-avatar">
+                        👑
+                    </div>
+                    <h3 id="adminName">Администратор</h3>
+                    <p style="color: #aaa; font-size: 14px;">Система поддержки</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stats-total">0</div>
+                        <div class="stat-label">Всего</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stats-new" style="color: #ff9900;">0</div>
+                        <div class="stat-label">Новые</div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Фильтр по статусу</h4>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" id="filter-all" onclick="filterTickets('all')">
+                            <span>Все обращения</span>
+                            <span class="filter-count" id="count-all">0</span>
+                        </button>
+                        <button class="filter-btn" id="filter-new" onclick="filterTickets('new')">
+                            <span>Новые (Ожидают ответа)</span>
+                            <span class="filter-count" id="count-new">0</span>
+                        </button>
+                        <button class="filter-btn" id="filter-pending" onclick="filterTickets('pending')">
+                            <span>На рассмотрении</span>
+                            <span class="filter-count" id="count-pending">0</span>
+                        </button>
+                        <button class="filter-btn" id="filter-answered" onclick="filterTickets('answered')">
+                            <span>Отвеченные</span>
+                            <span class="filter-count" id="count-answered">0</span>
+                        </button>
+                        <button class="filter-btn" id="filter-closed" onclick="filterTickets('closed')">
+                            <span>Закрытые</span>
+                            <span class="filter-count" id="count-closed">0</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Фильтр по типу</h4>
+                    <div class="filter-buttons">
+                        <button class="filter-btn" id="filter-complaint" onclick="filterTickets('complaint')">
+                            <span>Жалобы (⚠️)</span>
+                            <span class="filter-count" id="count-complaint">0</span>
+                        </button>
+                        <button class="filter-btn" id="filter-appeal" onclick="filterTickets('appeal')">
+                            <span>Апелляции (⚖️)</span>
+                            <span class="filter-count" id="count-appeal">0</span>
+                        </button>
+                        <button class="filter-btn" id="filter-other" onclick="filterTickets('other')">
+                            <span>Прочее (💬)</span>
+                            <span class="filter-count" id="count-other">0</span>
+                        </button>
+                    </div>
+                </div>
+                
+            </aside>
+            
+            <main class="main-panel">
+                <div class="panel-header">
+                    <h2>🛡️ Активные обращения</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Поиск по ID или нику..." oninput="searchTickets()">
+                        <button onclick="searchTickets()">Найти</button>
+                    </div>
+                </div>
+                
+                <div id="ticketsLoader" style="text-align: center; padding: 20px; color: #aaa;">
+                    Загрузка обращений... ⚙️
+                </div>
+                
+                <div class="tickets-list" id="ticketsList">
+                    </div>
+            </main>
+        </div>
+    </div>
+    
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-header">
+            <h3 id="detailTitle">Детали обращения #...</h3>
+            <button class="close-btn" onclick="closeDetailPanel()">×</button>
         </div>
         
-        <h1 style="color: #00ccff; margin-bottom: 20px;">🛡️ Панель поддержки</h1>
-        
-        <div class="admin-container">
-            <div class="sidebar">
-                <div class="admin-info">
-                    <div class="admin-avatar">A</div>
-                    <h3 id="adminNameDisplay">Администратор</h3>
-                </div>
-                
-                <h4 style="color: #6ab7ff; margin-bottom: 10px;">Фильтры</h4>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterTickets('all')">
-                        🌍 Все <span class="filter-count" id="countAll">0</span>
-                    </button>
-                    <button class="filter-btn" onclick="filterTickets('new')">
-                        🆕 Новые <span class="filter-count" id="countNew">0</span>
-                    </button>
-                    <button class="filter-btn" onclick="filterTickets('answered')">
-                        📨 С ответом <span class="filter-count" id="countAnswered">0</span>
-                    </button>
-                    <button class="filter-btn" onclick="filterTickets('complaint')">
-                        ⚠️ Жалобы <span class="filter-count" id="countComplaints">0</span>
-                    </button>
-                    <button class="filter-btn" onclick="filterTickets('appeal')">
-                        ⚖️ Апелляции <span class="filter-count" id="countAppeals">0</span>
-                    </button>
-                    <button class="filter-btn" onclick="filterTickets('support')">
-                        💬 Поддержка <span class="filter-count" id="countSupport">0</span>
-                    </button>
-                </div>
-                
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Поиск по ID, никнейму или тексту">
-                    <button onclick="searchTickets()">🔍</button>
+        <div class="detail-content">
+            <div class="detail-section">
+                <h4>Информация о пользователе</h4>
+                <p>Ник: <strong id="detailUsername" style="color: #00ccff;"></strong></p>
+                <p>ID: <span id="detailUserId" style="color: #aaa; font-size: 12px;"></span></p>
+                <p>IP (при создании): <span id="detailUserIp"></span></p>
+            </div>
+            
+            <div class="detail-section">
+                <h4>Описание обращения</h4>
+                <p>Тип: <strong id="detailType" style="color: #00ff99;"></strong></p>
+                <p>Дата: <span id="detailDate"></span></p>
+                <p style="margin-top: 10px;" id="detailReason"></p>
+                <p style="margin-top: 10px;" class="detail-description" id="detailDescription"></p>
+            </div>
+            
+            <div class="detail-section">
+                <h4>Доказательства/Ссылки</h4>
+                <p class="detail-proofs" id="detailProofs"></p>
+            </div>
+            
+            <div class="detail-section" id="detailReplySection">
+                <h4>Ответ администратора</h4>
+                <p id="detailReplyAdmin" style="color: #ff9900; font-weight: bold;"></p>
+                <p style="margin-top: 5px; color: #aaa; font-size: 12px;" id="detailReplyDate"></p>
+                <p style="margin-top: 10px;" class="detail-description" id="detailReplyText"></p>
+            </div>
+            
+            <div class="detail-reply-box" id="newReplyBox">
+                <h4>Новый ответ</h4>
+                <textarea id="replyTextarea" placeholder="Напишите ваш ответ здесь..."></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button onclick="sendReply()">Отправить ответ</button>
+                    <button onclick="markAsPending(selectedTicketId)" style="background: #0099ff;">На расмотрение</button>
                 </div>
             </div>
             
-            <div class="main-content">
-                <div id="ticketsList">
-                    <div class="loader" id="initialLoader">
-                        <i class="fas fa-spinner"></i> Загрузка обращений...
-                    </div>
+            <div style="margin-top: 20px; text-align: center; color: #ff3333; font-size: 14px;" id="autoDeleteTimer">
                 </div>
-            </div>
+        </div>
+        
+        <div class="detail-actions">
+            <button class="btn-close" onclick="markAsClosed(selectedTicketId)">✅ Закрыть обращение</button>
+            <button class="btn-delete" onclick="deleteTicket(selectedTicketId)">🗑️ Удалить без ответа</button>
         </div>
     </div>
     
-    <div class="ticket-detail" id="ticketDetail">
-        <button class="close-btn" onclick="closeTicketDetail()">X</button>
-        <div class="detail-header">
-            <h2 id="detailTitle">Обращение #ID</h2>
-            <span class="admin-badge" id="detailStatus">Статус</span>
-        </div>
-        
-        <div id="detailContent">
-            </div>
 
-        <div class="response-form">
-            <h3 style="color: #00ccff; margin-bottom: 15px;">Ответ пользователю</h3>
-            <textarea id="responseMessage" placeholder="Напишите ваш ответ здесь..."></textarea>
-            <div style="display: flex; justify-content: space-between; gap: 10px;">
-                <button onclick="submitResponse()" style="flex: 1; background: #00ff99;">📨 Отправить ответ</button>
-                <button onclick="closeTicket()" style="flex: 1; background: #ff9900;">✅ Закрыть обращение</button>
-            </div>
-            <p class="error-message" id="responseError"></p>
-        </div>
-        
-        <div class="message-container" id="messageContainer">
-            </div>
-    </div>
-
-    
     <script>
-        // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+        // Глобальные переменные
+        let database;
+        let auth;
+        
         let allTickets = [];
         let filteredTickets = [];
         let currentFilter = 'all';
-        currentAdmin = {};
+        currentAdmin = {}; // ИСПРАВЛЕНО (4/4): Убрано 'let' для предотвращения SyntaxError: Identifier 'currentAdmin' has already been declared
         let selectedTicketId = null;
         let selectedTicketData = null;
         const AUTO_DELETE_DELAY = 5 * 60 * 1000; // 5 минут в миллисекундах (для таймера)
 
-        // ==================== ИНИЦИАЛИЗАЦИЯ И АВТОРИЗАЦИЯ ====================
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         async function checkAuth() {
-            initFirebase();
-            const auth = await checkAdminAuth();
-            
-            if (!auth.success) {
-                // redirectToLogin(); // Предполагается, что это делает admin_auth.js
-                return;
-            }
-            
-            currentAdmin = auth;
-            document.getElementById('adminNameDisplay').textContent = auth.adminName || 'Администратор';
-            
-            loadTickets();
-        }
-        
-        // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ====================
-        async function loadTickets() {
             try {
-                document.getElementById('initialLoader').style.display = 'block';
-                const snapshot = await database.ref('support_tickets').once('value');
-                const data = snapshot.val();
+                // 1. Инициализация Firebase (доступна благодаря admin_common.js)
+                database = initFirebase();
                 
-                allTickets = [];
-                if (data) {
-                    allTickets = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
+                // 2. Проверка авторизации
+                auth = await checkAdminAuth();
+
+                if (!auth.success) {
+                    redirectToLogin();
+                    return;
                 }
                 
-                // Проверяем удаление старых тикетов
-                allTickets.forEach(ticket => checkAndDeleteOldTicket(ticket));
+                // 3. Заполнение данных администратора
+                document.getElementById('adminName').textContent = auth.adminName;
+                document.getElementById('admin-name-display').textContent = `👑 ${auth.adminName}`;
                 
-                // Сортировка по статусу (новые сверху) и времени
-                allTickets.sort((a, b) => {
-                    if (a.status === 'new' && b.status !== 'new') return -1;
-                    if (a.status !== 'new' && b.status === 'new') return 1;
-                    return b.timestamp - a.timestamp;
-                });
+                // 4. Установка глобальной переменной для отслеживания админа
+                currentAdmin = {
+                    name: auth.adminName,
+                    id: localStorage.getItem('jojoland_userId') || 'system'
+                };
                 
-                filterTickets(currentFilter);
-                document.getElementById('initialLoader').style.display = 'none';
+                // 5. Запуск загрузки тикетов
+                loadTickets();
                 
-                // Если есть новые тикеты, выбираем первый
-                const newTicket = allTickets.find(t => t.status === 'new');
-                if (newTicket) {
-                    selectTicket(newTicket.id);
+            } catch (e) {
+                console.error('Ошибка в checkAuth:', e);
+                // Если ошибка инициализации Firebase, перенаправляем на логин
+                if (e.message.includes('Firebase') || e instanceof TypeError) {
+                     alert('Ошибка: Firebase не инициализирован или неверный порядок загрузки скриптов. Проверьте консоль.');
+                     // redirectToLogin(); // Закомментировано для дебага
                 }
-                
-            } catch (error) {
-                console.error('Ошибка загрузки обращений:', error);
-                showMessage('Не удалось загрузить обращения', 'error');
             }
         }
         
-        async function checkAndDeleteOldTicket(ticket) {
-             // ... существующая логика для удаления ...
-        }
-
-        // ==================== ФИЛЬТРЫ И ПОИСК ====================
-        function filterTickets(filterType) {
-            currentFilter = filterType;
-            
-            // Сброс активных кнопок
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            if (filterType !== 'all') {
-                const btn = document.querySelector(`.filter-btn[onclick="filterTickets('${filterType}')"]`);
-                if (btn) btn.classList.add('active');
-            } else {
-                document.querySelector('.filter-btn[onclick="filterTickets(\'all\')"]').classList.add('active');
-            }
-
-            if (filterType === 'all') {
-                filteredTickets = allTickets;
-            } else if (['new', 'read', 'answered', 'closed'].includes(filterType)) {
-                filteredTickets = allTickets.filter(t => t.status === filterType);
-            } else if (['complaint', 'appeal', 'support'].includes(filterType)) {
-                filteredTickets = allTickets.filter(t => t.type === filterType);
-            } else {
-                filteredTickets = allTickets;
-            }
-            
-            updateTicketsList();
-        }
-        
-        function updateFilterCounts() {
-            const counts = {
-                all: allTickets.length,
-                new: allTickets.filter(t => t.status === 'new').length,
-                read: allTickets.filter(t => t.status === 'read').length,
-                answered: allTickets.filter(t => t.status === 'answered').length,
-                complaint: allTickets.filter(t => t.type === 'complaint').length,
-                appeal: allTickets.filter(t => t.type === 'appeal').length,
-                support: allTickets.filter(t => t.type === 'support').length
-            };
-            
-            document.getElementById('countAll').textContent = counts.all;
-            document.getElementById('countNew').textContent = counts.new;
-            document.getElementById('countAnswered').textContent = counts.answered;
-            document.getElementById('countComplaints').textContent = counts.complaint;
-            document.getElementById('countAppeals').textContent = counts.appeal;
-            document.getElementById('countSupport').textContent = counts.support;
-        }
-
-        // ==================== ФОРМИРОВАНИЕ СПИСКА (ИСПРАВЛЕНО) ====================
-        function updateTicketsList() {
-            updateFilterCounts();
-            
-            const ticketsList = document.getElementById('ticketsList');
-            if (filteredTickets.length === 0) {
-                 ticketsList.innerHTML = `
-                    <div style="text-align: center; padding: 50px; color: #aaa;">
-                        🔍 Нет обращений для текущего фильтра.
-                    </div>
-                `;
-                return;
-            }
-            
-            const html = filteredTickets.map(ticket => {
-                const typeText = ticket.type === 'complaint' ? '⚠️ Жалоба' : 
-                                 ticket.type === 'appeal' ? '⚖️ Апелляция' : 
-                                 '💬 Вопрос';
-                
-                const statusText = ticket.status === 'new' ? '🆕 Новое' : 
-                                   ticket.status === 'read' ? '👁️ Просмотрено' : 
-                                   ticket.status === 'answered' ? '📨 С ответом' : 
-                                   '✅ Закрыто';
-                                   
-                const statusClass = ticket.status === 'new' ? 'status-new' : 
-                                    ticket.status === 'read' ? 'status-read' : 
-                                    ticket.status === 'answered' ? 'status-answered' : 
-                                    'status-closed';
-
-                // --- НОВЫЕ ПОЛЯ ---
-                const targetNickname = ticket.targetNickname || 'N/A';
-                const submitterName = ticket.username || 'Неизвестно (ID: ' + ticket.userId.substr(0, 8) + ')';
-                // ------------------
-
-                let timerHtml = '';
-                if (ticket.status === 'answered' && ticket.answerTime) {
-                    const answerTime = new Date(ticket.answerTime).getTime();
-                    const timeLeft = AUTO_DELETE_DELAY - (Date.now() - answerTime);
-                    if (timeLeft > 0) {
-                        const minutes = Math.floor(timeLeft / 60000);
-                        const seconds = Math.floor((timeLeft % 60000) / 1000);
-                        timerHtml = `<span class="ticket-timer">🗑️ ${minutes}:${seconds.toString().padStart(2, '0')}</span>`;
-                    }
-                }
-                
-                return `
-                    <div class="admin-card ticket-item ${statusClass}" data-id="${ticket.id}" onclick="selectTicket('${ticket.id}')">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="color: #6ab7ff;">${typeText} #${ticket.id.substr(0, 8)}</h3>
-                            <span class="admin-badge ${statusClass}">${statusText}</span>
-                        </div>
-                        
-                        <p style="margin-bottom: 10px; color: #ccc; font-size: 14px;">
-                            Отправитель: <a href="admin_users.html?search=${ticket.userId}" style="color: #6ab7ff; font-weight: bold;">${submitterName}</a>
-                        </p>
-                        
-                        ${ticket.type !== 'support' ? 
-                            `<p style="color: #ff9900; font-size: 14px; margin-bottom: 15px;">
-                                **Цель:** <span style="color: #ffcc99; font-weight: bold;">${targetNickname}</span>
-                            </p>` 
-                        : ''}
-                        
-                        <h4 style="color: #ccccff; margin-bottom: 8px;">Описание:</h4>
-                        <p style="font-size: 14px; margin-bottom: 10px; white-space: pre-wrap;">
-                            ${truncateText(ticket.description, 150)}
-                        </p>
-                        
-                        <div style="text-align: right; margin-top: 15px; font-size: 12px; color: #aaa;">
-                            ${formatDate(ticket.timestamp)} ${timerHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            ticketsList.innerHTML = html;
-        }
-
-        // ==================== ДЕТАЛИ ТИКЕТА ====================
-        async function selectTicket(ticketId) {
+        // ==================== ОБРАБОТЧИКИ ПАНЕЛИ ДЕТАЛЕЙ ====================
+        function showDetailPanel(ticketId) {
             selectedTicketId = ticketId;
             selectedTicketData = allTickets.find(t => t.id === ticketId);
             
             if (!selectedTicketData) return;
+
+            // Сброс активного класса
+            document.querySelectorAll('.ticket-item').forEach(item => item.classList.remove('active'));
+            // Установка активного класса для выбранного
+            document.getElementById(`ticket-${ticketId}`).classList.add('active');
             
-            // Если статус "new", меняем на "read"
-            if (selectedTicketData.status === 'new') {
-                await database.ref(`support_tickets/${ticketId}/status`).set('read');
-                selectedTicketData.status = 'read';
-                loadTickets(); // Перезагружаем для обновления списка
+            const data = selectedTicketData;
+
+            // Заголовок
+            document.getElementById('detailTitle').textContent = `Детали обращения #${data.ticketId?.substr(0, 8) || data.id.substr(0, 8)}`;
+            
+            // Пользователь
+            document.getElementById('detailUsername').textContent = data.username || 'Неизвестный игрок';
+            document.getElementById('detailUserId').textContent = data.userId || 'Нет ID';
+            document.getElementById('detailUserIp').textContent = data.ip || 'Неизвестно';
+            
+            // Тикет
+            document.getElementById('detailType').textContent = getTypeText(data.type);
+            document.getElementById('detailDate').textContent = formatDate(data.timestamp) + ' в ' + formatTime(data.timestamp);
+            document.getElementById('detailReason').textContent = data.reason || '';
+            document.getElementById('detailDescription').innerHTML = data.description ? formatLinks(data.description) : 'Нет описания';
+            document.getElementById('detailProofs').innerHTML = data.proofs ? formatLinks(data.proofs) : 'Нет доказательств';
+            
+            // Ответ
+            const replySection = document.getElementById('detailReplySection');
+            const newReplyBox = document.getElementById('newReplyBox');
+            
+            if (data.status === 'answered' || data.reply) {
+                replySection.style.display = 'block';
+                document.getElementById('detailReplyAdmin').textContent = `Ответ от: ${data.replyAdminName || 'Администратор'}`;
+                document.getElementById('detailReplyDate').textContent = data.replyTimestamp ? formatDate(data.replyTimestamp) + ' в ' + formatTime(data.replyTimestamp) : 'Нет даты';
+                document.getElementById('detailReplyText').textContent = data.reply || 'Нет текста ответа';
+                newReplyBox.style.display = 'none';
+            } else {
+                replySection.style.display = 'none';
+                newReplyBox.style.display = 'block';
+                document.getElementById('replyTextarea').value = ''; // Очистка
             }
+            
+            // Таймер удаления
+            updateAutoDeleteTimer(data.timestamp);
 
-            // Обновляем заголовок и статус
-            document.getElementById('detailTitle').textContent = `${selectedTicketData.type === 'complaint' ? 'Жалоба' : selectedTicketData.type === 'appeal' ? 'Апелляция' : 'Вопрос'} #${ticketId.substr(0, 8)}`;
-            
-            const statusText = selectedTicketData.status === 'new' ? '🆕 Новое' : 
-                               selectedTicketData.status === 'read' ? '👁️ Просмотрено' : 
-                               selectedTicketData.status === 'answered' ? '📨 С ответом' : 
-                               '✅ Закрыто';
-            document.getElementById('detailStatus').textContent = statusText;
-            document.getElementById('detailStatus').className = `admin-badge status-${selectedTicketData.status}`;
-
-            // Обновляем детали
-            let detailHtml = `
-                <div class="detail-item">
-                    <strong>Отправитель:</strong> 
-                    <a href="admin_users.html?search=${selectedTicketData.userId}" style="color: #00ccff; font-weight: bold;">
-                        ${selectedTicketData.username || 'Неизвестно'} (ID: ${selectedTicketData.userId.substr(0, 8)})
-                    </a>
-                </div>
-                ${selectedTicketData.type !== 'support' ? `
-                    <div class="detail-item" style="border-left: 3px solid #ff9900;">
-                        <strong>Цель:</strong> <span style="color: #ffcc99; font-weight: bold;">${selectedTicketData.targetNickname || 'N/A'}</span>
-                    </div>` : ''}
-                <div class="detail-item">
-                    <strong>Тип:</strong> ${selectedTicketData.type}
-                </div>
-                <div class="detail-item">
-                    <strong>Дата:</strong> ${formatDate(selectedTicketData.timestamp)}
-                </div>
-                <div class="detail-item">
-                    <strong>Описание:</strong> <div style="white-space: pre-wrap;">${selectedTicketData.description || 'Нет описания'}</div>
-                </div>
-                <div class="detail-item">
-                    <strong>Доказательства/Причина:</strong> 
-                    <div style="font-size: 14px; color: #b3b3ff; white-space: pre-wrap;">
-                        ${formatLinks(selectedTicketData.reason)}
-                    </div>
-                </div>
-            `;
-            document.getElementById('detailContent').innerHTML = detailHtml;
-            
-            loadMessages(selectedTicketData.answers || {});
-            
-            // Показываем боковую панель
-            document.getElementById('ticketDetail').classList.add('show');
+            // Показ панели
+            document.getElementById('detailPanel').classList.add('open');
         }
 
-        function closeTicketDetail() {
-            document.getElementById('ticketDetail').classList.remove('show');
-            selectedTicketId = null;
-            selectedTicketData = null;
+        function closeDetailPanel() {
+            document.getElementById('detailPanel').classList.remove('open');
+            // Сброс активного класса
+            document.querySelectorAll('.ticket-item').forEach(item => item.classList.remove('active'));
         }
 
-        // ==================== СООБЩЕНИЯ ====================
-        function loadMessages(answers) {
-            const messageContainer = document.getElementById('messageContainer');
-            messageContainer.innerHTML = '<h4>История ответов:</h4>';
+        function updateAutoDeleteTimer(timestamp) {
+            const now = Date.now();
+            const elapsedTime = now - timestamp;
+            const remainingTime = AUTO_DELETE_DELAY - elapsedTime;
+            const timerDisplay = document.getElementById('autoDeleteTimer');
             
-            if (!answers || Object.keys(answers).length === 0) {
-                messageContainer.innerHTML += '<p style="color: #aaa;">История сообщений пуста.</p>';
+            if (remainingTime > 0 && selectedTicketData.status !== 'answered' && selectedTicketData.status !== 'closed') {
+                const minutes = Math.floor(remainingTime / 60000);
+                const seconds = Math.floor((remainingTime % 60000) / 1000);
+                timerDisplay.textContent = `⚠️ Будет автоматически удалено через ${minutes}м ${seconds}с, если не будет ответа.`;
+                setTimeout(() => updateAutoDeleteTimer(timestamp), 1000);
+            } else if (selectedTicketData.status === 'new' || selectedTicketData.status === 'pending') {
+                timerDisplay.textContent = 'Обращение скоро будет удалено, если не будет ответа.';
+            } else {
+                timerDisplay.textContent = 'Срок автоудаления истек или обращение обработано.';
+            }
+        }
+
+        // ==================== ДЕЙСТВИЯ АДМИНИСТРАТОРА ====================
+        async function sendReply() {
+            const replyText = document.getElementById('replyTextarea').value.trim();
+            if (!replyText) {
+                showMessage('Введите текст ответа!', 'error');
                 return;
             }
             
-            const messages = Object.keys(answers).map(key => ({
-                id: key,
-                ...answers[key]
-            }));
-            
-            messages.sort((a, b) => a.timestamp - b.timestamp);
-            
-            messages.forEach(msg => {
-                const isSystem = msg.senderId !== selectedTicketData.userId; // Администратор или система
-                const senderName = isSystem ? (msg.adminName || 'Админ') : (selectedTicketData.username || 'Пользователь');
-                const nameClass = isSystem ? 'admin' : '';
-                
-                const html = `
-                    <div class="message-item">
-                        <div class="message-header">
-                            <span class="sender-name ${nameClass}">${senderName}</span>
-                            <small style="color: #aaa;">${formatDate(msg.timestamp)}</small>
-                        </div>
-                        <p class="message-text">${escapeHtml(msg.text)}</p>
-                    </div>
-                `;
-                messageContainer.innerHTML += html;
-            });
-        }
-        
-        async function submitResponse() {
-            const message = document.getElementById('responseMessage').value.trim();
-            const errorElement = document.getElementById('responseError');
-            errorElement.textContent = '';
-            
-            if (!message) {
-                errorElement.textContent = 'Введите сообщение для отправки.';
-                return;
-            }
-            if (!selectedTicketId) return;
-            
+            if (!selectedTicketId || !selectedTicketData) return;
+
+            if (!confirm('Вы уверены, что хотите отправить этот ответ и закрыть обращение?')) return;
+
             try {
-                const adminName = currentAdmin.adminName || 'Администратор';
-                const adminId = localStorage.getItem('jojoland_userId');
-
-                const responseData = {
-                    text: message,
-                    senderId: adminId, // ID админа
-                    adminName: adminName,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                const update = {
+                    status: 'answered',
+                    reply: replyText,
+                    replyAdminName: currentAdmin.name,
+                    replyTimestamp: Date.now()
                 };
-                
-                await database.ref(`support_tickets/${selectedTicketId}/answers`).push(responseData);
-                await database.ref(`support_tickets/${selectedTicketId}/status`).set('answered');
-                await database.ref(`support_tickets/${selectedTicketId}/answerTime`).set(Date.now());
 
-                document.getElementById('responseMessage').value = '';
-                
-                showMessage('Ответ отправлен', 'success');
-                
-                // Логирование
-                await logAction('answer', `Ответил на обращение ${selectedTicketId.substr(0, 8)}`);
+                await database.ref(`support_requests/${selectedTicketId}`).update(update);
+                logAdminAction('answer', `Ответил на обращение #${selectedTicketId.substr(0, 8)}`);
 
-                // Обновляем текущие данные тикета и интерфейс
+                showMessage('Ответ отправлен и обращение закрыто!', 'success');
+                closeDetailPanel();
+                // Перезагрузка данных
                 loadTickets();
-                selectTicket(selectedTicketId); 
-                
+
             } catch (error) {
                 console.error('Ошибка отправки ответа:', error);
-                errorElement.textContent = '❌ Ошибка отправки: проверьте соединение или права.';
+                showMessage('Ошибка отправки ответа: ' + error.message, 'error');
+            }
+        }
+
+        async function markAsPending(ticketId) {
+            if (!ticketId || !selectedTicketData) return;
+            if (!confirm('Отметить обращение как "На рассмотрении"?')) return;
+            
+            try {
+                await database.ref(`support_requests/${ticketId}`).update({ status: 'pending' });
+                logAdminAction('pending', `Отметил как "На рассмотрении" обращение #${ticketId.substr(0, 8)}`);
+                showMessage('Обращение помечено как "На рассмотрении".', 'info');
+                closeDetailPanel();
+                loadTickets();
+            } catch (error) {
+                console.error('Ошибка маркировки:', error);
+                showMessage('Ошибка маркировки: ' + error.message, 'error');
             }
         }
         
-        async function closeTicket() {
-            if (!selectedTicketId) return;
-
-            if (!confirm(`Вы уверены, что хотите закрыть обращение #${selectedTicketId.substr(0, 8)}? Это действие уведомит пользователя.`)) {
-                return;
-            }
+        async function markAsClosed(ticketId) {
+            if (!ticketId || !selectedTicketData) return;
+            if (!confirm('Вы уверены, что хотите закрыть обращение?')) return;
             
             try {
-                await database.ref(`support_tickets/${selectedTicketId}/status`).set('closed');
-                await database.ref(`support_tickets/${selectedTicketId}/closedBy`).set(currentAdmin.name || 'Администратор');
-                await database.ref(`support_tickets/${selectedTicketId}/closedTime`).set(Date.now());
-                
-                await logAction('close', `Закрыл обращение ${selectedTicketId.substr(0, 8)}`);
-                
-                showMessage('Обращение закрыто', 'success');
+                await database.ref(`support_requests/${ticketId}`).update({ status: 'closed' });
+                logAdminAction('closed', `Закрыл обращение #${ticketId.substr(0, 8)}`);
+                showMessage('Обращение закрыто.', 'success');
+                closeDetailPanel();
                 loadTickets();
-                closeTicketDetail();
-                
             } catch (error) {
-                console.error('Ошибка закрытия тикета:', error);
-                showMessage('❌ Ошибка закрытия тикета', 'error');
+                console.error('Ошибка закрытия:', error);
+                showMessage('Ошибка закрытия: ' + error.message, 'error');
             }
         }
 
-        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        function logAction(action, description) {
-            // Вспомогательная функция, которая должна быть в admin_common.js
+        async function deleteTicket(ticketId) {
+            if (!ticketId || !selectedTicketData) return;
+            if (!confirm('ВНИМАНИЕ! Вы уверены, что хотите НАВСЕГДА удалить это обращение без ответа?')) return;
+
             try {
-                const adminId = localStorage.getItem('jojoland_userId');
-                database.ref('admin_actions').push({
+                await database.ref(`support_requests/${ticketId}`).remove();
+                logAdminAction('delete', `Удалил обращение #${ticketId.substr(0, 8)}`);
+                
+                showMessage('Обращение удалено.', 'success');
+                closeDetailPanel();
+                loadTickets();
+
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                showMessage('Ошибка удаления: ' + error.message, 'error');
+            }
+        }
+        
+        async function logAdminAction(action, description) {
+            try {
+                await database.ref('admin_actions').push({
                     action: action,
                     description: description,
-                    adminName: currentAdmin.adminName || 'Администратор',
+                    adminName: currentAdmin.name,
+                    adminId: currentAdmin.id,
                     timestamp: Date.now(),
-                    adminId: adminId
+                    ip: 'local' // В боевом коде лучше использовать getUserIP()
                 });
             } catch (error) {
                 console.error('Ошибка логирования:', error);
             }
         }
 
-        function searchTickets() {
-            const searchText = document.getElementById('searchInput').value.trim().toLowerCase();
-            if (!searchText) {
+        // ==================== ЗАГРУЗКА И ОБНОВЛЕНИЕ ТИКЕТОВ ====================
+        async function loadTickets() {
+            try {
+                // Показываем загрузчик
+                document.getElementById('ticketsLoader').style.display = 'block';
+                document.getElementById('ticketsList').innerHTML = ''; // Очистка списка
+                
+                // Получение данных
+                const snapshot = await database.ref('support_requests').once('value');
+                const data = snapshot.val();
+                
+                allTickets = [];
+                if (data) {
+                    allTickets = Object.keys(data).map(key => ({
+                        id: key,
+                        ticketId: data[key].ticketId || key,
+                        ...data[key]
+                    })).sort((a, b) => b.timestamp - a.timestamp); // Сортировка по дате (новые сверху)
+                }
+
+                // Обновление статистики и фильтров
+                updateStats(allTickets);
+                
+                // Применяем текущий фильтр и поиск (если они есть)
                 filterTickets(currentFilter);
-                return;
+
+            } catch (error) {
+                console.error('Ошибка загрузки обращений:', error);
+                alert('Ошибка загрузки обращений: ' + error.message);
+            } finally {
+                // Скрываем загрузчик (здесь была ошибка, если элемент отсутствовал)
+                const loader = document.getElementById('ticketsLoader');
+                if (loader) {
+                    loader.style.display = 'none';
+                }
+            }
+        }
+
+        function updateStats(tickets) {
+            const counts = {
+                all: tickets.length,
+                new: 0,
+                pending: 0,
+                answered: 0,
+                closed: 0,
+                complaint: 0,
+                appeal: 0,
+                other: 0
+            };
+
+            tickets.forEach(ticket => {
+                counts[ticket.status] = (counts[ticket.status] || 0) + 1;
+                counts[ticket.type] = (counts[ticket.type] || 0) + 1;
+            });
+
+            document.getElementById('stats-total').textContent = counts.all;
+            document.getElementById('stats-new').textContent = counts.new;
+
+            document.getElementById('count-all').textContent = counts.all;
+            document.getElementById('count-new').textContent = counts.new;
+            document.getElementById('count-pending').textContent = counts.pending;
+            document.getElementById('count-answered').textContent = counts.answered;
+            document.getElementById('count-closed').textContent = counts.closed;
+
+            document.getElementById('count-complaint').textContent = counts.complaint;
+            document.getElementById('count-appeal').textContent = counts.appeal;
+            document.getElementById('count-other').textContent = counts.other;
+        }
+
+        function filterTickets(status) {
+            currentFilter = status;
+            
+            // Сброс активного класса для кнопок
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Установка активного класса для текущей кнопки
+            const filterButton = document.getElementById(`filter-${status}`);
+            if (filterButton) {
+                filterButton.classList.add('active');
             }
             
-            filteredTickets = allTickets.filter(ticket => {
+            // Фильтрация
+            if (status === 'all') {
+                filteredTickets = allTickets;
+            } else if (['new', 'pending', 'answered', 'closed'].includes(status)) {
+                filteredTickets = allTickets.filter(ticket => ticket.status === status);
+            } else if (['complaint', 'appeal', 'other'].includes(status)) {
+                filteredTickets = allTickets.filter(ticket => ticket.type === status);
+            } else {
+                filteredTickets = allTickets;
+            }
+            
+            // Применение поиска
+            searchTickets();
+        }
+
+        function updateTicketsList() {
+            const ticketsList = document.getElementById('ticketsList');
+            ticketsList.innerHTML = '';
+            
+            if (filteredTickets.length === 0) {
+                 ticketsList.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #aaa;">
+                        🤷 Нет обращений, соответствующих фильтрам.
+                    </div>
+                `;
+                return;
+            }
+
+            filteredTickets.forEach(ticket => {
+                const statusBadge = getStatusBadge(ticket.status);
+                const typeIcon = getTypeIcon(ticket.type);
+
+                const item = document.createElement('div');
+                item.className = 'ticket-item';
+                item.id = `ticket-${ticket.id}`;
+                item.onclick = () => showDetailPanel(ticket.id);
+                
+                item.innerHTML = `
+                    <div class="ticket-header">
+                        <span class="ticket-title">${typeIcon} ${truncateText(ticket.reason, 60) || truncateText(ticket.description, 60)}</span>
+                        <span class="ticket-meta">${formatDate(ticket.timestamp)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; color: #aaa;">${ticket.username || 'Неизвестный'} (${ticket.userId?.substr(0, 8) || 'Нет ID'})</span>
+                        ${statusBadge}
+                    </div>
+                `;
+                ticketsList.appendChild(item);
+            });
+        }
+        
+        function searchTickets() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            // Если поиск пустой, просто обновляем список по текущему фильтру
+            if (!searchText) {
+                updateTicketsList();
+                return;
+            }
+
+            // Фильтруем уже отфильтрованный список по поисковому запросу
+            filteredTickets = filteredTickets.filter(ticket => {
                 return (
                     (ticket.id && ticket.id.toLowerCase().includes(searchText)) ||
+                    (ticket.ticketId && ticket.ticketId.toLowerCase().includes(searchText)) ||
+                    (ticket.username && ticket.username.toLowerCase().includes(searchText)) ||
                     (ticket.userId && ticket.userId.toLowerCase().includes(searchText)) ||
-                    (ticket.username && ticket.username.toLowerCase().includes(searchText)) || // Поиск по имени отправителя
-                    (ticket.targetNickname && ticket.targetNickname.toLowerCase().includes(searchText)) || // Поиск по цели
                     (ticket.description && ticket.description.toLowerCase().includes(searchText)) ||
                     (ticket.reason && ticket.reason.toLowerCase().includes(searchText))
                 );
@@ -867,6 +985,35 @@
             updateTicketsList();
         }
         
+        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'new': return '<span style="background: rgba(255,153,0,0.2); color: #ff9900; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold;">🆕 Новый</span>';
+                case 'pending': return '<span style="background: rgba(0,100,255,0.2); color: #6ab7ff; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold;">⏳ На рассмотрении</span>';
+                case 'answered': return '<span style="background: rgba(0,255,0,0.2); color: #00ff00; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold;">✅ Отвечен</span>';
+                case 'closed': return '<span style="background: rgba(255,0,0,0.2); color: #ff0000; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold;">🔒 Закрыт</span>';
+                default: return '<span style="background: rgba(255,255,255,0.1); color: #aaa; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold;">...</span>';
+            }
+        }
+        
+        function getTypeIcon(type) {
+             switch(type) {
+                case 'complaint': return '⚠️';
+                case 'appeal': return '⚖️';
+                case 'other': return '💬';
+                default: return '❓';
+            }
+        }
+        
+        function getTypeText(type) {
+             switch(type) {
+                case 'complaint': return 'Жалоба (⚠️)';
+                case 'appeal': return 'Апелляция (⚖️)';
+                case 'other': return 'Прочее (💬)';
+                default: return 'Неизвестный тип (❓)';
+            }
+        }
+        
         function truncateText(text, maxLength) {
             if (!text) return 'Нет описания';
             if (text.length <= maxLength) return text;
@@ -882,22 +1029,9 @@
         }
         
         function showMessage(message, type = 'info') {
-            // Предполагается, что эта функция будет заменена на createNotification из admin_common.js
             alert(`[${type.toUpperCase()}] ${message}`);
         }
         
-        function escapeHtml(text) {
-             // Предполагается, что эта функция будет в admin_common.js
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, (m) => map[m]);
-        }
-
         // ==================== ЗАПУСК ====================
         document.addEventListener('DOMContentLoaded', checkAuth);
     </script>
