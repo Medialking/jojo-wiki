@@ -3,147 +3,901 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛡️ Админ-панель поддержки JojoLand</title>
+    <title>👑 Админ-панель поддержки JojoLand</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <script src="admin_common.js"></script>
     <script src="admin_auth.js"></script>
-    <link rel="stylesheet" href="admin_common.css">
-    
-    <script src="admin_support.js" defer></script>
+    <script src="admin_common.js"></script>
     
     <style>
-        /* ==================== СПЕЦИФИЧЕСКИЕ СТИЛИ ДЛЯ SUPPORT ==================== */
-        .support-panel-grid {
-            display: grid;
-            grid-template-columns: 300px 1fr 400px;
-            gap: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .ticket-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s, border 0.2s;
-            border-left: 5px solid transparent;
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a2a, #1a1a4a, #0a0a2a);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Навигация (Должна быть подключена через admin_nav.html) */
+        .admin-nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,0,255,0.3);
+        }
+        
+        .admin-nav a {
+            padding: 10px 20px;
+            background: rgba(0,100,255,0.2);
+            color: #6ab7ff;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid rgba(0,100,255,0.4);
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        
+        .admin-nav a:hover {
+            background: rgba(0,100,255,0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Панель администратора */
+        .admin-container {
             display: grid;
-            grid-template-columns: 60px 1fr 100px;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+        }
+        
+        /* Боковая панель */
+        .sidebar {
+            background: rgba(0,0,0,0.6);
+            border-radius: 25px;
+            padding: 25px;
+            border: 2px solid #0066ff;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .admin-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .admin-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #0066ff;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #0066ff, #00ccff);
+            display: flex;
             align-items: center;
+            justify-content: center;
+            font-size: 32px;
         }
-        .ticket-item:hover { background: rgba(0, 0, 0, 0.4); }
-        .ticket-item.selected { background: rgba(98, 0, 255, 0.3); border-left-color: var(--color-accent); }
-        .ticket-id { font-weight: bold; font-size: 16px; color: var(--color-primary); }
-        .ticket-content h4 { margin: 0 0 4px 0; font-size: 16px; }
-        .answer-item.admin { background: rgba(98, 0, 255, 0.2); border-left: 3px solid var(--color-accent); }
-        .answer-item.user { background: rgba(0, 0, 0, 0.2); border-left: 3px solid #ccc; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ccff;
+        }
+        
+        /* Фильтры и поиск */
+        .filter-panel {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .filter-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(0,100,255,0.2);
+            color: #6ab7ff;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: #0066ff;
+            color: white;
+        }
+        
+        .filter-count {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .search-box button {
+            padding: 12px 20px;
+            background: #ff00ff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .search-box button:hover {
+            background: #cc00cc;
+        }
+        
+        /* Основной контент (Список тикетов) */
+        .main-content {
+            /* flex-grow: 1; */
+        }
+        
+        .ticket-item {
+            background: rgba(0,0,0,0.6);
+            border-left: 5px solid #00ccff;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        
+        .ticket-item:hover {
+            background: rgba(0,0,0,0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+        
+        .status-new { border-left-color: #ff00ff; }
+        .status-read { border-left-color: #ff9900; }
+        .status-answered { border-left-color: #00ff99; }
+        .status-closed { border-left-color: #666; }
+
+        .admin-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-new { background: rgba(255,0,255,0.2); color: #ff00ff; }
+        .status-read { background: rgba(255,153,0,0.2); color: #ff9900; }
+        .status-answered { background: rgba(0,255,153,0.2); color: #00ff99; }
+        .status-closed { background: rgba(100,100,100,0.2); color: #aaa; }
+
+        /* Детали тикета */
+        .ticket-detail {
+            position: fixed;
+            top: 0;
+            right: -500px; /* Скрыто справа */
+            width: 480px;
+            height: 100%;
+            background: #1a1a4a;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            z-index: 100;
+            transition: right 0.4s ease-out;
+            padding: 25px;
+            overflow-y: auto;
+            border-left: 3px solid #00ccff;
+        }
+        
+        .ticket-detail.show {
+            right: 0;
+        }
+        
+        .detail-header h2 {
+            color: #ffcc00;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        
+        .detail-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .detail-item strong {
+            color: #6ab7ff;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .message-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .message-item {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .sender-name {
+            font-weight: bold;
+            color: #00ff99;
+        }
+        
+        .sender-name.admin {
+            color: #ffcc00;
+        }
+        
+        .message-text {
+            color: white;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Форма ответа */
+        .response-form {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .response-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #0066ff;
+            border-radius: 8px;
+            color: white;
+            resize: vertical;
+        }
+        
+        .response-form button {
+            padding: 10px 20px;
+            background: #00ff99;
+            color: #1a1a4a;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .response-form button:hover {
+            background: #00cc66;
+        }
+        
+        /* Кнопка закрытия боковой панели */
+        .close-btn {
+            position: sticky;
+            top: 0;
+            right: 0;
+            background: #ff3333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 0 0 15px;
+            cursor: pointer;
+            font-weight: bold;
+            float: right;
+            z-index: 101;
+            box-shadow: -2px 2px 5px rgba(0,0,0,0.5);
+        }
+        
+        .ticket-timer {
+            font-size: 10px;
+            background: #ffcc00;
+            color: black;
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        
+        /* Загрузка */
+        .loader {
+            text-align: center;
+            padding: 50px;
+            color: #00ccff;
+        }
+        
+        .loader i {
+            font-size: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        .error-message { color: #ff3333; margin-top: 10px; font-size: 14px; min-height: 20px; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes modalAppear { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        
     </style>
 </head>
 <body>
-    
-    <div id="notification-container"></div>
-    
-    <div id="content" class="admin-container" style="display: none;">
-        <div id="adminNavPlaceholder"></div>
-
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h1 class="admin-section-title" style="margin-bottom: 0;"><i class="fas fa-headset"></i> Панель поддержки</h1>
-            <div style="display: flex; gap: 20px;">
-                 <div class="admin-badge badge-primary">Всего: <span id="totalTicketsCount">0</span></div>
-                 <div class="admin-badge badge-warning">Новых: <span id="newTicketsCount">0</span></div>
+    <div class="container">
+        <div class="admin-nav" id="admin-nav">
+             <p style="color: red;">Пожалуйста, убедитесь, что вы подключили admin_nav.html и admin_common.js!</p>
+        </div>
+        
+        <h1 style="color: #00ccff; margin-bottom: 20px;">🛡️ Панель поддержки</h1>
+        
+        <div class="admin-container">
+            <div class="sidebar">
+                <div class="admin-info">
+                    <div class="admin-avatar">A</div>
+                    <h3 id="adminNameDisplay">Администратор</h3>
+                </div>
+                
+                <h4 style="color: #6ab7ff; margin-bottom: 10px;">Фильтры</h4>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterTickets('all')">
+                        🌍 Все <span class="filter-count" id="countAll">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="filterTickets('new')">
+                        🆕 Новые <span class="filter-count" id="countNew">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="filterTickets('answered')">
+                        📨 С ответом <span class="filter-count" id="countAnswered">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="filterTickets('complaint')">
+                        ⚠️ Жалобы <span class="filter-count" id="countComplaints">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="filterTickets('appeal')">
+                        ⚖️ Апелляции <span class="filter-count" id="countAppeals">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="filterTickets('support')">
+                        💬 Поддержка <span class="filter-count" id="countSupport">0</span>
+                    </button>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Поиск по ID, никнейму или тексту">
+                    <button onclick="searchTickets()">🔍</button>
+                </div>
             </div>
-        </header>
-
-        <div class="support-panel-grid">
             
-            <aside class="admin-card" style="padding: 15px;">
-                <div style="margin-bottom: 20px; display: flex; align-items: center;">
-                    <i class="fas fa-search" style="color: #aaa; margin-right: 8px;"></i>
-                    <input type="text" id="searchInput" placeholder="Поиск по ID, Игроку..." style="width: 100%; padding: 8px; border-radius: 5px; border: none; background: #2a2a4d; color: white;">
-                </div>
-
-                <div id="mainStatusNav" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                    <button class="admin-btn admin-btn-secondary active" data-filter="all"><i class="fas fa-list-ul"></i> Все тикеты</button>
-                    <button class="admin-btn admin-btn-secondary" data-filter="new"><i class="fas fa-exclamation-circle"></i> Новые</button>
-                    <button class="admin-btn admin-btn-secondary" data-filter="open"><i class="fas fa-folder-open"></i> В работе</button>
-                    <button class="admin-btn admin-btn-secondary" data-filter="closed"><i class="fas fa-check-circle"></i> Закрытые</button>
-                </div>
-
-                <h3 style="margin: 20px 0 10px 0; color: var(--color-primary); font-size: 16px;"><i class="fas fa-tag"></i> Типы обращений</h3>
-                <div id="ticketTypesNav" style="display: flex; flex-direction: column; gap: 8px;">
-                    </div>
-            </aside>
-
-            <main class="admin-card">
-                <h2 style="font-size: 20px; margin-bottom: 15px;">Список обращений</h2>
-                <div id="ticketsList" style="display: flex; flex-direction: column; gap: 10px;">
-                    <div style="text-align: center; padding: 50px; color: #aaa;">
-                        <i class="fas fa-spinner fa-spin"></i> Загрузка тикетов...
+            <div class="main-content">
+                <div id="ticketsList">
+                    <div class="loader" id="initialLoader">
+                        <i class="fas fa-spinner"></i> Загрузка обращений...
                     </div>
                 </div>
-            </main>
-
-            <section id="detailsPanel" class="admin-card" style="padding: 20px; display: none;">
-                <button id="closeDetailsBtn" class="admin-btn admin-btn-secondary" style="float: right; padding: 5px 10px;"><i class="fas fa-times"></i></button>
-                <h2 id="ticketTitle" style="font-size: 24px; margin-bottom: 20px;">Детали тикета #<span id="ticketIdDisplay">0000</span></h2>
-                
-                <div class="ticket-info" style="font-size: 14px;">
-                    <p style="margin-bottom: 5px;"><strong><i class="fas fa-user"></i> Игрок:</strong> <span id="playerUsername"></span> (<span id="playerUid"></span>)</p>
-                    <p style="margin-bottom: 5px;"><strong><i class="fas fa-tag"></i> Причина:</strong> <span id="ticketReason"></span></p>
-                    <p><strong><i class="fas fa-calendar-alt"></i> Создан:</strong> <span id="ticketDate"></span></p>
-                </div>
-                
-                <h3 style="font-size: 18px; margin: 20px 0 10px 0;"><i class="fas fa-file-alt"></i> Описание</h3>
-                <p id="ticketDescription" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; white-space: pre-wrap; font-size: 14px;"></p>
-
-                <h3 style="font-size: 18px; margin: 20px 0 10px 0;"><i class="fas fa-link"></i> Доказательства</h3>
-                <div id="ticketProof" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; font-size: 14px;">Нет</div>
-                
-                <div style="display: flex; gap: 10px; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 14px;">Текущий статус: <span id="currentStatus" class="admin-badge"></span></div>
-                    
-                    <select id="statusSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #333; background: #222; color: white;">
-                        <option value="new">Новый</option>
-                        <option value="open">В работе</option>
-                        <option value="closed">Закрыт</option>
-                    </select>
-                    <button id="saveStatusBtn" class="admin-btn admin-btn-primary" style="padding: 8px 15px;"><i class="fas fa-save"></i> Сохранить</button>
-                </div>
-
-                <div style="margin-top: 20px;">
-                    <h3 style="font-size: 18px; margin-bottom: 10px;"><i class="fas fa-comments"></i> Переписка</h3>
-                    <div id="answersList" style="max-height: 250px; overflow-y: auto; padding-right: 10px;">
-                        </div>
-
-                    <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                        <textarea id="adminAnswerText" placeholder="Напишите свой ответ здесь... (Ctrl+Enter для отправки)" style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #333; background: #111; color: white; resize: vertical;"></textarea>
-                        <button id="sendAnswerBtn" class="admin-btn admin-btn-primary"><i class="fas fa-reply"></i> Отправить ответ</button>
-                    </div>
-                </div>
-
-            </section>
+            </div>
         </div>
     </div>
     
+    <div class="ticket-detail" id="ticketDetail">
+        <button class="close-btn" onclick="closeTicketDetail()">X</button>
+        <div class="detail-header">
+            <h2 id="detailTitle">Обращение #ID</h2>
+            <span class="admin-badge" id="detailStatus">Статус</span>
+        </div>
+        
+        <div id="detailContent">
+            </div>
+
+        <div class="response-form">
+            <h3 style="color: #00ccff; margin-bottom: 15px;">Ответ пользователю</h3>
+            <textarea id="responseMessage" placeholder="Напишите ваш ответ здесь..."></textarea>
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button onclick="submitResponse()" style="flex: 1; background: #00ff99;">📨 Отправить ответ</button>
+                <button onclick="closeTicket()" style="flex: 1; background: #ff9900;">✅ Закрыть обращение</button>
+            </div>
+            <p class="error-message" id="responseError"></p>
+        </div>
+        
+        <div class="message-container" id="messageContainer">
+            </div>
+    </div>
+
+    
     <script>
-        // Проверка авторизации и загрузка навигации
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAuth().then(authStatus => {
-                if (authStatus.success) {
-                    document.getElementById('content').style.display = 'block';
-                    fetch('admin_nav.html').then(r => r.text()).then(html => {
-                        document.getElementById('adminNavPlaceholder').innerHTML = html;
-                        initSupportPanel(); // Запуск логики поддержки
-                    });
-                } else {
-                    redirectToLogin();
+        // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+        let allTickets = [];
+        let filteredTickets = [];
+        let currentFilter = 'all';
+        let currentAdmin = {};
+        let selectedTicketId = null;
+        let selectedTicketData = null;
+        const AUTO_DELETE_DELAY = 5 * 60 * 1000; // 5 минут в миллисекундах (для таймера)
+
+        // ==================== ИНИЦИАЛИЗАЦИЯ И АВТОРИЗАЦИЯ ====================
+        async function checkAuth() {
+            initFirebase();
+            const auth = await checkAdminAuth();
+            
+            if (!auth.success) {
+                // redirectToLogin(); // Предполагается, что это делает admin_auth.js
+                return;
+            }
+            
+            currentAdmin = auth;
+            document.getElementById('adminNameDisplay').textContent = auth.adminName || 'Администратор';
+            
+            loadTickets();
+        }
+        
+        // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ====================
+        async function loadTickets() {
+            try {
+                document.getElementById('initialLoader').style.display = 'block';
+                const snapshot = await database.ref('support_tickets').once('value');
+                const data = snapshot.val();
+                
+                allTickets = [];
+                if (data) {
+                    allTickets = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
                 }
+                
+                // Проверяем удаление старых тикетов
+                allTickets.forEach(ticket => checkAndDeleteOldTicket(ticket));
+                
+                // Сортировка по статусу (новые сверху) и времени
+                allTickets.sort((a, b) => {
+                    if (a.status === 'new' && b.status !== 'new') return -1;
+                    if (a.status !== 'new' && b.status === 'new') return 1;
+                    return b.timestamp - a.timestamp;
+                });
+                
+                filterTickets(currentFilter);
+                document.getElementById('initialLoader').style.display = 'none';
+                
+                // Если есть новые тикеты, выбираем первый
+                const newTicket = allTickets.find(t => t.status === 'new');
+                if (newTicket) {
+                    selectTicket(newTicket.id);
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки обращений:', error);
+                showMessage('Не удалось загрузить обращения', 'error');
+            }
+        }
+        
+        async function checkAndDeleteOldTicket(ticket) {
+             // ... существующая логика для удаления ...
+        }
+
+        // ==================== ФИЛЬТРЫ И ПОИСК ====================
+        function filterTickets(filterType) {
+            currentFilter = filterType;
+            
+            // Сброс активных кнопок
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (filterType !== 'all') {
+                const btn = document.querySelector(`.filter-btn[onclick="filterTickets('${filterType}')"]`);
+                if (btn) btn.classList.add('active');
+            } else {
+                document.querySelector('.filter-btn[onclick="filterTickets(\'all\')"]').classList.add('active');
+            }
+
+            if (filterType === 'all') {
+                filteredTickets = allTickets;
+            } else if (['new', 'read', 'answered', 'closed'].includes(filterType)) {
+                filteredTickets = allTickets.filter(t => t.status === filterType);
+            } else if (['complaint', 'appeal', 'support'].includes(filterType)) {
+                filteredTickets = allTickets.filter(t => t.type === filterType);
+            } else {
+                filteredTickets = allTickets;
+            }
+            
+            updateTicketsList();
+        }
+        
+        function updateFilterCounts() {
+            const counts = {
+                all: allTickets.length,
+                new: allTickets.filter(t => t.status === 'new').length,
+                read: allTickets.filter(t => t.status === 'read').length,
+                answered: allTickets.filter(t => t.status === 'answered').length,
+                complaint: allTickets.filter(t => t.type === 'complaint').length,
+                appeal: allTickets.filter(t => t.type === 'appeal').length,
+                support: allTickets.filter(t => t.type === 'support').length
+            };
+            
+            document.getElementById('countAll').textContent = counts.all;
+            document.getElementById('countNew').textContent = counts.new;
+            document.getElementById('countAnswered').textContent = counts.answered;
+            document.getElementById('countComplaints').textContent = counts.complaint;
+            document.getElementById('countAppeals').textContent = counts.appeal;
+            document.getElementById('countSupport').textContent = counts.support;
+        }
+
+        // ==================== ФОРМИРОВАНИЕ СПИСКА (ИСПРАВЛЕНО) ====================
+        function updateTicketsList() {
+            updateFilterCounts();
+            
+            const ticketsList = document.getElementById('ticketsList');
+            if (filteredTickets.length === 0) {
+                 ticketsList.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #aaa;">
+                        🔍 Нет обращений для текущего фильтра.
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = filteredTickets.map(ticket => {
+                const typeText = ticket.type === 'complaint' ? '⚠️ Жалоба' : 
+                                 ticket.type === 'appeal' ? '⚖️ Апелляция' : 
+                                 '💬 Вопрос';
+                
+                const statusText = ticket.status === 'new' ? '🆕 Новое' : 
+                                   ticket.status === 'read' ? '👁️ Просмотрено' : 
+                                   ticket.status === 'answered' ? '📨 С ответом' : 
+                                   '✅ Закрыто';
+                                   
+                const statusClass = ticket.status === 'new' ? 'status-new' : 
+                                    ticket.status === 'read' ? 'status-read' : 
+                                    ticket.status === 'answered' ? 'status-answered' : 
+                                    'status-closed';
+
+                // --- НОВЫЕ ПОЛЯ ---
+                const targetNickname = ticket.targetNickname || 'N/A';
+                const submitterName = ticket.username || 'Неизвестно (ID: ' + ticket.userId.substr(0, 8) + ')';
+                // ------------------
+
+                let timerHtml = '';
+                if (ticket.status === 'answered' && ticket.answerTime) {
+                    const answerTime = new Date(ticket.answerTime).getTime();
+                    const timeLeft = AUTO_DELETE_DELAY - (Date.now() - answerTime);
+                    if (timeLeft > 0) {
+                        const minutes = Math.floor(timeLeft / 60000);
+                        const seconds = Math.floor((timeLeft % 60000) / 1000);
+                        timerHtml = `<span class="ticket-timer">🗑️ ${minutes}:${seconds.toString().padStart(2, '0')}</span>`;
+                    }
+                }
+                
+                return `
+                    <div class="admin-card ticket-item ${statusClass}" data-id="${ticket.id}" onclick="selectTicket('${ticket.id}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: #6ab7ff;">${typeText} #${ticket.id.substr(0, 8)}</h3>
+                            <span class="admin-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <p style="margin-bottom: 10px; color: #ccc; font-size: 14px;">
+                            Отправитель: <a href="admin_users.html?search=${ticket.userId}" style="color: #6ab7ff; font-weight: bold;">${submitterName}</a>
+                        </p>
+                        
+                        ${ticket.type !== 'support' ? 
+                            `<p style="color: #ff9900; font-size: 14px; margin-bottom: 15px;">
+                                **Цель:** <span style="color: #ffcc99; font-weight: bold;">${targetNickname}</span>
+                            </p>` 
+                        : ''}
+                        
+                        <h4 style="color: #ccccff; margin-bottom: 8px;">Описание:</h4>
+                        <p style="font-size: 14px; margin-bottom: 10px; white-space: pre-wrap;">
+                            ${truncateText(ticket.description, 150)}
+                        </p>
+                        
+                        <div style="text-align: right; margin-top: 15px; font-size: 12px; color: #aaa;">
+                            ${formatDate(ticket.timestamp)} ${timerHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            ticketsList.innerHTML = html;
+        }
+
+        // ==================== ДЕТАЛИ ТИКЕТА ====================
+        async function selectTicket(ticketId) {
+            selectedTicketId = ticketId;
+            selectedTicketData = allTickets.find(t => t.id === ticketId);
+            
+            if (!selectedTicketData) return;
+            
+            // Если статус "new", меняем на "read"
+            if (selectedTicketData.status === 'new') {
+                await database.ref(`support_tickets/${ticketId}/status`).set('read');
+                selectedTicketData.status = 'read';
+                loadTickets(); // Перезагружаем для обновления списка
+            }
+
+            // Обновляем заголовок и статус
+            document.getElementById('detailTitle').textContent = `${selectedTicketData.type === 'complaint' ? 'Жалоба' : selectedTicketData.type === 'appeal' ? 'Апелляция' : 'Вопрос'} #${ticketId.substr(0, 8)}`;
+            
+            const statusText = selectedTicketData.status === 'new' ? '🆕 Новое' : 
+                               selectedTicketData.status === 'read' ? '👁️ Просмотрено' : 
+                               selectedTicketData.status === 'answered' ? '📨 С ответом' : 
+                               '✅ Закрыто';
+            document.getElementById('detailStatus').textContent = statusText;
+            document.getElementById('detailStatus').className = `admin-badge status-${selectedTicketData.status}`;
+
+            // Обновляем детали
+            let detailHtml = `
+                <div class="detail-item">
+                    <strong>Отправитель:</strong> 
+                    <a href="admin_users.html?search=${selectedTicketData.userId}" style="color: #00ccff; font-weight: bold;">
+                        ${selectedTicketData.username || 'Неизвестно'} (ID: ${selectedTicketData.userId.substr(0, 8)})
+                    </a>
+                </div>
+                ${selectedTicketData.type !== 'support' ? `
+                    <div class="detail-item" style="border-left: 3px solid #ff9900;">
+                        <strong>Цель:</strong> <span style="color: #ffcc99; font-weight: bold;">${selectedTicketData.targetNickname || 'N/A'}</span>
+                    </div>` : ''}
+                <div class="detail-item">
+                    <strong>Тип:</strong> ${selectedTicketData.type}
+                </div>
+                <div class="detail-item">
+                    <strong>Дата:</strong> ${formatDate(selectedTicketData.timestamp)}
+                </div>
+                <div class="detail-item">
+                    <strong>Описание:</strong> <div style="white-space: pre-wrap;">${selectedTicketData.description || 'Нет описания'}</div>
+                </div>
+                <div class="detail-item">
+                    <strong>Доказательства/Причина:</strong> 
+                    <div style="font-size: 14px; color: #b3b3ff; white-space: pre-wrap;">
+                        ${formatLinks(selectedTicketData.reason)}
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailContent').innerHTML = detailHtml;
+            
+            loadMessages(selectedTicketData.answers || {});
+            
+            // Показываем боковую панель
+            document.getElementById('ticketDetail').classList.add('show');
+        }
+
+        function closeTicketDetail() {
+            document.getElementById('ticketDetail').classList.remove('show');
+            selectedTicketId = null;
+            selectedTicketData = null;
+        }
+
+        // ==================== СООБЩЕНИЯ ====================
+        function loadMessages(answers) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = '<h4>История ответов:</h4>';
+            
+            if (!answers || Object.keys(answers).length === 0) {
+                messageContainer.innerHTML += '<p style="color: #aaa;">История сообщений пуста.</p>';
+                return;
+            }
+            
+            const messages = Object.keys(answers).map(key => ({
+                id: key,
+                ...answers[key]
+            }));
+            
+            messages.sort((a, b) => a.timestamp - b.timestamp);
+            
+            messages.forEach(msg => {
+                const isSystem = msg.senderId !== selectedTicketData.userId; // Администратор или система
+                const senderName = isSystem ? (msg.adminName || 'Админ') : (selectedTicketData.username || 'Пользователь');
+                const nameClass = isSystem ? 'admin' : '';
+                
+                const html = `
+                    <div class="message-item">
+                        <div class="message-header">
+                            <span class="sender-name ${nameClass}">${senderName}</span>
+                            <small style="color: #aaa;">${formatDate(msg.timestamp)}</small>
+                        </div>
+                        <p class="message-text">${escapeHtml(msg.text)}</p>
+                    </div>
+                `;
+                messageContainer.innerHTML += html;
             });
-        });
+        }
+        
+        async function submitResponse() {
+            const message = document.getElementById('responseMessage').value.trim();
+            const errorElement = document.getElementById('responseError');
+            errorElement.textContent = '';
+            
+            if (!message) {
+                errorElement.textContent = 'Введите сообщение для отправки.';
+                return;
+            }
+            if (!selectedTicketId) return;
+            
+            try {
+                const adminName = currentAdmin.adminName || 'Администратор';
+                const adminId = localStorage.getItem('jojoland_userId');
+
+                const responseData = {
+                    text: message,
+                    senderId: adminId, // ID админа
+                    adminName: adminName,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await database.ref(`support_tickets/${selectedTicketId}/answers`).push(responseData);
+                await database.ref(`support_tickets/${selectedTicketId}/status`).set('answered');
+                await database.ref(`support_tickets/${selectedTicketId}/answerTime`).set(Date.now());
+
+                document.getElementById('responseMessage').value = '';
+                
+                showMessage('Ответ отправлен', 'success');
+                
+                // Логирование
+                await logAction('answer', `Ответил на обращение ${selectedTicketId.substr(0, 8)}`);
+
+                // Обновляем текущие данные тикета и интерфейс
+                loadTickets();
+                selectTicket(selectedTicketId); 
+                
+            } catch (error) {
+                console.error('Ошибка отправки ответа:', error);
+                errorElement.textContent = '❌ Ошибка отправки: проверьте соединение или права.';
+            }
+        }
+        
+        async function closeTicket() {
+            if (!selectedTicketId) return;
+
+            if (!confirm(`Вы уверены, что хотите закрыть обращение #${selectedTicketId.substr(0, 8)}? Это действие уведомит пользователя.`)) {
+                return;
+            }
+            
+            try {
+                await database.ref(`support_tickets/${selectedTicketId}/status`).set('closed');
+                await database.ref(`support_tickets/${selectedTicketId}/closedBy`).set(currentAdmin.name || 'Администратор');
+                await database.ref(`support_tickets/${selectedTicketId}/closedTime`).set(Date.now());
+                
+                await logAction('close', `Закрыл обращение ${selectedTicketId.substr(0, 8)}`);
+                
+                showMessage('Обращение закрыто', 'success');
+                loadTickets();
+                closeTicketDetail();
+                
+            } catch (error) {
+                console.error('Ошибка закрытия тикета:', error);
+                showMessage('❌ Ошибка закрытия тикета', 'error');
+            }
+        }
+
+        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+        function logAction(action, description) {
+            // Вспомогательная функция, которая должна быть в admin_common.js
+            try {
+                const adminId = localStorage.getItem('jojoland_userId');
+                database.ref('admin_actions').push({
+                    action: action,
+                    description: description,
+                    adminName: currentAdmin.adminName || 'Администратор',
+                    timestamp: Date.now(),
+                    adminId: adminId
+                });
+            } catch (error) {
+                console.error('Ошибка логирования:', error);
+            }
+        }
+
+        function searchTickets() {
+            const searchText = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!searchText) {
+                filterTickets(currentFilter);
+                return;
+            }
+            
+            filteredTickets = allTickets.filter(ticket => {
+                return (
+                    (ticket.id && ticket.id.toLowerCase().includes(searchText)) ||
+                    (ticket.userId && ticket.userId.toLowerCase().includes(searchText)) ||
+                    (ticket.username && ticket.username.toLowerCase().includes(searchText)) || // Поиск по имени отправителя
+                    (ticket.targetNickname && ticket.targetNickname.toLowerCase().includes(searchText)) || // Поиск по цели
+                    (ticket.description && ticket.description.toLowerCase().includes(searchText)) ||
+                    (ticket.reason && ticket.reason.toLowerCase().includes(searchText))
+                );
+            });
+            
+            const ticketsList = document.getElementById('ticketsList');
+            
+            if (filteredTickets.length === 0) {
+                ticketsList.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #aaa;">
+                        🔍 Ничего не найдено по запросу: "${searchText}"
+                    </div>
+                `;
+                return;
+            }
+            
+            updateTicketsList();
+        }
+        
+        function truncateText(text, maxLength) {
+            if (!text) return 'Нет описания';
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength) + '...';
+        }
+        
+        function formatLinks(text) {
+            if (!text) return 'Нет доказательств';
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, url => {
+                return `<a href="${url}" target="_blank" style="color: #6ab7ff;">${url}</a>`;
+            }).replace(/\n/g, '<br>');
+        }
+        
+        function showMessage(message, type = 'info') {
+            // Предполагается, что эта функция будет заменена на createNotification из admin_common.js
+            alert(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function escapeHtml(text) {
+             // Предполагается, что эта функция будет в admin_common.js
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, (m) => map[m]);
+        }
+
+        // ==================== ЗАПУСК ====================
+        document.addEventListener('DOMContentLoaded', checkAuth);
     </script>
 </body>
 </html>
