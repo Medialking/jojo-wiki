@@ -6,7 +6,6 @@
     <title>Мой профиль | JojoLand</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Игровой шрифт -->
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -654,6 +653,29 @@
             animation: glow 2s infinite alternate 1s;
         }
         
+        /* СТИЛЬ КАРТОЧКИ "О СЕБЕ" */
+        .about-me-card {
+            padding: 25px; /* Немного больше отступов */
+            /* Использование базового стиля stat-card */
+        }
+        
+        #about-me-text {
+            white-space: pre-wrap; /* Сохранение переносов строк и пробелов */
+            font-size: 15px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        
+        #about-me-edit textarea {
+            /* Стили уже встроены в HTML, но можно добавить фокус */
+            transition: border-color 0.3s;
+        }
+        
+        #about-me-edit textarea:focus {
+            outline: none;
+            border-color: #ffcc00 !important; /* Цвет из стандартной темы */
+        }
+
         /* Адаптивность профиля */
         @media (max-width: 768px) {
             .profile-header {
@@ -720,19 +742,15 @@
 </head>
 <body>
 
-<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
 <div id="loader">
     <div class="spinner"></div>
     <p>Загрузка профиля...</p>
 </div>
 
-<!-- ФОНОВЫЕ ЭФФЕКТЫ -->
 <div class="background-effects" id="particles"></div>
 
-<!-- СКРЫТЫЙ ИНПУТ ДЛЯ ЗАГРУЗКИ ФОТО -->
 <input type="file" id="avatar-input" accept="image/*" style="display: none;">
 
-<!-- ОСНОВНОЙ КОНТЕНТ -->
 <div id="content">
     <header>
         <div class="header-top">
@@ -748,7 +766,6 @@
     </header>
 
     <div class="profile-container">
-        <!-- ЗАГОЛОВОК ПРОФИЛЯ -->
         <div class="profile-header" id="profile-header">
             <div class="profile-avatar" id="user-avatar" title="Нажмите, чтобы сменить фото">
                 👤
@@ -758,12 +775,10 @@
                 <h2 class="profile-name" id="user-nickname">Загрузка...</h2>
                 <div class="profile-id" id="user-id"></div>
                 <div class="profile-badges" id="user-badges">
-                    <!-- Бейджи будут добавляться через JS -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- СТАТИСТИКА -->
         <h3 class="section-title">📊 Статистика</h3>
         <div class="stats-grid">
             <div class="stat-card">
@@ -785,7 +800,31 @@
             </div>
         </div>
 
-        <!-- НОВОГОДНИЕ ОЧКИ -->
+        <h3 class="section-title">✨ О себе</h3>
+        <div class="about-me-card stat-card">
+            <div id="about-me-display">
+                <p id="about-me-text">Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!</p>
+            </div>
+            <div id="about-me-edit" style="display: none;">
+                <textarea id="about-me-textarea" 
+                          rows="5" 
+                          maxlength="300" 
+                          placeholder="Расскажите о себе (до 300 символов)..." 
+                          style="width: 100%; 
+                                 background: rgba(0, 0, 0, 0.2); 
+                                 border: 1px solid rgba(255, 255, 255, 0.1);
+                                 color: white; 
+                                 padding: 10px; 
+                                 border-radius: 8px; 
+                                 font-family: inherit; 
+                                 resize: vertical;"></textarea>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                    <button class="action-btn" id="save-about-me-btn" style="flex: 1; margin-right: 10px;">💾 Сохранить</button>
+                    <button class="action-btn" id="cancel-about-me-btn" style="flex: 1; background: #6c757d;">❌ Отмена</button>
+                </div>
+            </div>
+            <button class="action-btn" id="edit-about-me-btn" style="margin-top: 15px; width: 100%;">✏️ Редактировать</button>
+        </div>
         <h3 class="section-title">🎄 Новогодние очки</h3>
         <div class="holiday-points-card">
             <div class="points-display" id="holiday-points">0</div>
@@ -794,13 +833,10 @@
             <a href="points.html" class="holiday-btn">Как получить очки →</a>
         </div>
 
-        <!-- ДОСТИЖЕНИЯ -->
         <h3 class="section-title">🏆 Достижения</h3>
         <div class="achievements-grid" id="achievements-container">
-            <!-- Ачивки будут добавляться через JS -->
-        </div>
+            </div>
 
-        <!-- ДЕЙСТВИЯ -->
         <div class="action-buttons" id="action-buttons">
             <a href="index.html" class="action-btn">🏠 На главную</a>
             <a href="players.html" class="action-btn">👥 Все игроки</a>
@@ -812,7 +848,6 @@
     </div>
 </div>
 
-<!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -1280,6 +1315,105 @@ async function updateLastVisit(userId, userData) {
     }
 }
 
+// ==================== ОТОБРАЖЕНИЕ "О СЕБЕ" (ДОБАВЛЕНО) ====================
+function displayAboutMe(text, currentUserId) {
+    const aboutMeTextEl = document.getElementById('about-me-text');
+    const editBtn = document.getElementById('edit-about-me-btn');
+    const viewUserId = new URLSearchParams(window.location.search).get('view');
+    const myId = localStorage.getItem('jojoland_userId');
+
+    const profileText = text && text.trim() !== '' ? text : 
+        (viewUserId === myId || !viewUserId ? 
+            'Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!' :
+            'Игрок не оставил информацию о себе.');
+
+    aboutMeTextEl.textContent = profileText;
+    
+    // Скрываем/показываем кнопку редактирования
+    if (viewUserId === myId || !viewUserId) {
+        // Это свой профиль
+        editBtn.style.display = 'block';
+    } else {
+        // Это чужой профиль
+        editBtn.style.display = 'none';
+        
+        // Если текста нет, показываем только "Игрок не оставил информацию"
+        if (!text || text.trim() === '') {
+            aboutMeTextEl.style.display = 'block';
+        }
+    }
+}
+
+// ==================== ЛОГИКА РЕДАКТИРОВАНИЯ "О СЕБЕ" (ДОБАВЛЕНО) ====================
+function setupAboutMeEditing() {
+    const editBtn = document.getElementById('edit-about-me-btn');
+    const saveBtn = document.getElementById('save-about-me-btn');
+    const cancelBtn = document.getElementById('cancel-about-me-btn');
+    const displayText = document.getElementById('about-me-display');
+    const editArea = document.getElementById('about-me-edit');
+    const textarea = document.getElementById('about-me-textarea');
+    const userId = localStorage.getItem('jojoland_userId');
+    const aboutMeTextEl = document.getElementById('about-me-text');
+
+    if (!editBtn || !userId) return; // Выход, если кнопки нет или не авторизован
+
+    // Клик по "Редактировать"
+    editBtn.addEventListener('click', () => {
+        // Переключаем на режим редактирования
+        displayText.style.display = 'none';
+        editBtn.style.display = 'none';
+        editArea.style.display = 'block';
+        
+        // Загружаем текущий текст в текстовое поле
+        // (Обрезаем начальный/заглушечный текст, если он есть)
+        const currentText = aboutMeTextEl.textContent;
+        if (currentText !== 'Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!' && currentText !== 'Игрок не оставил информацию о себе.') {
+             textarea.value = currentText;
+        } else {
+             textarea.value = '';
+        }
+    });
+
+    // Клик по "Отмена"
+    cancelBtn.addEventListener('click', () => {
+        // Переключаем обратно на режим отображения
+        displayText.style.display = 'block';
+        editBtn.style.display = 'block';
+        editArea.style.display = 'none';
+    });
+
+    // Клик по "Сохранить"
+    saveBtn.addEventListener('click', async () => {
+        const newText = textarea.value.trim().substring(0, 300); // Ограничение в 300 символов
+
+        // Показываем спиннер на кнопке сохранения
+        saveBtn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;margin: 0 auto;"></div>';
+        saveBtn.disabled = true;
+
+        try {
+            await database.ref('users/' + userId).update({
+                aboutMe: newText
+            });
+            
+            // Обновляем отображение и переключаем режимы
+            displayAboutMe(newText, userId);
+            displayText.style.display = 'block';
+            editBtn.style.display = 'block';
+            editArea.style.display = 'none';
+            showError('Информация о себе сохранена!'); // Используем существующую функцию
+
+        } catch (error) {
+            console.error('Ошибка сохранения "О себе":', error);
+            showError('Не удалось сохранить информацию. Попробуйте позже.');
+        } finally {
+            // Возвращаем кнопку в исходное состояние
+            saveBtn.innerHTML = '💾 Сохранить';
+            saveBtn.disabled = false;
+        }
+    });
+}
+
+
 // ==================== ОТОБРАЖЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ====================
 function displayUserData(userData, userId, nickname, holidayPoints, rank) {
     // Основная информация
@@ -1301,6 +1435,9 @@ function displayUserData(userData, userId, nickname, holidayPoints, rank) {
     if (visits > 30) activityLevel = 'Ветеран';
     if (visits > 50) activityLevel = 'Легенда';
     document.getElementById('activity-level').textContent = activityLevel;
+    
+    // --> Обновление секции "О себе"
+    displayAboutMe(userData.aboutMe, userId);
     
     // Новогодние очки уже загружены отдельно
     
@@ -1511,6 +1648,9 @@ window.onload = async function() {
     
     // Настраиваем загрузку аватара
     setupAvatarUpload();
+    
+    // Настраиваем редактирование "О себе"
+    setupAboutMeEditing();
     
     // Анимация загрузки
     document.getElementById("loader").style.opacity = "0";
