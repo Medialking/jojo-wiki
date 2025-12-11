@@ -1,67 +1,68 @@
-/*********************************
- *  JOJOLAND ADMIN AUTH SYSTEM
- *  Работает без консоли
- *********************************/
+// =================================================================
+// 🛡️ admin_auth.js - БЕЗОПАСНАЯ АУТЕНТИФИКАЦИЯ (FIREBASE AUTH)
+// =================================================================
+
+// Зависит от того, что firebase.auth() инициализировано в admin_common.js
+if (typeof firebase === 'undefined' || !firebase.apps.length) {
+    console.error("Firebase не инициализирован. Убедитесь, что admin_common.js загружен первым.");
+}
+window.auth = firebase.auth(); 
 
 const ADMIN_CONFIG = {
-    PASSWORD: 'Jojoland2024!',
     SESSION_KEY: 'jojoland_admin_session',
     SUPER_ADMIN_ID: 'limdo7572'
 };
 
-/* ===============================
-   АВТО-ПРОВЕРКА ПРИ ЗАГРУЗКЕ
-================================ */
-(function () {
-    const session = localStorage.getItem(ADMIN_CONFIG.SESSION_KEY);
-    const pass = localStorage.getItem('adminPassword');
-
-    if (session === 'active' && pass === ADMIN_CONFIG.PASSWORD) {
-        if (!localStorage.getItem('jojoland_userId')) {
-            localStorage.setItem(
-                'jojoland_userId',
-                ADMIN_CONFIG.SUPER_ADMIN_ID
-            );
-        }
-    } else {
-        // если не главная страница — выкидываем
-        if (!location.href.includes('admin_main.html')) {
-            redirectToLogin();
-        }
-    }
-})();
+let currentAdmin = {
+    uid: null,
+    email: null,
+    isAdmin: false,
+    adminName: 'Гость'
+};
 
 /* ===============================
-   ВХОД В АДМИНКУ
+   ВХОД
 ================================ */
-async function adminLogin(password) {
+async function adminLogin(email, password) {
     try {
-        if (password !== ADMIN_CONFIG.PASSWORD) {
-            return { success: false, message: 'Неверный пароль' };
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // 1. Проверка авторизации и роли (Проверка в базе данных 'admins/{uid}')
+        // ВАЖНО: Вы должны настроить эту проверку (см. пункт 2 в инструкциях)
+        const snapshot = await database.ref(`admins/${user.uid}`).once('value');
+        
+        if (!snapshot.exists() || snapshot.val() !== true) {
+            await auth.signOut();
+            return { success: false, message: 'Доступ запрещен. У вас нет прав администратора.' };
         }
 
-        // создаём ID админа автоматически
-        let userId = localStorage.getItem('jojoland_userId');
-        if (!userId) {
-            userId = ADMIN_CONFIG.SUPER_ADMIN_ID;
-            localStorage.setItem('jojoland_userId', userId);
-        }
-
-        // создаём сессию
+        // 2. Успешная авторизация
         localStorage.setItem(ADMIN_CONFIG.SESSION_KEY, 'active');
-        localStorage.setItem('adminPassword', password);
-        localStorage.setItem('adminName', 'Супер-Администратор');
-
+        localStorage.setItem('jojoland_userId', user.uid);
+        localStorage.setItem('adminEmail', user.email);
+        
+        currentAdmin.uid = user.uid;
+        currentAdmin.email = user.email;
+        currentAdmin.isAdmin = true;
+        currentAdmin.adminName = user.email.split('@')[0] || 'Администратор';
+        localStorage.setItem('adminName', currentAdmin.adminName);
+        
+        logAdminAction("Успешный вход в панель", 'N/A', currentAdmin.adminName);
+        
         return {
             success: true,
             message: 'Вход выполнен',
-            adminName: 'Супер-Администратор',
-            isSuperAdmin: true
+            adminName: currentAdmin.adminName,
+            isSuperAdmin: true 
         };
 
-    } catch (e) {
-        console.error(e);
-        return { success: false, message: 'Ошибка входа' };
+    } catch (error) {
+        let message = 'Ошибка входа. Проверьте данные.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            message = "Неверный Email или пароль.";
+        }
+        return { success: false, message: message };
     }
 }
 
@@ -69,35 +70,45 @@ async function adminLogin(password) {
    ПРОВЕРКА ДОСТУПА
 ================================ */
 async function checkAdminAuth() {
-    const session = localStorage.getItem(ADMIN_CONFIG.SESSION_KEY);
-    const pass = localStorage.getItem('adminPassword');
-
-    if (session !== 'active' || pass !== ADMIN_CONFIG.PASSWORD) {
-        return { success: false };
-    }
-
-    if (!localStorage.getItem('jojoland_userId')) {
-        localStorage.setItem(
-            'jojoland_userId',
-            ADMIN_CONFIG.SUPER_ADMIN_ID
-        );
-    }
-
-    return {
-        success: true,
-        adminName: localStorage.getItem('adminName') || 'Администратор',
-        isSuperAdmin: true
-    };
+    return new Promise(resolve => {
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const snapshot = await database.ref(`admins/${user.uid}`).once('value');
+                
+                if (snapshot.exists() && snapshot.val() === true) {
+                    currentAdmin.uid = user.uid;
+                    currentAdmin.email = user.email;
+                    currentAdmin.isAdmin = true;
+                    currentAdmin.adminName = localStorage.getItem('adminName') || user.email.split('@')[0] || 'Администратор';
+                    
+                    resolve({
+                        success: true,
+                        adminName: currentAdmin.adminName,
+                        isSuperAdmin: true
+                    });
+                } else {
+                    auth.signOut();
+                    resolve({ success: false });
+                }
+            } else {
+                resolve({ success: false });
+            }
+        });
+    });
 }
 
 /* ===============================
    ВЫХОД
 ================================ */
 function adminLogout() {
+    logAdminAction("Выход из панели", 'N/A', currentAdmin.adminName);
+    auth.signOut();
     localStorage.removeItem(ADMIN_CONFIG.SESSION_KEY);
-    localStorage.removeItem('adminPassword');
+    localStorage.removeItem('jojoland_userId');
+    localStorage.removeItem('adminEmail');
     localStorage.removeItem('adminName');
     redirectToLogin();
+    return { success: true, message: 'Выход выполнен' };
 }
 
 /* ===============================
@@ -108,3 +119,15 @@ function redirectToLogin() {
         location.href = 'admin_main.html';
     }
 }
+
+// Запускаем проверку при загрузке, если нет сессии
+(async function() {
+    if (!localStorage.getItem(ADMIN_CONFIG.SESSION_KEY)) {
+        const authStatus = await checkAdminAuth();
+        if (!authStatus.success) {
+            redirectToLogin();
+        }
+    }
+})();
+
+window.currentAdmin = currentAdmin; // Экспорт
