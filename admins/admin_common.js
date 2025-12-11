@@ -1,9 +1,10 @@
-// ==================== ОБЩИЕ ФУНКЦИИ АДМИН-ПАНЕЛИ ====================
+// ==================== ОБЩИЕ ФУНКЦИИ АДМИН-ПАНЕЛИ (С ИКОНКАМИ FA) ====================
 
 // Инициализация Firebase (если еще не инициализировано)
 function initFirebase() {
     if (!firebase.apps.length) {
         const firebaseConfig = {
+            // ВАШИ СУЩЕСТВУЮЩИЕ НАСТРОЙКИ (не менять!)
             apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
             authDomain: "jojoland-chat.firebaseapp.com",
             databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
@@ -23,349 +24,99 @@ function initFirebase() {
 // Форматирование даты
 function formatDate(timestamp) {
     if (!timestamp) return 'Неизвестно';
-    
     try {
         const date = new Date(timestamp);
         if (isNaN(date.getTime())) return 'Неизвестно';
-        
         return date.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
-    } catch (error) {
-        console.error('Ошибка форматирования даты:', error);
-        return 'Неизвестно';
-    }
+    } catch (e) { return 'Ошибка формата'; }
 }
 
-// Форматирование времени (только время)
+// Форматирование времени
 function formatTime(timestamp) {
-    if (!timestamp) return '--:--';
-    
+    if (!timestamp) return 'Неизвестно';
     try {
         const date = new Date(timestamp);
-        if (isNaN(date.getTime())) return '--:--';
-        
-        return date.toLocaleTimeString('ru-RU', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (error) {
-        console.error('Ошибка форматирования времени:', error);
-        return '--:--';
-    }
+        if (isNaN(date.getTime())) return 'Неизвестно';
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return 'Ошибка формата'; }
 }
 
-// Получение IP пользователя
-async function getUserIP() {
+// ==================== УВЕДОМЛЕНИЯ (ТОСТЫ) ====================
+/**
+ * Создает и отображает неблокирующее Тост-уведомление.
+ * @param {'success'|'error'|'info'|'warning'} type - Тип уведомления.
+ * @param {string} title - Заголовок.
+ * @param {string} message - Текст сообщения.
+ */
+function createNotification(type, title, message) {
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        // Если контейнера нет, создаем его (для файлов, где он не был добавлен)
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        document.body.appendChild(container);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+
+    let iconHtml = '';
+    if (type === 'success') iconHtml = '<i class="fas fa-check-circle"></i>';
+    else if (type === 'error') iconHtml = '<i class="fas fa-exclamation-circle"></i>';
+    else if (type === 'warning') iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+    else iconHtml = '<i class="fas fa-info-circle"></i>';
+
+    notification.innerHTML = `${iconHtml}<div><div style="font-weight: bold; margin-bottom: 3px;">${title}</div><div style="font-size: 13px;">${message}</div></div>`;
+
+    container.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => { if (notification.parentNode) { notification.parentNode.removeChild(notification); } }, 300);
+    }, 5000);
+}
+
+
+// ==================== ЛОГИРОВАНИЕ ДЕЙСТВИЙ АДМИНА ====================
+/**
+ * Логирует действие администратора.
+ * @param {string} action - Тип действия ('login', 'ban', 'status_change').
+ * @param {string} description - Детальное описание.
+ * @param {string} adminName - Имя администратора.
+ */
+async function logAdminAction(action, description, adminName = window.currentAdmin?.adminName || 'Система') {
+    if (!window.database) return; 
+
+    let adminIp = 'N/A';
     try {
         const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
-        return data.ip;
-    } catch (error) {
-        console.error('Ошибка получения IP:', error);
-        return 'unknown';
+        adminIp = data.ip;
+    } catch (e) {
+        console.warn("Не удалось получить IP для логирования.");
     }
-}
 
-// Получение информации о пользователе
-async function getUserInfo(userId) {
     try {
-        const snapshot = await database.ref('users/' + userId).once('value');
-        
-        if (!snapshot.exists()) {
-            return null;
-        }
-        
-        return {
-            id: userId,
-            ...snapshot.val()
-        };
-        
-    } catch (error) {
-        console.error('Ошибка получения информации о пользователе:', error);
-        return null;
-    }
-}
-
-// Создание элемента уведомления
-function createNotification(type, title, message, duration = 5000) {
-    const container = document.getElementById('notification-container') || createNotificationContainer();
-    
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-header">
-            <div class="notification-icon">${getNotificationIcon(type)}</div>
-            <div class="notification-title">${title}</div>
-        </div>
-        <div class="notification-message">${message}</div>
-    `;
-    
-    container.appendChild(notification);
-    
-    // Показываем
-    setTimeout(() => notification.classList.add('show'), 10);
-    
-    // Автоматически скрываем
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, duration);
-    
-    return notification;
-}
-
-// Создание контейнера для уведомлений, если его нет
-function createNotificationContainer() {
-    const container = document.createElement('div');
-    container.id = 'notification-container';
-    container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    `;
-    document.body.appendChild(container);
-    
-    // Добавляем стили для уведомлений
-    const style = document.createElement('style');
-    style.textContent = `
-        .notification {
-            background: rgba(0,0,0,0.9);
-            border-radius: 15px;
-            padding: 20px;
-            border-left: 5px solid;
-            max-width: 400px;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification-success { border-color: #00cc66; }
-        .notification-error { border-color: #ff3333; }
-        .notification-warning { border-color: #ff9900; }
-        .notification-info { border-color: #0066ff; }
-        
-        .notification-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .notification-icon {
-            font-size: 20px;
-        }
-        
-        .notification-title {
-            font-weight: bold;
-            color: white;
-            font-size: 16px;
-        }
-        
-        .notification-message {
-            color: #ccccff;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    return container;
-}
-
-// Иконки для уведомлений
-function getNotificationIcon(type) {
-    const icons = {
-        'success': '✅',
-        'error': '❌',
-        'warning': '⚠️',
-        'info': 'ℹ️'
-    };
-    
-    return icons[type] || '📢';
-}
-
-// Создание загрузчика
-function createLoader(text = 'Загрузка...') {
-    const loader = document.createElement('div');
-    loader.className = 'admin-loader';
-    loader.innerHTML = `
-        <div style="text-align: center;">
-            <div class="admin-loader"></div>
-            <p style="color: #6ab7ff; margin-top: 15px;">${text}</p>
-        </div>
-    `;
-    
-    return loader;
-}
-
-// Создание пустого состояния
-function createEmptyState(icon = '📭', message = 'Данные не найдены') {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'admin-empty-state';
-    emptyState.innerHTML = `
-        <div style="font-size: 48px; margin-bottom: 20px;">${icon}</div>
-        <div style="color: #aaa; font-size: 16px;">${message}</div>
-    `;
-    
-    return emptyState;
-}
-
-// Проверка является ли пользователь админом
-async function isUserAdmin(userId) {
-    try {
-        // Проверяем поле rank
-        const userSnapshot = await database.ref('users/' + userId).once('value');
-        
-        if (userSnapshot.exists()) {
-            const userData = userSnapshot.val();
-            if (userData.rank === 'admin') {
-                return true;
-            }
-        }
-        
-        // Проверяем в списке админов
-        const adminSnapshot = await database.ref('admins/' + userId).once('value');
-        if (adminSnapshot.exists() && adminSnapshot.val() === true) {
-            return true;
-        }
-        
-        return false;
-        
-    } catch (error) {
-        console.error('Ошибка проверки прав:', error);
-        return false;
-    }
-}
-
-// Получение списка всех пользователей с рангом
-async function getUsersWithRank(rank = null) {
-    try {
-        const snapshot = await database.ref('users').once('value');
-        
-        if (!snapshot.exists()) {
-            return [];
-        }
-        
-        const users = [];
-        
-        snapshot.forEach(child => {
-            const user = child.val();
-            user.id = child.key;
-            
-            if (rank === null || user.rank === rank) {
-                users.push(user);
-            }
+        await window.database.ref('admin_actions').push({
+            action: action,
+            description: description,
+            adminName: adminName,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            ip: adminIp,
+            admin_uid: window.currentAdmin?.uid || 'N/A'
         });
-        
-        return users;
-        
     } catch (error) {
-        console.error('Ошибка получения пользователей:', error);
-        return [];
+        console.error('Ошибка логирования в Firebase:', error);
     }
 }
 
-// Экспорт данных в JSON
-function exportToJSON(data, filename) {
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', filename || 'export.json');
-    linkElement.click();
-}
+initFirebase();
 
-// Конвертация Base64 в Blob (для аватаров)
-function base64ToBlob(base64, contentType = '') {
-    const byteCharacters = atob(base64.split(',')[1]);
-    const byteArrays = [];
-    
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512);
-        const byteNumbers = new Array(slice.length);
-        
-        for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-        }
-        
-        const byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
-    }
-    
-    return new Blob(byteArrays, { type: contentType });
-}
-
-// Обрезка текста
-function truncateText(text, maxLength = 100) {
-    if (!text) return '';
-    if (text.length <= maxLength) return text;
-    
-    return text.substring(0, maxLength) + '...';
-}
-
-// Генерация случайного цвета
-function getRandomColor() {
-    const colors = [
-        '#0066ff', '#00cc66', '#ff9900', '#ff3333', 
-        '#9900ff', '#ff00ff', '#00ffff', '#ffff00'
-    ];
-    
-    return colors[Math.floor(Math.random() * colors.length)];
-}
-
-// Копирование текста в буфер обмена
-async function copyToClipboard(text) {
-    try {
-        await navigator.clipboard.writeText(text);
-        createNotification('success', 'Скопировано', 'Текст скопирован в буфер обмена');
-        return true;
-    } catch (error) {
-        console.error('Ошибка копирования:', error);
-        
-        // Fallback для старых браузеров
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        createNotification('success', 'Скопировано', 'Текст скопирован в буфер обмена');
-        return true;
-    }
-}
-
-// Экспортируем функции
-window.initFirebase = initFirebase;
 window.formatDate = formatDate;
 window.formatTime = formatTime;
-window.getUserIP = getUserIP;
-window.getUserInfo = getUserInfo;
 window.createNotification = createNotification;
-window.createLoader = createLoader;
-window.createEmptyState = createEmptyState;
-window.isUserAdmin = isUserAdmin;
-window.getUsersWithRank = getUsersWithRank;
-window.exportToJSON = exportToJSON;
-window.base64ToBlob = base64ToBlob;
-window.truncateText = truncateText;
-window.getRandomColor = getRandomColor;
-window.copyToClipboard = copyToClipboard;
+window.logAdminAction = logAdminAction;
