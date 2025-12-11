@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игроки | JojoLand</title>
     <link rel="stylesheet" href="style.css">
-
+    
     <!-- Шрифты -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    
     <style>
-        /* (скопированы стили из твоего файла — не трогал дизайн) */
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
@@ -24,93 +23,717 @@
             --card-bg: rgba(255, 255, 255, 0.03);
             --card-border: rgba(255, 255, 255, 0.08);
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: var(--light);
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
         }
-
+        
         /* ЛОАДЕР */
         #loader {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: var(--dark);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.4s ease;
         }
-        .spinner { width: 60px; height: 60px; border: 4px solid var(--card-border); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        #loader p { color: var(--gray); font-size: 16px; font-weight: 500; }
-
-        .players-container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; min-height: 100vh; }
-
-        .page-header { text-align: center; margin-bottom: 50px; }
-        .page-title { font-size: 42px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; letter-spacing: -0.5px; }
-        .page-subtitle { font-size: 18px; color: var(--gray); font-weight: 400; max-width: 600px; margin: 0 auto; line-height: 1.6; }
-
-        .search-filters-section { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--card-border); border-radius: 20px; padding: 30px; margin-bottom: 40px; }
-        .search-box { position: relative; margin-bottom: 25px; }
-        #search-input { width: 100%; padding: 16px 24px; background: rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:12px; color:var(--light); font-size:16px; padding-left:50px; }
-        .search-icon { position:absolute; left:20px; top:50%; transform: translateY(-50%); color:var(--gray); font-size:20px; }
-
-        .filters { display:flex; gap:12px; flex-wrap:wrap; }
-        .filter-btn { padding:10px 20px; background: rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:10px; color:var(--gray); cursor:pointer; font-size:14px; font-weight:500; display:flex; align-items:center; gap:8px; }
-        .filter-btn:hover { background: rgba(255,255,255,0.08); color:var(--light); border-color:var(--primary); transform: translateY(-1px); }
-        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
-
-        .players-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:24px; margin-bottom:50px; }
-        .player-card { background: var(--card-bg); backdrop-filter: blur(10px); border:1px solid var(--card-border); border-radius:16px; padding:24px; transition: all 0.3s; position: relative; overflow:hidden; }
-        .player-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .player-header { display:flex; align-items:center; margin-bottom:20px; }
-        .player-avatar { width:64px; height:64px; border-radius:50%; position:relative; margin-right:16px; flex-shrink:0; }
-        .player-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; border:2px solid var(--card-border); }
-        .avatar-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, var(--primary), var(--secondary)); color:white; font-size:24px; font-weight:600; border-radius:50%; }
-        .online-indicator { position:absolute; bottom:4px; right:4px; width:12px; height:12px; border-radius:50%; border:2px solid var(--dark); background:var(--success); }
-        .online-indicator.offline { background:var(--gray); }
-        .online-indicator.ingame { background:var(--warning); animation: pulse 2s infinite; }
-
-        .player-info { flex:1; min-width:0; }
-        .player-name-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-        .player-name { font-size:18px; font-weight:600; color:var(--light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .player-rank { font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px; }
-
-        .player-actions { display:flex; flex-direction:column; gap:10px; }
-        .friend-btn { width:100%; padding:10px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid; }
-        .friend-btn.add-friend { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color:#a5b4fc; }
-        .friend-btn.remove-friend { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color:#6ee7b7; }
-        .friend-btn.pending { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color:#fcd34d; cursor:not-allowed; }
-        .friend-btn.invitation { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); color:#93c5fd; }
-
-        .pagination { display:flex; justify-content:center; align-items:center; gap:12px; margin-top:50px; }
-        .page-btn { width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; color:var(--gray); cursor:pointer; }
-        .page-btn:hover:not(.disabled) { background: rgba(255,255,255,0.08); color:var(--light); border-color:var(--primary); }
-        .page-btn.active { background:var(--primary); color:white; border-color:var(--primary); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
-        .page-btn.disabled { opacity:0.5; cursor:not-allowed; }
-
-        .loading-state { text-align:center; padding:60px 20px; grid-column:1 / -1; }
-        .loading-spinner-small { width:40px; height:40px; border:3px solid var(--card-border); border-top:3px solid var(--primary); border-radius:50%; animation: spin 1s linear infinite; margin:0 auto 20px; }
-        .no-results { text-align:center; padding:60px 20px; grid-column:1 / -1; }
-
-        @media (max-width:1200px) {
-            .players-grid { grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--card-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
-        @media (max-width:768px) {
-            .players-container { padding:30px 16px; }
-            .page-title { font-size:32px; }
-            .players-grid { grid-template-columns:1fr; gap:20px; }
-            .filters { justify-content:center; }
+        
+        #loader p {
+            color: var(--gray);
+            font-size: 16px;
+            font-weight: 500;
         }
-        @media (max-width:480px) {
-            .players-container { padding:24px 12px; }
-            .page-title { font-size:28px; }
-            .player-stats { grid-template-columns: repeat(2,1fr); }
+        
+        /* КОНТЕЙНЕР */
+        .players-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
         }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%{opacity:1;} 50%{opacity:0.5;} 100%{opacity:1;} }
+        
+        /* ХЕДЕР */
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .page-title {
+            font-size: 42px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        
+        .page-subtitle {
+            font-size: 18px;
+            color: var(--gray);
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        /* ПОИСК И ФИЛЬТРЫ */
+        .search-filters-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        #search-input {
+            width: 100%;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--light);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            transition: all 0.3s;
+            padding-left: 50px;
+        }
+        
+        #search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 20px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--light);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+        
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+        
+        /* СЕТКА ИГРОКОВ */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+        
+        /* КАРТОЧКА ИГРОКА */
+        .player-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .player-card:hover::before {
+            opacity: 1;
+        }
+        
+        .player-card.admin::before {
+            background: linear-gradient(90deg, var(--danger), var(--warning));
+        }
+        
+        .player-card.moderator::before {
+            background: linear-gradient(90deg, var(--success), #06b6d4);
+        }
+        
+        .player-card.vip::before {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+        
+        .player-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .player-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            position: relative;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--card-border);
+        }
+        
+        .player-avatar .avatar-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            border-radius: 50%;
+        }
+        
+        .player-avatar.admin .avatar-fallback {
+            background: linear-gradient(135deg, var(--danger), var(--warning));
+        }
+        
+        .player-avatar.moderator .avatar-fallback {
+            background: linear-gradient(135deg, var(--success), #06b6d4);
+        }
+        
+        .player-avatar.vip .avatar-fallback {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        }
+        
+        .online-indicator {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--dark);
+            background: var(--success);
+        }
+        
+        .online-indicator.offline {
+            background: var(--gray);
+        }
+        
+        .online-indicator.ingame {
+            background: var(--warning);
+            animation: pulse 2s infinite;
+        }
+        
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .player-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .player-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .player-rank {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .player-rank.admin {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .player-rank.moderator {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .player-rank.vip {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .player-rank.player {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        
+        .player-id {
+            font-size: 13px;
+            color: var(--gray);
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        
+        .player-status {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--gray);
+        }
+        
+        /* СТАТИСТИКА ИГРОКА */
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--card-border);
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 12px 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--light);
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        /* КНОПКА ПРОФИЛЯ */
+        .view-profile-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            color: #a5b4fc;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .view-profile-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        /* ПАГИНАЦИЯ */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 50px;
+        }
+        
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .page-btn:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--light);
+            border-color: var(--primary);
+        }
+        
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+        
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            color: var(--gray);
+            font-size: 14px;
+            margin: 0 8px;
+        }
+        
+        /* ЗАГРУЗКА И ОШИБКИ */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .loading-spinner-small {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--card-border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .loading-state p {
+            color: var(--gray);
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .no-results h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--light);
+            margin-bottom: 8px;
+        }
+        
+        .no-results p {
+            color: var(--gray);
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 1200px) {
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .players-container {
+                padding: 30px 16px;
+            }
+            
+            .page-title {
+                font-size: 32px;
+            }
+            
+            .page-subtitle {
+                font-size: 16px;
+            }
+            
+            .search-filters-section {
+                padding: 24px;
+            }
+            
+            .players-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .filters {
+                justify-content: center;
+            }
+            
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .players-container {
+                padding: 24px 12px;
+            }
+            
+            .page-title {
+                font-size: 28px;
+            }
+            
+            .search-filters-section {
+                padding: 20px;
+            }
+            
+            .player-card {
+                padding: 20px;
+            }
+            
+            .player-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+            }
+        }
+        
+        /* АНИМАЦИИ */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* ИКОНКИ */
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* ДОПОЛНИТЕЛЬНЫЕ ЭЛЕМЕНТЫ */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            z-index: 100;
+            border: none;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .back-to-top:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        /* ХЕДЕР С НАВИГАЦИЕЙ */
+        .site-header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 0;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--light);
+        }
+        
+        .nav-link.active {
+            color: var(--primary);
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            
+            .nav-link {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -129,36 +752,48 @@
             <a href="index.html" class="nav-link">🏠 Главная</a>
             <a href="profile.html" class="nav-link">👤 Профиль</a>
             <a href="players.html" class="nav-link active">👥 Игроки</a>
-            <a href="friends.html" class="nav-link">🤝 Друзья</a>
-            <a href="messages.html" class="nav-link">✉️ Сообщения</a>
             <a href="points.html" class="nav-link">🎄 Очки</a>
         </nav>
     </div>
 </header>
 
-<!-- КОНТЕНТ -->
+<!-- ОСНОВНОЙ КОНТЕНТ -->
 <div id="content">
     <div class="players-container">
+        <!-- ЗАГОЛОВОК -->
         <div class="page-header">
             <h1 class="page-title">Сообщество игроков</h1>
             <p class="page-subtitle">Найдите друзей, отслеживайте активность и взаимодействуйте с другими участниками сервера</p>
         </div>
 
+        <!-- ПОИСК И ФИЛЬТРЫ -->
         <div class="search-filters-section">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Поиск по нику...">
                 <div class="search-icon">🔍</div>
             </div>
-
+            
             <div class="filters">
-                <button class="filter-btn active" data-filter="all">👥 Все игроки</button>
-                <button class="filter-btn" data-filter="online">🟢 Онлайн</button>
-                <button class="filter-btn" data-filter="admin">👑 Администрация</button>
-                <button class="filter-btn" data-filter="moderator">⚡ Модераторы</button>
-                <button class="filter-btn" data-filter="friends">🤝 Мои друзья</button>
+                <button class="filter-btn active" data-filter="all">
+                    <span>👥</span>
+                    Все игроки
+                </button>
+                <button class="filter-btn" data-filter="online">
+                    <span>🟢</span>
+                    Онлайн
+                </button>
+                <button class="filter-btn" data-filter="admin">
+                    <span>👑</span>
+                    Администрация
+                </button>
+                <button class="filter-btn" data-filter="moderator">
+                    <span>⚡</span>
+                    Модераторы
+                </button>
             </div>
         </div>
 
+        <!-- СЕТКА ИГРОКОВ -->
         <div class="players-grid" id="players-grid">
             <div class="loading-state" id="loading-players">
                 <div class="loading-spinner-small"></div>
@@ -166,19 +801,24 @@
             </div>
         </div>
 
-        <div class="pagination" id="pagination"></div>
+        <!-- ПАГИНАЦИЯ -->
+        <div class="pagination" id="pagination">
+            <!-- Пагинация загрузится через JS -->
+        </div>
     </div>
 </div>
 
-<!-- BACK TO TOP -->
-<button class="back-to-top" id="back-to-top" aria-label="Наверх">↑</button>
+<!-- КНОПКА НАВЕРХ -->
+<button class="back-to-top" id="back-to-top" aria-label="Наверх">
+    ↑
+</button>
 
-<!-- Firebase -->
+<!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
-/* players.html — логика */
+// Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
     authDomain: "jojoland-chat.firebasestorage.app",
@@ -192,194 +832,235 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// pagination & state
+// ПЕРЕМЕННЫЕ ДЛЯ ПАГИНАЦИИ
 let currentPage = 1;
 const playersPerPage = 9;
 let allPlayers = [];
 let filteredPlayers = [];
-let currentUserId = null;
-let currentUserNickname = null;
 
-// helper: online status
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
+
+// Получение ранга игрока
+async function getUserRank(userData, userId) {
+    try {
+        const adminSnapshot = await database.ref('admins/' + userId).once('value');
+        if (adminSnapshot.exists() && adminSnapshot.val() === true) {
+            return 'admin';
+        }
+        
+        if (userData.rank === 'admin') return 'admin';
+        if (userData.rank === 'moderator') return 'moderator';
+        if (userData.rank === 'vip') return 'vip';
+        
+        return 'player';
+    } catch (error) {
+        console.error('Ошибка получения ранга:', error);
+        return 'player';
+    }
+}
+
+// Получение очков игрока
+async function getUserPoints(userId) {
+    try {
+        const snapshot = await database.ref('holiday_points/' + userId).once('value');
+        if (snapshot.exists()) {
+            const pointsData = snapshot.val();
+            return pointsData.total_points || pointsData.totalPoints || 0;
+        }
+        return 0;
+    } catch (error) {
+        console.error('Ошибка загрузки очков:', error);
+        return 0;
+    }
+}
+
+// Получение аватара игрока
+async function getUserAvatar(userId) {
+    try {
+        // Проверяем кэш
+        const cachedAvatar = localStorage.getItem(`jojoland_avatar_${userId}`);
+        if (cachedAvatar) return cachedAvatar;
+        
+        // Получаем из базы
+        const snapshot = await database.ref('users/' + userId).once('value');
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            if (userData.avatar && userData.avatar.startsWith('data:image')) {
+                localStorage.setItem(`jojoland_avatar_${userId}`, userData.avatar);
+                return userData.avatar;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('Ошибка загрузки аватара:', error);
+        return null;
+    }
+}
+
+// Получение статуса онлайн
 function getOnlineStatus(userData) {
-    if (!userData || !userData.lastVisit) return 'offline';
+    if (!userData.lastVisit) return 'offline';
+    
     const lastVisit = new Date(userData.lastVisit);
     const now = new Date();
     const diffMinutes = (now - lastVisit) / (1000 * 60);
+    
     if (diffMinutes < 5) return 'online';
     if (diffMinutes < 15) return 'ingame';
     return 'offline';
 }
 
-function escapeQuotes(s) {
-    return String(s||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-}
-
-// --- ДРУЗЬЯ: вспомогательные проверки (используются при рендере карточки) ---
-async function isUserFriend(userId) {
-    if (!currentUserId) return false;
+// Форматирование даты
+function formatDate(dateString) {
+    if (!dateString) return 'Неизвестно';
     try {
-        const snap = await database.ref(`friends/${currentUserId}/${userId}`).once('value');
-        if (!snap.exists()) return false;
-        const v = snap.val();
-        // поддержка строкового и объектного формата
-        if (typeof v === 'string') return v === 'accepted';
-        return (v.status === 'accepted') || (v === 'accepted');
-    } catch (err) {
-        console.error('isUserFriend error', err);
-        return false;
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    } catch (error) {
+        return 'Неизвестно';
     }
 }
 
-async function hasSentRequest(userId) {
-    if (!currentUserId) return false;
-    try {
-        const snap = await database.ref(`sent_requests/${currentUserId}/${userId}`).once('value');
-        if (!snap.exists()) return false;
-        const v = snap.val();
-        return !v || v.status === 'pending' || v.status === undefined;
-    } catch (err) {
-        console.error('hasSentRequest error', err);
-        return false;
-    }
-}
-
-async function hasInvitationFrom(userId) {
-    if (!currentUserId) return false;
-    try {
-        const snap = await database.ref(`friend_requests/${currentUserId}/${userId}`).once('value');
-        if (!snap.exists()) return false;
-        const v = snap.val();
-        return !v || v.status === 'pending' || v.status === undefined;
-    } catch (err) {
-        console.error('hasInvitationFrom error', err);
-        return false;
-    }
-}
-
-// Получить список друзей (id)
-async function getFriendsList() {
-    try {
-        if (!currentUserId) return [];
-        const snapshot = await database.ref(`friends/${currentUserId}`).once('value');
-        if (!snapshot.exists()) return [];
-        const data = snapshot.val();
-        const list = [];
-        for (const id in data) {
-            const entry = data[id];
-            const status = typeof entry === 'string' ? entry : (entry.status || (entry === 'accepted' ? 'accepted' : null));
-            if (status === 'accepted') list.push(id);
-        }
-        return list;
-    } catch (err) {
-        console.error('getFriendsList error', err);
-        return [];
-    }
-}
-
-// Создание HTML карточки игрока (асинхронно получает статусы друзей/заявок)
-async function createPlayerCard(player) {
-    const nickname = player.nickname || 'Неизвестно';
+// Создание карточки игрока
+function createPlayerCard(player, points = 0, avatar = null) {
     const userId = player.userId || player.id;
-    const firstLetter = (nickname.charAt(0) || '?').toUpperCase();
-    const avatarImg = (player.avatar && player.avatar.startsWith('data:image')) ? `<img src="${player.avatar}" alt="${nickname}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">` : '';
-    const fallbackStyle = avatarImg ? 'style="display:none"' : '';
-    const online = getOnlineStatus(player);
-    const onlineClass = online === 'online' ? '' : online === 'ingame' ? 'ingame' : 'offline';
-    const rankClass = player.rank || 'player';
-
-    // Проверяем статус кнопки (получаем ассинхронно)
-    let btnHTML = `<button class="friend-btn add-friend" onclick="addFriend('${userId}', '${escapeQuotes(nickname)}')">➕ Добавить в друзья</button>`;
-    try {
-        if (currentUserId) {
-            if (currentUserId === userId) {
-                btnHTML = `<div style="text-align:center; color:var(--gray)">Это вы</div>`;
-            } else {
-                const [isFriend, sent, invitation] = await Promise.all([
-                    isUserFriend(userId),
-                    hasSentRequest(userId),
-                    hasInvitationFrom(userId)
-                ]);
-                if (isFriend) {
-                    btnHTML = `<button class="friend-btn remove-friend" onclick="removeFriend('${userId}')">👥 В друзьях</button>`;
-                } else if (invitation) {
-                    btnHTML = `<button class="friend-btn invitation" onclick="acceptFriendRequest('${userId}')">✅ Принять заявку</button>`;
-                } else if (sent) {
-                    btnHTML = `<button class="friend-btn pending">⏳ Заявка отправлена</button>`;
-                } else {
-                    btnHTML = `<button class="friend-btn add-friend" onclick="addFriend('${userId}', '${escapeQuotes(nickname)}')">➕ Добавить в друзья</button>`;
-                }
-            }
-        }
-    } catch (err) {
-        console.error('createPlayerCard status error', err);
+    const rank = player.rank || 'player';
+    const onlineStatus = getOnlineStatus(player);
+    const createdAt = formatDate(player.createdAt || player.registeredAt);
+    const visits = player.visitsCount || 1;
+    
+    // Статус текстом
+    const statusText = {
+        'online': 'Онлайн',
+        'ingame': 'В игре',
+        'offline': 'Не в сети'
+    };
+    
+    // Текст ранга
+    const rankText = {
+        'admin': 'Админ',
+        'moderator': 'Модератор',
+        'vip': 'VIP',
+        'player': 'Игрок'
+    };
+    
+    // Аватар
+    let avatarHTML = '';
+    if (avatar) {
+        avatarHTML = `<img src="${avatar}" alt="${player.nickname}" 
+                         onerror="this.style.display='none'; 
+                                  this.nextElementSibling.style.display='flex';">`;
     }
-
-    const html = `
-        <div class="player-card" data-user-id="${userId}">
+    
+    // Запасной вариант аватара
+    const fallbackLetter = player.nickname?.charAt(0).toUpperCase() || '?';
+    
+    return `
+        <div class="player-card ${rank}" data-user-id="${userId}">
             <div class="player-header">
-                <div class="player-avatar">
-                    ${avatarImg}
-                    <div class="avatar-fallback" ${fallbackStyle}>${firstLetter}</div>
-                    <div class="online-indicator ${onlineClass}"></div>
+                <div class="player-avatar ${rank}">
+                    ${avatarHTML}
+                    <div class="avatar-fallback" ${avatar ? 'style="display: none"' : ''}>
+                        ${fallbackLetter}
+                    </div>
+                    <div class="online-indicator ${onlineStatus}"></div>
                 </div>
                 <div class="player-info">
                     <div class="player-name-row">
-                        <div class="player-name">${nickname}</div>
-                        <div class="player-rank ${rankClass}">${player.rank ? player.rank.toUpperCase() : 'PLAYER'}</div>
+                        <div class="player-name">${player.nickname || 'Неизвестно'}</div>
+                        <div class="player-rank ${rank}">${rankText[rank]}</div>
                     </div>
-                    <div class="player-id">ID: ${String(userId).substring(0, 12)}</div>
-                    <div class="player-status">${online === 'online' ? 'Онлайн' : online === 'ingame' ? 'В игре' : 'Не в сети'}</div>
+                    <div class="player-id">ID: ${userId.substring(0, 8)}...</div>
+                    <div class="player-status">
+                        <span>${statusText[onlineStatus]}</span>
+                        •
+                        <span>${visits} визит${visits === 1 ? '' : 'ов'}</span>
+                    </div>
                 </div>
             </div>
-
-            <div class="player-actions">
-                <button class="view-profile-btn" onclick="window.location.href='profile.html?user=${encodeURIComponent(userId)}'">🔍 Профиль</button>
-                <div>${btnHTML}</div>
+            
+            <div class="player-stats">
+                <div class="stat-item">
+                    <span class="stat-value">${points}</span>
+                    <span class="stat-label">🎄 Очков</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${createdAt}</span>
+                    <span class="stat-label">📅 Регистрация</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${rank === 'admin' ? '👑' : rank === 'moderator' ? '⚡' : rank === 'vip' ? '⭐' : '👤'}</span>
+                    <span class="stat-label">Ранг</span>
+                </div>
             </div>
+            
+            <button class="view-profile-btn" onclick="viewPlayerProfile('${userId}')">
+                <span>👁️</span>
+                Посмотреть профиль
+            </button>
         </div>
     `;
-    return html;
 }
 
-// Загрузить всех игроков из /users
+// Просмотр профиля игрока
+function viewPlayerProfile(userId) {
+    window.location.href = `profile.html?view=${userId}`;
+}
+
+// Загрузка всех игроков
 async function loadAllPlayers() {
     try {
+        showLoading('players-grid', 'Загрузка игроков...');
+        
         const usersSnapshot = await database.ref('users').once('value');
+        
         if (!usersSnapshot.exists()) {
-            console.warn('Нет пользователей в БД');
+            showNoResults('players-grid', 'Пока нет зарегистрированных игроков');
             return [];
         }
-        const users = usersSnapshot.val();
+        
         const players = [];
-        for (const id in users) {
-            const u = users[id];
-            players.push({
-                userId: id,
-                nickname: u.nickname || u.name || 'Неизвестно',
-                avatar: u.avatar || '',
-                lastVisit: u.lastVisit || u.last_online || null,
-                rank: u.rank || (u.isAdmin ? 'admin' : (u.isMod ? 'moderator' : 'player')),
-                visitsCount: u.visitsCount || u.visits || 0
-            });
+        const users = usersSnapshot.val();
+        
+        for (const userId in users) {
+            const userData = users[userId];
+            if (userData.nickname) {
+                const rank = await getUserRank(userData, userId);
+                players.push({
+                    ...userData,
+                    userId: userId,
+                    id: userId,
+                    rank: rank
+                });
+            }
         }
-
-        // сортировка — онлайн/ingame -> ранги -> визиты
-        players.sort((a,b) => {
+        
+        // Сортировка: сначала онлайн, затем админы/модераторы, потом по активности
+        players.sort((a, b) => {
+            // Онлайн выше оффлайн
             const aOnline = getOnlineStatus(a) === 'online' ? 2 : getOnlineStatus(a) === 'ingame' ? 1 : 0;
             const bOnline = getOnlineStatus(b) === 'online' ? 2 : getOnlineStatus(b) === 'ingame' ? 1 : 0;
             if (aOnline !== bOnline) return bOnline - aOnline;
+            
+            // Выше ранг
             const rankOrder = { 'admin': 4, 'moderator': 3, 'vip': 2, 'player': 1 };
-            const ra = rankOrder[a.rank] || 1;
-            const rb = rankOrder[b.rank] || 1;
-            if (ra !== rb) return rb - ra;
+            if (rankOrder[a.rank] !== rankOrder[b.rank]) {
+                return rankOrder[b.rank] - rankOrder[a.rank];
+            }
+            
+            // По количеству визитов
             const aVisits = a.visitsCount || 0;
             const bVisits = b.visitsCount || 0;
             return bVisits - aVisits;
         });
-
+        
         console.log(`Загружено ${players.length} игроков`);
         return players;
+        
     } catch (error) {
         console.error('Ошибка загрузки игроков:', error);
         showNoResults('players-grid', 'Ошибка загрузки данных');
@@ -387,106 +1068,150 @@ async function loadAllPlayers() {
     }
 }
 
-// Отобразить игроков (с пагинацией)
+// Отображение игроков
 async function displayPlayers(players, containerId) {
     const container = document.getElementById(containerId);
+    
     if (!players || players.length === 0) {
         showNoResults(containerId, 'Игроки не найдены');
         return;
     }
-
+    
+    // Очищаем контейнер
     container.innerHTML = '';
+    
+    // Пагинация
     const totalPages = Math.ceil(players.length / playersPerPage);
     const startIndex = (currentPage - 1) * playersPerPage;
     const endIndex = startIndex + playersPerPage;
     const pagePlayers = players.slice(startIndex, endIndex);
-
-    // placeholder loaders
-    for (let i = 0; i < Math.min(pagePlayers.length, playersPerPage); i++) {
-        container.innerHTML += `
-            <div class="player-card">
-                <div class="loading-spinner-small"></div>
-            </div>
-        `;
+    
+    // Отображаем игроков текущей страницы
+    for (const player of pagePlayers) {
+        const [points, avatar] = await Promise.all([
+            getUserPoints(player.userId || player.id),
+            getUserAvatar(player.userId || player.id)
+        ]);
+        container.innerHTML += createPlayerCard(player, points, avatar);
     }
-
-    const cardsHTML = await Promise.all(pagePlayers.map(p => createPlayerCard(p)));
-    container.innerHTML = cardsHTML.join('');
+    
+    // Обновляем пагинацию
     updatePagination(totalPages);
 }
 
-// Обновить пагинацию
+// Обновление пагинации
 function updatePagination(totalPages) {
     const pagination = document.getElementById('pagination');
-    if (totalPages <= 1) { pagination.innerHTML = ''; return; }
-    let html = '';
-    html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(${Math.max(1, currentPage - 1)})" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
-    for (let i = 1; i <= totalPages; i++) {
-        html += `<button class="page-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
     }
-    html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(${Math.min(totalPages, currentPage + 1)})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+    
+    let html = '';
+    
+    // Кнопка "Назад"
+    html += `
+        <button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage - 1})" 
+                ${currentPage === 1 ? 'disabled' : ''}>
+            ←
+        </button>
+    `;
+    
+    // Номера страниц
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    // Информация о странице
+    html += `<span class="page-info">Страница ${currentPage} из ${totalPages}</span>`;
+    
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                    onclick="changePage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    // Кнопка "Вперед"
+    html += `
+        <button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage + 1})" 
+                ${currentPage === totalPages ? 'disabled' : ''}>
+            →
+        </button>
+    `;
+    
     pagination.innerHTML = html;
 }
 
+// Смена страницы
 function changePage(page) {
     currentPage = page;
     displayPlayers(filteredPlayers, 'players-grid');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Фильтрация
-async function filterPlayers(filter, buttonElement) {
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    if (buttonElement) buttonElement.classList.add('active');
-
+// Фильтрация игроков
+function filterPlayers(filter) {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
     let filtered = [];
+    
     switch (filter) {
         case 'online':
-            filtered = allPlayers.filter(p => getOnlineStatus(p) === 'online');
+            filtered = allPlayers.filter(player => getOnlineStatus(player) === 'online');
             break;
         case 'admin':
-            filtered = allPlayers.filter(p => p.rank === 'admin');
+            filtered = allPlayers.filter(player => player.rank === 'admin');
             break;
         case 'moderator':
-            filtered = allPlayers.filter(p => p.rank === 'moderator');
-            break;
-        case 'friends':
-            if (!currentUserId) {
-                alert('Для просмотра друзей нужно войти в аккаунт');
-                filtered = allPlayers;
-                break;
-            }
-            const friendsList = await getFriendsList();
-            filtered = allPlayers.filter(p => friendsList.includes(p.userId));
+            filtered = allPlayers.filter(player => player.rank === 'moderator');
             break;
         case 'all':
         default:
-            filtered = allPlayers;
+            filtered = [...allPlayers];
             break;
     }
+    
     filteredPlayers = filtered;
     currentPage = 1;
     displayPlayers(filteredPlayers, 'players-grid');
 }
 
-// Поиск
+// Поиск игроков
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
-    const searchTimeout = 300;
+    const searchTimeout = 300; // мс
+    
     let timeoutId;
-    searchInput.addEventListener('input', function(e) {
+    
+    searchInput.addEventListener('input', function() {
         clearTimeout(timeoutId);
+        
         timeoutId = setTimeout(() => {
             const searchTerm = this.value.toLowerCase().trim();
+            
             if (searchTerm.length === 0) {
-                filteredPlayers = allPlayers;
+                filteredPlayers = [...allPlayers];
                 currentPage = 1;
                 displayPlayers(filteredPlayers, 'players-grid');
                 return;
             }
-            const searchResults = allPlayers.filter(player =>
+            
+            const searchResults = allPlayers.filter(player => 
                 player.nickname && player.nickname.toLowerCase().includes(searchTerm)
             );
+            
             filteredPlayers = searchResults;
             currentPage = 1;
             displayPlayers(filteredPlayers, 'players-grid');
@@ -494,162 +1219,90 @@ function setupSearch() {
     });
 }
 
-// UI утилиты
+// Утилиты для отображения
 function showLoading(containerId, message) {
     const container = document.getElementById(containerId);
     if (container) {
-        container.innerHTML = `<div class="loading-state"><div class="loading-spinner-small"></div><p>${message}</p></div>`;
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner-small"></div>
+                <p>${message}</p>
+            </div>
+        `;
     }
 }
+
 function showNoResults(containerId, message) {
     const container = document.getElementById(containerId);
     if (container) {
-        container.innerHTML = `<div class="no-results"><div class="no-results-icon">👤</div><h3>${message}</h3><p style="color:var(--gray)">${message.toLowerCase().includes('ошибка') ? 'Попробуйте обновить страницу или проверьте подключение.' : 'Станьте первым игроком!'}</p></div>`;
+        container.innerHTML = `
+            <div class="no-results">
+                <div class="no-results-icon">👤</div>
+                <h3>${message}</h3>
+                ${message.includes('ошибка') ? 
+                    '<p>Попробуйте обновить страницу или проверьте подключение к интернету</p>' : 
+                    '<p>Станьте первым игроком на сервере!</p>'
+                }
+            </div>
+        `;
     }
 }
 
-// Кнопки друзей — операции: add, accept, reject, cancel, remove
-async function addFriend(userId, nickname) {
-    if (!currentUserId) { alert('Войдите в аккаунт чтобы отправлять заявки'); return; }
-    if (currentUserId === userId) { alert('Нельзя добавить себя'); return; }
-    if (!confirm(`Добавить ${nickname} в друзья?`)) return;
-    try {
-        const ts = Date.now();
-        await database.ref(`friend_requests/${userId}/${currentUserId}`).set({
-            fromNickname: currentUserNickname || 'Неизвестно',
-            timestamp: ts,
-            status: 'pending'
-        });
-        await database.ref(`sent_requests/${currentUserId}/${userId}`).set({
-            toNickname: nickname,
-            timestamp: ts,
-            status: 'pending'
-        });
-        alert('Заявка отправлена');
-        // обновим UI: перерендерим текущую страницу
-        displayPlayers(filteredPlayers, 'players-grid');
-    } catch (err) {
-        console.error('addFriend error', err);
-        alert('Ошибка при отправке заявки');
-    }
-}
-
-async function acceptFriendRequest(userId) {
-    if (!currentUserId) return;
-    try {
-        const ts = Date.now();
-        const fromUserSnapshot = await database.ref(`users/${userId}`).once('value');
-        const fromUserData = fromUserSnapshot.exists() ? fromUserSnapshot.val() : {nickname:'Неизвестно'};
-        await database.ref(`friends/${currentUserId}/${userId}`).set({ nickname: fromUserData.nickname || 'Неизвестно', status: 'accepted', since: ts });
-        await database.ref(`friends/${userId}/${currentUserId}`).set({ nickname: currentUserNickname || 'Неизвестно', status: 'accepted', since: ts });
-        await database.ref(`friend_requests/${currentUserId}/${userId}`).remove();
-        await database.ref(`sent_requests/${userId}/${currentUserId}`).remove();
-        alert('Заявка принята — пользователь добавлен в друзья');
-        // обновить UI
-        allPlayers = await loadAllPlayers();
-        filteredPlayers = allPlayers;
-        displayPlayers(filteredPlayers, 'players-grid');
-    } catch (err) {
-        console.error('acceptFriendRequest error', err);
-        alert('Ошибка при принятии заявки');
-    }
-}
-
-async function rejectFriendRequest(userId) {
-    if (!currentUserId) return;
-    if (!confirm('Отклонить заявку?')) return;
-    try {
-        await database.ref(`friend_requests/${currentUserId}/${userId}`).remove();
-        await database.ref(`sent_requests/${userId}/${currentUserId}`).remove();
-        alert('Заявка отклонена');
-        // обновим UI
-        allPlayers = await loadAllPlayers();
-        filteredPlayers = allPlayers;
-        displayPlayers(filteredPlayers, 'players-grid');
-    } catch (err) {
-        console.error('rejectFriendRequest error', err);
-    }
-}
-
-async function cancelSentRequest(userId) {
-    if (!currentUserId) return;
-    if (!confirm('Отменить отправленную заявку?')) return;
-    try {
-        await database.ref(`sent_requests/${currentUserId}/${userId}`).remove();
-        await database.ref(`friend_requests/${userId}/${currentUserId}`).remove();
-        alert('Отправленная заявка отменена');
-        // обновим UI
-        allPlayers = await loadAllPlayers();
-        filteredPlayers = allPlayers;
-        displayPlayers(filteredPlayers, 'players-grid');
-    } catch (err) {
-        console.error('cancelSentRequest error', err);
-    }
-}
-
-async function removeFriend(userId) {
-    if (!currentUserId) return;
-    if (!confirm('Удалить из друзей?')) return;
-    try {
-        await database.ref(`friends/${currentUserId}/${userId}`).remove();
-        await database.ref(`friends/${userId}/${currentUserId}`).remove();
-        alert('Пользователь удалён из друзей');
-        // обновим UI
-        allPlayers = await loadAllPlayers();
-        filteredPlayers = allPlayers;
-        displayPlayers(filteredPlayers, 'players-grid');
-    } catch (err) {
-        console.error('removeFriend error', err);
-        alert('Ошибка при удалении');
-    }
-}
-
-// Back to top
+// Кнопка "Наверх"
 function setupBackToTop() {
     const backToTopBtn = document.getElementById('back-to-top');
+    
     window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) backToTopBtn.classList.add('visible'); else backToTopBtn.classList.remove('visible');
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('visible');
+        } else {
+            backToTopBtn.classList.remove('visible');
+        }
     });
-    backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-}
-
-// Auth check (localStorage)
-function checkAuth() {
-    const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
-    const nickname = localStorage.getItem('jojoland_nickname');
-    const userId = localStorage.getItem('jojoland_userId');
-    if (isLoggedIn && nickname && userId) {
-        currentUserId = userId;
-        currentUserNickname = nickname;
-        return true;
-    }
-    return false;
+    
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 }
 
 // Инициализация страницы
 async function initPlayersPage() {
     try {
-        checkAuth(); // установит currentUserId если есть
+        // Загружаем всех игроков
         allPlayers = await loadAllPlayers();
-        filteredPlayers = allPlayers;
+        filteredPlayers = [...allPlayers];
+        
+        // Отображаем игроков
         await displayPlayers(filteredPlayers, 'players-grid');
+        
+        // Настраиваем поиск
         setupSearch();
+        
+        // Настраиваем фильтры
         document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => filterPlayers(btn.dataset.filter, btn));
+            btn.addEventListener('click', () => filterPlayers(btn.dataset.filter));
         });
+        
+        // Настраиваем кнопку "Наверх"
         setupBackToTop();
-    } catch (err) {
-        console.error('initPlayersPage error', err);
+        
+    } catch (error) {
+        console.error('Ошибка инициализации страницы:', error);
         showNoResults('players-grid', 'Произошла ошибка');
     }
 }
 
-// window.onload
+// Загрузка страницы
 window.onload = async function() {
-    // скрыть лоадер
-    const loader = document.getElementById("loader");
-    if (loader) { loader.style.opacity = "0"; setTimeout(()=>{ loader.style.display = "none"; document.getElementById('content').style.opacity = '1'; }, 400); }
-    await initPlayersPage();
+    // Анимация загрузки
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+        
+        // Инициализируем страницу
+        initPlayersPage();
+    }, 400);
 };
 </script>
 
