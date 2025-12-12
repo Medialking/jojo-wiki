@@ -559,7 +559,7 @@
             }
         }
         
-        /* ==================== КАРТОЧКА ОБРАЩЕНИЯ ==================== */
+        /* ==================== КАРТОЧКА ОБРАЩЕНИЯ (УЛУЧШЕННАЯ) ==================== */
         .ticket-card {
             background: linear-gradient(145deg, rgba(40, 0, 80, 0.8), rgba(20, 0, 40, 0.8));
             border-radius: var(--border-radius);
@@ -601,43 +601,23 @@
             padding: 25px;
             background: rgba(0, 0, 0, 0.3);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .ticket-title-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            margin-bottom: 15px;
             flex-wrap: wrap;
             gap: 15px;
-        }
-        
-        .ticket-info-main {
-            flex: 1;
         }
         
         .ticket-title {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: var(--text-light);
-            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-        
-        .ticket-meta {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        
-        .ticket-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-        
-        .ticket-meta-item i {
-            color: var(--accent-blue);
+            gap: 12px;
         }
         
         .ticket-status {
@@ -652,6 +632,63 @@
         .status-read { background: rgba(0, 204, 255, 0.2); color: var(--accent-blue); }
         .status-answered { background: rgba(0, 255, 153, 0.2); color: var(--accent-green); }
         .status-closed { background: rgba(150, 150, 150, 0.2); color: #ccc; }
+        
+        /* ИНФОРМАЦИОННАЯ ПАНЕЛЬ */
+        .ticket-info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-small);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .info-label i {
+            color: var(--accent-blue);
+            font-size: 14px;
+        }
+        
+        .info-value {
+            font-size: 15px;
+            color: var(--text-light);
+            font-weight: 600;
+            word-break: break-word;
+        }
+        
+        .info-value.nickname {
+            color: var(--accent-yellow);
+            font-weight: bold;
+        }
+        
+        .info-value.violation {
+            color: var(--accent-red);
+        }
+        
+        .info-value.punishment {
+            color: var(--accent-orange);
+        }
+        
+        .info-value.question {
+            color: var(--accent-blue);
+        }
         
         .ticket-content {
             padding: 25px;
@@ -950,6 +987,10 @@
                 padding: 10px 15px;
                 font-size: 14px;
             }
+            
+            .ticket-info-panel {
+                grid-template-columns: 1fr;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1171,7 +1212,7 @@
                     </button>
                     
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Поиск по никнейму или ID..." 
+                        <input type="text" id="searchInput" placeholder="Поиск по никнейму или описанию..." 
                                oninput="searchTickets(this.value)">
                     </div>
                 </div>
@@ -1258,6 +1299,81 @@
         let currentFilter = 'all';
         let deleteTicketId = null;
         
+        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+        function getViolationTypeText(type) {
+            const types = {
+                'cheating': 'Читы / Запрещенное ПО',
+                'toxic': 'Токсичное поведение / Оскорбления',
+                'spam': 'Спам / Флуд',
+                'scam': 'Мошенничество',
+                'exploit': 'Использование багов',
+                'teamkill': 'Убийство союзников',
+                'other': 'Другое нарушение'
+            };
+            return types[type] || type;
+        }
+        
+        function getPunishmentTypeText(type) {
+            const types = {
+                'ban': 'Бан (постоянный)',
+                'tempban': 'Бан (временный)',
+                'mute': 'Мут (запрет чата)',
+                'kick': 'Кик с сервера',
+                'warn': 'Предупреждение',
+                'other': 'Другое наказание'
+            };
+            return types[type] || type;
+        }
+        
+        function getQuestionTypeText(type) {
+            const types = {
+                'bug': 'Сообщить о баге',
+                'tech': 'Техническая проблема',
+                'game': 'Вопрос по игре',
+                'payment': 'Проблема с оплатой',
+                'account': 'Проблема с аккаунтом',
+                'suggestion': 'Предложение по игре',
+                'other': 'Другой вопрос'
+            };
+            return types[type] || type;
+        }
+        
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Неизвестно';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            // Если меньше суток
+            if (diff < 86400000) {
+                if (diff < 3600000) {
+                    const minutes = Math.floor(diff / 60000);
+                    return `${minutes} минут назад`;
+                }
+                const hours = Math.floor(diff / 3600000);
+                return `${hours} часов назад`;
+            }
+            
+            return date.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/\n/g, '<br>');
+        }
+        
         // ==================== АУТЕНТИФИКАЦИЯ ====================
         async function login() {
             const email = document.getElementById('adminEmail').value.trim();
@@ -1282,8 +1398,20 @@
                 currentUser = userCredential.user;
                 
                 // Проверяем, является ли пользователь администратором
-                // Здесь можно добавить дополнительную проверку по кастомным claims или базе данных
-                await checkAdminStatus(currentUser);
+                const adminEmails = [
+                    'admin@jojoland.com',
+                    'moderator@jojoland.com'
+                ];
+                
+                if (!adminEmails.includes(user.email)) {
+                    const adminRef = database.ref('admins/' + user.uid);
+                    const snapshot = await adminRef.once('value');
+                    
+                    if (!snapshot.exists()) {
+                        await auth.signOut();
+                        throw new Error('Доступ запрещен');
+                    }
+                }
                 
                 // Сохраняем данные для авто-входа
                 localStorage.setItem('adminEmail', email);
@@ -1330,30 +1458,6 @@
             }
         }
         
-        async function checkAdminStatus(user) {
-            // Здесь можно добавить дополнительную проверку прав администратора
-            // Например, проверить кастомные claims или запись в базе данных
-            
-            // Для демо просто проверяем, что email заканчивается на определённый домен
-            // В реальном проекте используйте Firebase Admin SDK для установки кастомных claims
-            const adminEmails = [
-                'admin@jojoland.com',
-                'moderator@jojoland.com'
-                // Добавьте другие email администраторов
-            ];
-            
-            if (!adminEmails.includes(user.email)) {
-                // Можно проверить в базе данных
-                const adminRef = database.ref('admins/' + user.uid);
-                const snapshot = await adminRef.once('value');
-                
-                if (!snapshot.exists()) {
-                    await auth.signOut();
-                    throw new Error('Доступ запрещен');
-                }
-            }
-        }
-        
         function showError(message) {
             const errorDiv = document.getElementById('loginError');
             errorDiv.textContent = message;
@@ -1386,7 +1490,6 @@
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     try {
-                        await checkAdminStatus(user);
                         currentUser = user;
                         showAdminPanel();
                         loadTickets();
@@ -1501,7 +1604,8 @@
                     (ticket.username && ticket.username.toLowerCase().includes(searchTerm)) ||
                     (ticket.targetNickname && ticket.targetNickname.toLowerCase().includes(searchTerm)) ||
                     (ticket.id && ticket.id.toLowerCase().includes(searchTerm)) ||
-                    (ticket.description && ticket.description.toLowerCase().includes(searchTerm))
+                    (ticket.description && ticket.description.toLowerCase().includes(searchTerm)) ||
+                    (ticket.reason && ticket.reason.toLowerCase().includes(searchTerm))
                 );
             });
             
@@ -1554,7 +1658,7 @@
             });
         }
         
-        // ==================== СОЗДАНИЕ КАРТОЧКИ ОБРАЩЕНИЯ ====================
+        // ==================== СОЗДАНИЕ КАРТОЧКИ ОБРАЩЕНИЯ (УЛУЧШЕННАЯ) ====================
         function createTicketCard(ticket) {
             const typeText = ticket.type === 'complaint' ? 'Жалоба' : 
                             ticket.type === 'appeal' ? 'Апелляция' : 
@@ -1574,32 +1678,51 @@
                              ticket.status === 'answered' ? '📨 С ответом' : 
                              '✅ Закрыто';
             
-            // Форматирование даты
-            const formatDate = (timestamp) => {
-                if (!timestamp) return 'Неизвестно';
-                const date = new Date(timestamp);
-                return date.toLocaleDateString('ru-RU', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            };
+            // Создаем информационную панель
+            let infoPanelHtml = '';
             
-            // Экранирование HTML
-            const escapeHtml = (text) => {
-                if (!text) return '';
-                return text
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;")
-                    .replace(/\n/g, '<br>');
-            };
+            if (ticket.type === 'complaint') {
+                infoPanelHtml = `
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-user-slash"></i> Нарушитель:</div>
+                        <div class="info-value nickname">${ticket.targetNickname || 'Не указан'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-gavel"></i> Тип нарушения:</div>
+                        <div class="info-value violation">${getViolationTypeText(ticket.violationType)}</div>
+                    </div>
+                `;
+            } else if (ticket.type === 'appeal') {
+                infoPanelHtml = `
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-user-check"></i> Заявитель:</div>
+                        <div class="info-value nickname">${ticket.targetNickname || ticket.username}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-ban"></i> Тип наказания:</div>
+                        <div class="info-value punishment">${getPunishmentTypeText(ticket.punishmentType)}</div>
+                    </div>
+                    ${ticket.punishmentDate ? `
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-calendar-alt"></i> Дата наказания:</div>
+                        <div class="info-value">${ticket.punishmentDate}</div>
+                    </div>
+                    ` : ''}
+                `;
+            } else if (ticket.type === 'support') {
+                infoPanelHtml = `
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-user"></i> Игрок:</div>
+                        <div class="info-value nickname">${ticket.targetNickname || ticket.username || 'Аноним'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-question-circle"></i> Тип вопроса:</div>
+                        <div class="info-value question">${getQuestionTypeText(ticket.questionType)}</div>
+                    </div>
+                `;
+            }
             
-            // Получение ответов
+            // Получаем ответы
             let answersHtml = '';
             if (ticket.answers && Object.keys(ticket.answers).length > 0) {
                 const answers = Object.entries(ticket.answers);
@@ -1607,7 +1730,9 @@
                 
                 answersHtml = '<div class="answers-list">';
                 answers.forEach(([answerId, answer]) => {
-                    const isAdmin = answer.senderId && !answer.senderId.startsWith(ticket.userId);
+                    const isAdmin = answer.adminName || 
+                                   (answer.senderId && !answer.senderId.startsWith('guest_')) ||
+                                   (answer.senderId && answer.senderId.includes('admin'));
                     
                     answersHtml += `
                         <div class="answer-item">
@@ -1628,46 +1753,49 @@
             return `
                 <div class="ticket-card ${statusClass}" id="ticket_${ticket.id}">
                     <div class="ticket-header">
-                        <div class="ticket-info-main">
+                        <div class="ticket-title-row">
                             <div class="ticket-title">
                                 <i class="fas ${typeIcon}"></i>
                                 ${typeText} #${ticket.id.substr(0, 8)}
+                                <small style="color: var(--text-secondary); margin-left: 10px;">
+                                    ${formatDate(ticket.timestamp)}
+                                </small>
                             </div>
                             
-                            <div class="ticket-meta">
-                                <div class="ticket-meta-item">
-                                    <i class="fas fa-user"></i>
-                                    <span>${ticket.username || 'Аноним'}</span>
-                                </div>
-                                
-                                ${ticket.targetNickname ? `
-                                    <div class="ticket-meta-item">
-                                        <i class="fas fa-bullseye"></i>
-                                        <span>${escapeHtml(ticket.targetNickname)}</span>
-                                    </div>
-                                ` : ''}
-                                
-                                <div class="ticket-meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    <span>${formatDate(ticket.timestamp)}</span>
-                                </div>
+                            <div class="ticket-status status-${ticket.status}">
+                                ${statusText}
                             </div>
                         </div>
                         
-                        <div class="ticket-status status-${ticket.status}">
-                            ${statusText}
+                        <div class="info-item" style="margin-top: 10px;">
+                            <div class="info-label"><i class="fas fa-user"></i> Отправитель:</div>
+                            <div class="info-value nickname">${ticket.username || 'Аноним'}</div>
+                        </div>
+                        
+                        <div class="ticket-info-panel">
+                            ${infoPanelHtml}
+                            
+                            <div class="info-item">
+                                <div class="info-label"><i class="fas fa-clock"></i> Время создания:</div>
+                                <div class="info-value">${formatDate(ticket.timestamp)}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label"><i class="fas fa-id-card"></i> ID обращения:</div>
+                                <div class="info-value">${ticket.id.substr(0, 12)}...</div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="ticket-content">
                         <div class="ticket-section">
-                            <h4><i class="fas fa-file-alt"></i> Описание</h4>
+                            <h4><i class="fas fa-file-alt"></i> Описание обращения</h4>
                             <div class="ticket-text">${escapeHtml(ticket.description)}</div>
                         </div>
                         
                         ${ticket.reason ? `
                             <div class="ticket-section">
-                                <h4><i class="fas fa-link"></i> Дополнительная информация</h4>
+                                <h4><i class="fas fa-link"></i> Дополнительная информация / Доказательства</h4>
                                 <div class="ticket-text">${escapeHtml(ticket.reason)}</div>
                             </div>
                         ` : ''}
@@ -1740,6 +1868,9 @@
                 
                 showNotification('success', '✅ Ответ отправлен!');
                 
+                // Обновляем карточку
+                loadTickets();
+                
             } catch (error) {
                 console.error('Ошибка отправки ответа:', error);
                 showNotification('error', '❌ Ошибка отправки ответа');
@@ -1754,6 +1885,7 @@
             try {
                 await database.ref(`support_tickets/${ticketId}/status`).set(newStatus);
                 showNotification('success', '✅ Статус обновлен');
+                loadTickets();
             } catch (error) {
                 console.error('Ошибка обновления статуса:', error);
                 showNotification('error', '❌ Ошибка обновления статуса');
@@ -1779,6 +1911,7 @@
                 
                 await database.ref().update(updates);
                 showNotification('success', `✅ Все новые обращения отмечены как прочитанные`);
+                loadTickets();
             } catch (error) {
                 console.error('Ошибка обновления:', error);
                 showNotification('error', '❌ Ошибка обновления');
@@ -1801,6 +1934,7 @@
                 .then(() => {
                     showNotification('success', '✅ Обращение удалено');
                     cancelDelete();
+                    loadTickets();
                 })
                 .catch(error => {
                     console.error('Ошибка удаления:', error);
@@ -1878,32 +2012,6 @@
                 document.body.style.opacity = '1';
             }, 100);
         });
-        
-        // ==================== УПРАВЛЕНИЕ АДМИНАМИ В FIREBASE ====================
-        // Для добавления администраторов используйте Firebase Console:
-        // 1. В Firebase Console перейдите в Authentication
-        // 2. Добавьте пользователей с email/password
-        // 3. В Cloud Firestore или Realtime Database создайте коллекцию 'admins'
-        // 4. Добавьте документ с UID пользователя как ключ
-        
-        // Пример структуры в базе данных:
-        // admins: {
-        //   "user_uid_1": {
-        //     email: "admin@jojoland.com",
-        //     role: "admin",
-        //     name: "Главный Админ",
-        //     createdAt: timestamp
-        //   },
-        //   "user_uid_2": {
-        //     email: "moderator@jojoland.com",
-        //     role: "moderator",
-        //     name: "Модератор",
-        //     createdAt: timestamp
-        //   }
-        // }
-        
-        // Или используйте Firebase Admin SDK для установки кастомных claims:
-        // admin.auth().setCustomUserClaims(uid, { admin: true });
     </script>
 </body>
 </html>
