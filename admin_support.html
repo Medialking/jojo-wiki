@@ -1299,6 +1299,48 @@
         let currentFilter = 'all';
         let deleteTicketId = null;
         
+        // ==================== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ НИКНЕЙМА ИЗ ПРОФИЛЯ ====================
+        async function getUserNicknameFromProfile(userId) {
+            if (!userId || userId === 'guest' || userId === 'аноним' || userId === 'anonymous') {
+                return 'Аноним';
+            }
+            
+            try {
+                // Кэш в localStorage для быстрого доступа
+                const cacheKey = `jojoland_nickname_${userId}`;
+                const cachedNickname = localStorage.getItem(cacheKey);
+                
+                if (cachedNickname) {
+                    return cachedNickname;
+                }
+                
+                // Получаем данные пользователя из базы
+                const snapshot = await database.ref('users/' + userId).once('value');
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    
+                    // Пробуем получить никнейм из разных полей
+                    let nickname = userData.nickname || 
+                                  userData.username || 
+                                  userData.displayName || 
+                                  'Игрок';
+                    
+                    // Сохраняем в кэш
+                    localStorage.setItem(cacheKey, nickname);
+                    
+                    return nickname;
+                } else {
+                    // Если пользователь не найден, пробуем найти по нику в другом месте
+                    // Это для обратной совместимости со старыми обращениями
+                    return 'Игрок';
+                }
+            } catch (error) {
+                console.error('Ошибка получения никнейма из профиля:', error);
+                return 'Игрок';
+            }
+        }
+        
         // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
         function getViolationTypeText(type) {
             const types = {
@@ -1395,7 +1437,8 @@
             try {
                 // Пытаемся войти
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                currentUser = userCredential.user;
+                const user = userCredential.user;
+                currentUser = user;
                 
                 // Проверяем, является ли пользователь администратором
                 const adminEmails = [
@@ -1529,12 +1572,12 @@
         }
         
         // ==================== УПРАВЛЕНИЕ ОБРАЩЕНИЯМИ ====================
-        function loadTickets() {
+        async function loadTickets() {
             showLoading('Загрузка обращений...');
             
             const ticketsRef = database.ref('support_tickets').orderByChild('timestamp');
             
-            ticketsRef.on('value', snapshot => {
+            ticketsRef.on('value', async snapshot => {
                 if (!snapshot.exists()) {
                     tickets = [];
                     updateUI();
@@ -1552,7 +1595,7 @@
                 tickets.sort((a, b) => b.timestamp - a.timestamp);
                 
                 updateStats();
-                updateUI();
+                await updateUI(); // Делаем асинхронным для получения ников
                 hideLoading();
             }, error => {
                 console.error('Ошибка загрузки обращений:', error);
@@ -1612,7 +1655,7 @@
             renderTickets(filteredTickets);
         }
         
-        function updateUI() {
+        async function updateUI() {
             if (currentFilter === 'all') {
                 filteredTickets = tickets;
             } else if (currentFilter === 'new') {
@@ -1627,10 +1670,10 @@
                 filteredTickets = tickets.filter(t => t.status === 'answered');
             }
             
-            renderTickets(filteredTickets);
+            await renderTickets(filteredTickets);
         }
         
-        function renderTickets(ticketsToRender) {
+        async function renderTickets(ticketsToRender) {
             const container = document.getElementById('ticketsGrid');
             const noTicketsMessage = document.getElementById('noTicketsMessage');
             
@@ -1643,9 +1686,11 @@
             
             noTicketsMessage.style.display = 'none';
             
-            ticketsToRender.forEach(ticket => {
-                container.innerHTML += createTicketCard(ticket);
-            });
+            // Загружаем никнеймы для всех тикетов
+            for (const ticket of ticketsToRender) {
+                const ticketHtml = await createTicketCard(ticket);
+                container.innerHTML += ticketHtml;
+            }
             
             // Добавляем обработчики событий
             document.querySelectorAll('.answer-form').forEach(form => {
@@ -1658,8 +1703,8 @@
             });
         }
         
-        // ==================== СОЗДАНИЕ КАРТОЧКИ ОБРАЩЕНИЯ (УЛУЧШЕННАЯ) ====================
-        function createTicketCard(ticket) {
+        // ==================== СОЗДАНИЕ КАРТОЧКИ ОБРАЩЕНИЯ (С НИКОМ ИЗ ПРОФИЛЯ) ====================
+        async function createTicketCard(ticket) {
             const typeText = ticket.type === 'complaint' ? 'Жалоба' : 
                             ticket.type === 'appeal' ? 'Апелляция' : 
                             'Поддержка';
@@ -1677,6 +1722,20 @@
                              ticket.status === 'read' ? '👁️ Просмотрено' : 
                              ticket.status === 'answered' ? '📨 С ответом' : 
                              '✅ Закрыто';
+            
+            // ПОЛУЧАЕМ НИКНЕЙМ ИЗ ПРОФИЛЯ
+            let displayNickname = 'Аноним';
+            
+            // Пробуем получить userId из разных полей
+            const userId = ticket.userId || ticket.userID || ticket.uid;
+            
+            if (userId) {
+                // Получаем никнейм из профиля пользователя
+                displayNickname = await getUserNicknameFromProfile(userId);
+            } else if (ticket.username) {
+                // Если userId нет, используем сохраненный username
+                displayNickname = ticket.username;
+            }
             
             // Создаем информационную панель
             let infoPanelHtml = '';
@@ -1696,7 +1755,7 @@
                 infoPanelHtml = `
                     <div class="info-item">
                         <div class="info-label"><i class="fas fa-user-check"></i> Заявитель:</div>
-                        <div class="info-value nickname">${ticket.targetNickname || ticket.username}</div>
+                        <div class="info-value nickname">${ticket.targetNickname || displayNickname}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label"><i class="fas fa-ban"></i> Тип наказания:</div>
@@ -1713,7 +1772,7 @@
                 infoPanelHtml = `
                     <div class="info-item">
                         <div class="info-label"><i class="fas fa-user"></i> Игрок:</div>
-                        <div class="info-value nickname">${ticket.targetNickname || ticket.username || 'Аноним'}</div>
+                        <div class="info-value nickname">${ticket.targetNickname || displayNickname}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label"><i class="fas fa-question-circle"></i> Тип вопроса:</div>
@@ -1739,7 +1798,7 @@
                             <div class="answer-header">
                                 <div class="answer-author ${isAdmin ? 'admin' : ''}">
                                     <i class="fas ${isAdmin ? 'fa-crown' : 'fa-user'}"></i>
-                                    ${isAdmin ? (answer.adminName || 'Администратор') : ticket.username}
+                                    ${isAdmin ? (answer.adminName || 'Администратор') : displayNickname}
                                 </div>
                                 <div class="answer-time">${formatDate(answer.timestamp)}</div>
                             </div>
@@ -1767,9 +1826,10 @@
                             </div>
                         </div>
                         
+                        <!-- ИЗМЕНЕНО: Отображаем никнейм из профиля -->
                         <div class="info-item" style="margin-top: 10px;">
                             <div class="info-label"><i class="fas fa-user"></i> Отправитель:</div>
-                            <div class="info-value nickname">${ticket.username || 'Аноним'}</div>
+                            <div class="info-value nickname">${displayNickname}</div>
                         </div>
                         
                         <div class="ticket-info-panel">
