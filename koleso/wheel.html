@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо фортуны | JojoLand</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="wheel.css">
+    
+    <!-- Игровой шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка колеса удачи...</p>
+</div>
+
+<!-- ФОНОВЫЕ ЭФФЕКТЫ -->
+<div class="background-effects" id="particles"></div>
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>🎡 Колесо фортуны</h1>
+        <p class="subtitle">Крути колесо каждые 24 часа и выигрывай от 1 до 50 новогодних очков!</p>
+    </header>
+
+    <div class="wheel-container">
+        <!-- КОЛЕСО С ФОНОМ -->
+        <div class="wheel-background">
+            <div class="wheel-platform">
+                <!-- Колесо -->
+                <div class="wheel" id="wheel">
+                    <!-- Сегменты будут добавлены через JS -->
+                </div>
+                
+                <!-- Указатель -->
+                <div class="wheel-pointer">
+                    <div class="pointer-arrow"></div>
+                    <div class="pointer-base"></div>
+                </div>
+                
+                <!-- Центр колеса -->
+                <div class="wheel-center">
+                    <div class="center-circle"></div>
+                    <div class="center-sparkle">★</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- КНОПКА ВРАЩЕНИЯ -->
+        <div class="spin-section">
+            <button class="spin-btn" id="spin-btn">
+                <div class="spin-btn-content">
+                    <span class="spin-icon">🎯</span>
+                    <span class="spin-text">КРУТИТЬ КОЛЕСО</span>
+                </div>
+                <div class="spin-timer" id="spin-timer">
+                    <span class="timer-icon">⏰</span>
+                    <span class="timer-text" id="timer-text">Доступно через: --:--:--</span>
+                </div>
+            </button>
+            
+            <div class="spin-info">
+                <div class="info-item">
+                    <span class="info-icon">🔄</span>
+                    <span class="info-text">1 вращение в 24 часа</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">🎁</span>
+                    <span class="info-text">Бесплатно!</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- СТАТИСТИКА ИГРОКА -->
+        <div class="player-stats">
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-content">
+                    <div class="stat-label">Всего очков</div>
+                    <div class="stat-value" id="total-points">0</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🎡</div>
+                <div class="stat-content">
+                    <div class="stat-label">Вращений</div>
+                    <div class="stat-value" id="spins-count">0</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <div class="stat-label">Серия</div>
+                    <div class="stat-value" id="streak-days">0 дн.</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-label">Макс. выигрыш</div>
+                    <div class="stat-value" id="max-win">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ПРИЗЫ НА КОЛЕСЕ -->
+        <div class="prizes-section">
+            <h2 class="section-title">🎁 Возможные выигрыши</h2>
+            <div class="prizes-grid" id="prizes-grid">
+                <!-- Призы будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <!-- ИСТОРИЯ ВРАЩЕНИЙ -->
+        <div class="history-section">
+            <h2 class="section-title">📜 История вращений</h2>
+            <div class="history-list" id="history-list">
+                <div class="empty-history">
+                    <div class="empty-icon">🎡</div>
+                    <p>Вы еще не крутили колесо</p>
+                    <small>Сделайте первое вращение!</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <a href="points.html" class="action-btn">
+                <span class="btn-icon">🏆</span>
+                <span class="btn-text">Новогодние очки</span>
+            </a>
+            <a href="index.html" class="action-btn">
+                <span class="btn-icon">🏠</span>
+                <span class="btn-text">На главную</span>
+            </a>
+            <button class="action-btn" id="share-btn">
+                <span class="btn-icon">📢</span>
+                <span class="btn-text">Поделиться</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ВЫИГРЫША -->
+<div id="win-modal" class="modal-overlay">
+    <div class="modal-content win-modal">
+        <div class="confetti-container" id="confetti-container"></div>
+        
+        <div class="win-header">
+            <h2>🎉 ПОЗДРАВЛЯЕМ!</h2>
+            <p>Вы выиграли новогодние очки!</p>
+        </div>
+        
+        <div class="win-body">
+            <div class="win-amount" id="win-amount">
+                <span class="win-number" id="win-number">0</span>
+                <span class="win-label">НОВОГОДНИХ ОЧКОВ</span>
+                <div class="win-sparkles">
+                    <div class="sparkle">✨</div>
+                    <div class="sparkle">✨</div>
+                    <div class="sparkle">✨</div>
+                </div>
+            </div>
+            
+            <div class="win-message" id="win-message">
+                Отличный результат!
+            </div>
+            
+            <div class="win-stats">
+                <div class="win-stat">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-content">
+                        <div class="stat-label">Всего очков</div>
+                        <div class="stat-value" id="win-total">0</div>
+                    </span>
+                </div>
+                <div class="win-stat">
+                    <span class="stat-icon">🎡</span>
+                    <span class="stat-content">
+                        <div class="stat-label">Вращений</div>
+                        <div class="stat-value" id="win-spins">0</div>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="win-footer">
+            <button id="close-win" class="win-btn">
+                <span class="btn-icon">🎯</span>
+                <span class="btn-text">КРУТИТЬ ЕЩЁ</span>
+            </button>
+            <p class="modal-note">Следующее вращение через 24 часа</p>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script src="wheel.js"></script>
+
+</body>
+</html>
