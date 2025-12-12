@@ -22,7 +22,7 @@
             background-size: 100% 100%;
             height: 100vh;
             color: white;
-            user-select: none; /* Запрет выделения текста при кликах */
+            user-select: none;
         }
 
         /* --- UI Overlay --- */
@@ -32,7 +32,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Чтобы клики проходили сквозь UI к игре */
+            pointer-events: none;
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -53,16 +53,9 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .top-bar {
-            justify-content: space-between;
-            align-items: center;
-        }
+        .top-bar { justify-content: space-between; align-items: center; }
 
-        .stat-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
         .stat-label { font-size: 0.8rem; opacity: 0.8; }
         .stat-value { font-size: 1.2rem; font-weight: bold; }
         
@@ -87,7 +80,7 @@
 
         .hidden { opacity: 0; pointer-events: none; }
 
-        h1 { font-size: 3rem; text-shadow: 0 0 10px gold; margin-bottom: 10px; }
+        h1 { font-size: 3rem; text-shadow: 0 0 10px gold; margin-bottom: 10px; text-align: center;}
         
         .btn {
             background: linear-gradient(45deg, var(--primary), #ff6b81);
@@ -101,19 +94,13 @@
             text-transform: uppercase;
             font-weight: bold;
             box-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+            margin-top: 20px;
         }
         .btn:active { transform: scale(0.95); }
         .btn:hover { box-shadow: 0 0 30px rgba(255, 71, 87, 0.8); }
 
         /* --- Game Objects --- */
-        #game-area {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+        #game-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
         .falling-object {
             position: absolute;
@@ -124,16 +111,13 @@
             filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
             transition: transform 0.1s;
         }
-        
         .falling-object:active { transform: scale(1.2); }
 
-        /* Анимация падения */
         @keyframes fall {
             from { transform: translateY(-100px) rotate(0deg); }
             to { transform: translateY(110vh) rotate(360deg); }
         }
         
-        /* Эффект при клике (всплывающий текст) */
         .pop-text {
             position: absolute;
             color: gold;
@@ -157,17 +141,13 @@
 
     <div id="start-screen" class="screen">
         <h1>🎄 Новогодний Кликер</h1>
-        <div class="hud-panel" style="margin-bottom: 20px;">
+        <div class="hud-panel">
             <div class="stat-box">
-                <span class="stat-label">Ваши карточки</span>
-                <span class="stat-value" id="cards-display-start">5</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-label">Рекорд</span>
-                <span class="stat-value" id="highscore-display">0</span>
+                <span class="stat-label">Игрок</span>
+                <span class="stat-value">bachiro_demon</span>
             </div>
         </div>
-        <button class="btn" onclick="game.tryStartGame()">Играть (-1 🎫)</button>
+        <button class="btn" onclick="game.startGame()">Начать Игру</button>
     </div>
 
     <div id="end-screen" class="screen hidden">
@@ -181,13 +161,11 @@
                 <span>Избежано бомб:</span>
                 <span class="stat-value" id="final-bombs">0</span>
             </div>
-            <hr style="width: 100%; border: 0; border-top: 1px solid white;">
-            <div class="top-bar" style="display: flex; color: gold;">
-                <span>Всего очков:</span>
-                <span class="stat-value" id="total-points-end">0</span>
+            <div id="save-status" style="text-align: center; color: #2ed573; font-size: 0.9rem; margin-top: 10px;">
+                Сохранение очков...
             </div>
         </div>
-        <button class="btn" onclick="location.reload()">В меню</button>
+        <button class="btn" onclick="location.reload()">Играть снова</button>
     </div>
 
     <div id="ui-layer" class="hidden">
@@ -205,89 +183,27 @@
                 <span class="stat-value" id="score">0</span>
             </div>
         </div>
-        
-        <div class="hud-panel" style="align-self: flex-start;">
-            <span class="stat-label">Карточки: <span id="cards-display-game">0</span></span>
-        </div>
     </div>
 
     <div id="game-area"></div>
 
     <script>
-        /**
-         * Конфигурация игры
-         * Легко настраивать баланс здесь
-         */
         const CONFIG = {
-            gameDuration: 180, // 3 минуты в секундах
-            spawnRate: { min: 500, max: 2000 }, // мс
+            gameDuration: 180, // 3 минуты (180 секунд)
+            spawnRate: { min: 500, max: 2000 },
             objects: {
                 points: [
                     { type: 'snowflake', value: 1, emoji: '❄️', weight: 40 },
                     { type: 'ball', value: 3, emoji: '🔴', weight: 30 },
                     { type: 'gift', value: 5, emoji: '🎁', weight: 15 }
                 ],
-                bombs: [
-                    { type: 'bomb', emoji: '💣', weight: 15 }
-                ]
+                bombs: [ { type: 'bomb', emoji: '💣', weight: 15 } ]
             },
-            difficulty: {
-                mediumStart: 30, // сек
-                hardStart: 90    // сек
-            }
+            difficulty: { mediumStart: 30, hardStart: 90 }
         };
 
-        /**
-         * Класс управления состоянием пользователя (Mock Database)
-         * В реальности здесь будут вызовы Firebase
-         */
-        class UserState {
-            constructor() {
-                // Загружаем из localStorage или ставим дефолт
-                this.cards = parseInt(localStorage.getItem('cards')) || 5;
-                this.totalPoints = parseInt(localStorage.getItem('totalPoints')) || 0;
-                this.highScore = parseInt(localStorage.getItem('highScore')) || 0;
-                this.updateUI();
-            }
-
-            hasCards() { return this.cards > 0; }
-
-            useCard() {
-                if (this.cards > 0) {
-                    this.cards--;
-                    this.save();
-                    return true;
-                }
-                return false;
-            }
-
-            addPoints(amount) {
-                this.totalPoints += amount;
-                if (amount > this.highScore) this.highScore = amount; // Упрощенная логика рекорда
-                this.save();
-            }
-
-            save() {
-                localStorage.setItem('cards', this.cards);
-                localStorage.setItem('totalPoints', this.totalPoints);
-                localStorage.setItem('highScore', this.highScore);
-                this.updateUI();
-            }
-
-            updateUI() {
-                document.getElementById('cards-display-start').innerText = this.cards;
-                document.getElementById('cards-display-game').innerText = this.cards;
-                document.getElementById('highscore-display').innerText = this.highScore;
-                document.getElementById('total-points-end').innerText = this.totalPoints;
-            }
-        }
-
-        /**
-         * Основной движок игры
-         */
         class GameEngine {
             constructor() {
-                this.user = new UserState();
                 this.score = 0;
                 this.timeLeft = CONFIG.gameDuration;
                 this.isPlaying = false;
@@ -303,16 +219,6 @@
                 this.comboDisplay = document.getElementById('combo');
             }
 
-            tryStartGame() {
-                if (this.user.hasCards()) {
-                    this.user.useCard();
-                    this.startGame();
-                } else {
-                    alert("У вас закончились карточки! (Имитация покупки...)");
-                    // Тут можно вызвать модалку покупки
-                }
-            }
-
             startGame() {
                 this.isPlaying = true;
                 this.score = 0;
@@ -320,14 +226,11 @@
                 this.combo = 0;
                 this.bombsAvoided = 0;
                 
-                // UI переключение
                 document.getElementById('start-screen').classList.add('hidden');
                 document.getElementById('end-screen').classList.add('hidden');
                 this.uiLayer.classList.remove('hidden');
                 
                 this.updateScoreUI();
-                
-                // Запуск таймеров
                 this.gameTimer = setInterval(() => this.tick(), 1000);
                 this.scheduleSpawn();
             }
@@ -338,55 +241,35 @@
                 const secs = (this.timeLeft % 60).toString().padStart(2, '0');
                 this.timerDisplay.innerText = `${mins}:${secs}`;
 
-                if (this.timeLeft <= 10) {
-                    this.timerDisplay.classList.add('danger');
-                } else {
-                    this.timerDisplay.classList.remove('danger');
-                }
+                if (this.timeLeft <= 10) this.timerDisplay.classList.add('danger');
+                else this.timerDisplay.classList.remove('danger');
 
-                if (this.timeLeft <= 0) {
-                    this.endGame();
-                }
+                if (this.timeLeft <= 0) this.endGame();
             }
 
             scheduleSpawn() {
                 if (!this.isPlaying) return;
-
-                // Расчет сложности на основе времени
                 const timePassed = CONFIG.gameDuration - this.timeLeft;
                 let speedFactor = 1;
                 let spawnInterval = Math.random() * (CONFIG.spawnRate.max - CONFIG.spawnRate.min) + CONFIG.spawnRate.min;
 
-                if (timePassed > CONFIG.difficulty.mediumStart) {
-                    speedFactor = 1.5; // Быстрее падают
-                    spawnInterval *= 0.8; // Чаще появляются
-                }
-                if (timePassed > CONFIG.difficulty.hardStart) {
-                    speedFactor = 2;
-                    spawnInterval *= 0.6;
-                }
+                if (timePassed > CONFIG.difficulty.mediumStart) { speedFactor = 1.5; spawnInterval *= 0.8; }
+                if (timePassed > CONFIG.difficulty.hardStart) { speedFactor = 2; spawnInterval *= 0.6; }
 
                 this.spawnObject(speedFactor);
-
                 this.spawnTimer = setTimeout(() => this.scheduleSpawn(), spawnInterval);
             }
 
             spawnObject(speedFactor) {
-                // Выбор объекта на основе весов (шансов)
                 const rand = Math.random() * 100;
                 let cumulativeWeight = 0;
                 let selectedObj = CONFIG.objects.points[0];
-                
                 const allObjects = [...CONFIG.objects.points, ...CONFIG.objects.bombs];
                 
                 for (let obj of allObjects) {
                     cumulativeWeight += obj.weight;
-                    if (rand <= cumulativeWeight) {
-                        selectedObj = obj;
-                        break;
-                    }
+                    if (rand <= cumulativeWeight) { selectedObj = obj; break; }
                 }
-
                 this.createDOMObject(selectedObj, speedFactor);
             }
 
@@ -394,68 +277,45 @@
                 const el = document.createElement('div');
                 el.classList.add('falling-object');
                 el.innerText = objData.emoji;
+                el.style.left = `${Math.random() * (window.innerWidth - 50)}px`;
                 
-                // Позиционирование
-                const startX = Math.random() * (window.innerWidth - 50);
-                el.style.left = `${startX}px`;
-                
-                // Скорость падения
-                const baseDuration = 4000; // 4 секунды база
-                const duration = baseDuration / speedFactor;
+                const duration = 4000 / speedFactor;
                 el.style.animationName = 'fall';
                 el.style.animationDuration = `${duration}ms`;
 
-                // Обработка клика
                 el.onmousedown = (e) => {
-                    e.stopPropagation(); // Чтобы не кликнуть по фону
+                    e.stopPropagation();
                     this.handleObjectClick(objData, el, e.clientX, e.clientY);
                 };
 
-                // Удаление после анимации
                 el.addEventListener('animationend', () => {
-                    // Если это была бомба и мы на нее НЕ нажали (она упала)
-                    if (objData.type === 'bomb') {
-                        this.handleBombAvoided(el);
-                    }
+                    if (objData.type === 'bomb') this.handleBombAvoided(el);
                     el.remove();
                 });
-
                 this.gameArea.appendChild(el);
             }
 
             handleObjectClick(objData, element, x, y) {
                 if (!this.isPlaying) return;
-
-                element.remove(); // Убрать объект
-
+                element.remove();
                 if (objData.type === 'bomb') {
-                    // Логика взрыва
                     this.score = 0;
                     this.combo = 0;
                     this.showFloatingText(x, y, "💥 СБРОС!", "red");
-                    // Визуальный эффект тряски экрана можно добавить здесь
                 } else {
-                    // Логика очков
                     this.combo++;
-                    let multiplier = 1;
-                    if (this.combo >= 10) multiplier = 1.5;
-                    else if (this.combo >= 5) multiplier = 1.2;
-
+                    let multiplier = this.combo >= 10 ? 1.5 : (this.combo >= 5 ? 1.2 : 1);
                     const points = Math.round(objData.value * multiplier);
                     this.score += points;
                     this.showFloatingText(x, y, `+${points}`, "gold");
                 }
-
                 this.updateScoreUI();
             }
 
             handleBombAvoided(element) {
-                // Если бомба упала сама
                 this.bombsAvoided++;
-                const bonus = 20; // Вариант 2 из ТЗ
+                const bonus = 20;
                 this.score += bonus;
-                
-                // Получаем координаты, где бомба исчезла (низ экрана)
                 const rect = element.getBoundingClientRect();
                 this.showFloatingText(rect.left, window.innerHeight - 50, `Бонус! +${bonus}`, "#2ed573");
                 this.updateScoreUI();
@@ -474,9 +334,7 @@
 
             updateScoreUI() {
                 this.scoreDisplay.innerText = this.score;
-                let mult = 1;
-                if (this.combo >= 10) mult = 1.5;
-                else if (this.combo >= 5) mult = 1.2;
+                let mult = this.combo >= 10 ? 1.5 : (this.combo >= 5 ? 1.2 : 1);
                 this.comboDisplay.innerText = `x${mult}`;
             }
 
@@ -484,27 +342,94 @@
                 this.isPlaying = false;
                 clearInterval(this.gameTimer);
                 clearTimeout(this.spawnTimer);
-                
-                // Очистка поля
                 this.gameArea.innerHTML = '';
                 this.uiLayer.classList.add('hidden');
 
-                // Сохранение результатов
-                this.user.addPoints(this.score);
-
-                // Отображение итогов
                 document.getElementById('final-score').innerText = this.score;
                 document.getElementById('final-bombs').innerText = this.bombsAvoided;
                 document.getElementById('end-screen').classList.remove('hidden');
 
-                // TODO: Отправка данных на Firebase
-                // api.sendResult({ score: this.score, ... })
+                // ВЫЗОВ FIREBASE (если загружен)
+                if (window.updateUserPoints) {
+                    window.updateUserPoints(this.score);
+                } else {
+                    document.getElementById('save-status').innerText = "Ошибка: База данных не подключена!";
+                    document.getElementById('save-status').style.color = "red";
+                }
             }
         }
-
-        // Инициализация игры
         const game = new GameEngine();
+    </script>
 
+    <script type="module">
+        // Импортируем Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+        // ==========================================
+        //  НАСТРОЙКИ (ЗАМЕНИ НА СВОИ ИЗ FIREBASE)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebaseapp.com",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+
+        // Инициализация
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ID пользователя (как на твоем скрине)
+        const USER_ID = "bachiro_demon";
+
+        // Функция обновления очков (делаем её глобальной, чтобы игра могла её вызвать)
+        window.updateUserPoints = function(scoreToAdd) {
+            const statusEl = document.getElementById('save-status');
+            statusEl.innerText = "Отправка очков в базу...";
+            statusEl.style.color = "gold";
+
+            // Ссылка на путь: holiday_points -> bachiro_demon
+            const userRef = ref(db, `holiday_points/${USER_ID}`);
+
+            runTransaction(userRef, (currentData) => {
+                // Если записи нет, создаем новую
+                if (currentData === null) {
+                    return {
+                        total_points: scoreToAdd,
+                        available_points: scoreToAdd,
+                        rewards_history: { spent_points: 0, total_points: scoreToAdd }
+                    };
+                }
+
+                // Если запись есть, обновляем поля
+                // 1. Прибавляем к общей статистике
+                currentData.total_points = (currentData.total_points || 0) + scoreToAdd;
+                
+                // 2. Прибавляем к доступным очкам (валюте)
+                currentData.available_points = (currentData.available_points || 0) + scoreToAdd;
+
+                // 3. Можно обновить историю, если нужно
+                if (currentData.rewards_history) {
+                    currentData.rewards_history.total_points = currentData.total_points;
+                }
+
+                return currentData;
+            })
+            .then(() => {
+                console.log("Успех! Очки сохранены.");
+                statusEl.innerText = "Очки успешно сохранены! ✅";
+                statusEl.style.color = "#2ed573"; // Зеленый
+            })
+            .catch((error) => {
+                console.error("Ошибка сохранения:", error);
+                statusEl.innerText = "Ошибка сохранения ❌";
+                statusEl.style.color = "#ff4757"; // Красный
+            });
+        };
     </script>
 </body>
 </html>
