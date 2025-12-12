@@ -1105,7 +1105,7 @@
             }
         }
 
-        // ==================== ОТПРАВКА ОБРАЩЕНИЯ ====================
+        // ==================== ОТПРАВКА ОБРАЩЕНИЯ (ИСПРАВЛЕННАЯ) ====================
         async function submitSupportTicket(type) {
             showLoading(true);
             hideStatus();
@@ -1117,11 +1117,23 @@
             // Получаем данные из формы
             const targetNicknameField = document.getElementById(`${type}UserNickname`);
             const descriptionField = document.getElementById(`${type}Description`);
-            const reasonField = document.getElementById(`${type}Reason`);
             
+            // Определяем правильный ID для поля reason в зависимости от типа формы
+            let reasonFieldId;
+            if (type === 'complaint') {
+                reasonFieldId = 'complaintReason';
+            } else if (type === 'appeal') {
+                reasonFieldId = 'appealReason';
+            } else if (type === 'support') {
+                reasonFieldId = 'supportReason';
+            }
+            
+            const reasonField = document.getElementById(reasonFieldId);
+            
+            // Получаем значения полей
             let targetNickname = targetNicknameField ? targetNicknameField.value.trim() : '';
             const description = descriptionField ? descriptionField.value.trim() : '';
-            const reason = reasonField ? reasonField.value.value.trim() : '';
+            const reason = reasonField ? reasonField.value.trim() : '';
             
             // Валидация
             if (!description || description.length < (type === 'complaint' ? 20 : 15)) {
@@ -1157,12 +1169,16 @@
             
             // Дополнительные поля для разных типов
             if (type === 'complaint') {
-                ticketData.violationType = document.getElementById('complaintType').value;
+                const complaintTypeField = document.getElementById('complaintType');
+                ticketData.violationType = complaintTypeField ? complaintTypeField.value : '';
             } else if (type === 'appeal') {
-                ticketData.punishmentType = document.getElementById('punishmentType').value;
-                ticketData.punishmentDate = document.getElementById('punishmentDate').value;
+                const punishmentTypeField = document.getElementById('punishmentType');
+                const punishmentDateField = document.getElementById('punishmentDate');
+                ticketData.punishmentType = punishmentTypeField ? punishmentTypeField.value : '';
+                ticketData.punishmentDate = punishmentDateField ? punishmentDateField.value : '';
             } else if (type === 'support') {
-                ticketData.questionType = document.getElementById('supportType').value;
+                const supportTypeField = document.getElementById('supportType');
+                ticketData.questionType = supportTypeField ? supportTypeField.value : '';
             }
             
             try {
@@ -1199,6 +1215,23 @@
             }
         }
 
+        function clearForm(type) {
+            // Находим форму по типу
+            const form = document.getElementById(`${type}Form`);
+            if (form) {
+                form.reset();
+            }
+            
+            // Восстанавливаем сохраненный никнейм для некоторых форм
+            const nicknameField = document.getElementById(`${type}UserNickname`);
+            if (nicknameField && type !== 'complaint') {
+                const savedUsername = localStorage.getItem('jojoland_username');
+                if (savedUsername) {
+                    nicknameField.value = savedUsername;
+                }
+            }
+        }
+        
         // ==================== ЗАГРУЗКА ОБРАЩЕНИЙ ПОЛЬЗОВАТЕЛЯ ====================
         async function loadUserRequests() {
             const userId = getOrCreateUserId();
@@ -1413,17 +1446,6 @@
                 'other': 'Другое'
             };
             return types[type] || type;
-        }
-        
-        function clearForm(type) {
-            const form = document.getElementById(`${type}Form`);
-            if (form) form.reset();
-            
-            // Восстанавливаем сохраненный никнейм
-            const nicknameField = document.getElementById(`${type}UserNickname`);
-            if (nicknameField && type !== 'complaint') {
-                nicknameField.value = localStorage.getItem('jojoland_username') || '';
-            }
         }
         
         function showLoading(show) {
