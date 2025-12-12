@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новогодний Кликер 2025</title>
+    <style>
+        :root {
+            --primary: #ff4757;
+            --secondary: #2ed573;
+            --dark: #2f3542;
+            --light: #f1f2f6;
+            --glass: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            background-size: 100% 100%;
+            height: 100vh;
+            color: white;
+            user-select: none; /* Запрет выделения текста при кликах */
+        }
+
+        /* --- UI Overlay --- */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Чтобы клики проходили сквозь UI к игре */
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hud-panel {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 10px 20px;
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .top-bar {
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stat-label { font-size: 0.8rem; opacity: 0.8; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; }
+        
+        #timer { color: var(--secondary); font-family: monospace; font-size: 1.5rem; }
+        .danger { color: var(--primary) !important; animation: pulse 1s infinite; }
+
+        /* --- Game Screens --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.7);
+            z-index: 20;
+            transition: opacity 0.3s;
+        }
+
+        .hidden { opacity: 0; pointer-events: none; }
+
+        h1 { font-size: 3rem; text-shadow: 0 0 10px gold; margin-bottom: 10px; }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary), #ff6b81);
+            border: none;
+            padding: 15px 40px;
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn:hover { box-shadow: 0 0 30px rgba(255, 71, 87, 0.8); }
+
+        /* --- Game Objects --- */
+        #game-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .falling-object {
+            position: absolute;
+            cursor: pointer;
+            font-size: 3rem;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+            transition: transform 0.1s;
+        }
+        
+        .falling-object:active { transform: scale(1.2); }
+
+        /* Анимация падения */
+        @keyframes fall {
+            from { transform: translateY(-100px) rotate(0deg); }
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+        
+        /* Эффект при клике (всплывающий текст) */
+        .pop-text {
+            position: absolute;
+            color: gold;
+            font-weight: bold;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            z-index: 5;
+            text-shadow: 0 2px 4px black;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="screen">
+        <h1>🎄 Новогодний Кликер</h1>
+        <div class="hud-panel" style="margin-bottom: 20px;">
+            <div class="stat-box">
+                <span class="stat-label">Ваши карточки</span>
+                <span class="stat-value" id="cards-display-start">5</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Рекорд</span>
+                <span class="stat-value" id="highscore-display">0</span>
+            </div>
+        </div>
+        <button class="btn" onclick="game.tryStartGame()">Играть (-1 🎫)</button>
+    </div>
+
+    <div id="end-screen" class="screen hidden">
+        <h1>Время вышло! 🎅</h1>
+        <div class="hud-panel" style="flex-direction: column; gap: 10px; margin-bottom: 20px; min-width: 300px;">
+            <div class="top-bar" style="display: flex;">
+                <span>Счет за игру:</span>
+                <span class="stat-value" id="final-score">0</span>
+            </div>
+            <div class="top-bar" style="display: flex;">
+                <span>Избежано бомб:</span>
+                <span class="stat-value" id="final-bombs">0</span>
+            </div>
+            <hr style="width: 100%; border: 0; border-top: 1px solid white;">
+            <div class="top-bar" style="display: flex; color: gold;">
+                <span>Всего очков:</span>
+                <span class="stat-value" id="total-points-end">0</span>
+            </div>
+        </div>
+        <button class="btn" onclick="location.reload()">В меню</button>
+    </div>
+
+    <div id="ui-layer" class="hidden">
+        <div class="hud-panel top-bar">
+            <div class="stat-box">
+                <span class="stat-label">Таймер</span>
+                <span class="stat-value" id="timer">03:00</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Комбо</span>
+                <span class="stat-value" id="combo">x1.0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Очки</span>
+                <span class="stat-value" id="score">0</span>
+            </div>
+        </div>
+        
+        <div class="hud-panel" style="align-self: flex-start;">
+            <span class="stat-label">Карточки: <span id="cards-display-game">0</span></span>
+        </div>
+    </div>
+
+    <div id="game-area"></div>
+
+    <script>
+        /**
+         * Конфигурация игры
+         * Легко настраивать баланс здесь
+         */
+        const CONFIG = {
+            gameDuration: 180, // 3 минуты в секундах
+            spawnRate: { min: 500, max: 2000 }, // мс
+            objects: {
+                points: [
+                    { type: 'snowflake', value: 1, emoji: '❄️', weight: 40 },
+                    { type: 'ball', value: 3, emoji: '🔴', weight: 30 },
+                    { type: 'gift', value: 5, emoji: '🎁', weight: 15 }
+                ],
+                bombs: [
+                    { type: 'bomb', emoji: '💣', weight: 15 }
+                ]
+            },
+            difficulty: {
+                mediumStart: 30, // сек
+                hardStart: 90    // сек
+            }
+        };
+
+        /**
+         * Класс управления состоянием пользователя (Mock Database)
+         * В реальности здесь будут вызовы Firebase
+         */
+        class UserState {
+            constructor() {
+                // Загружаем из localStorage или ставим дефолт
+                this.cards = parseInt(localStorage.getItem('cards')) || 5;
+                this.totalPoints = parseInt(localStorage.getItem('totalPoints')) || 0;
+                this.highScore = parseInt(localStorage.getItem('highScore')) || 0;
+                this.updateUI();
+            }
+
+            hasCards() { return this.cards > 0; }
+
+            useCard() {
+                if (this.cards > 0) {
+                    this.cards--;
+                    this.save();
+                    return true;
+                }
+                return false;
+            }
+
+            addPoints(amount) {
+                this.totalPoints += amount;
+                if (amount > this.highScore) this.highScore = amount; // Упрощенная логика рекорда
+                this.save();
+            }
+
+            save() {
+                localStorage.setItem('cards', this.cards);
+                localStorage.setItem('totalPoints', this.totalPoints);
+                localStorage.setItem('highScore', this.highScore);
+                this.updateUI();
+            }
+
+            updateUI() {
+                document.getElementById('cards-display-start').innerText = this.cards;
+                document.getElementById('cards-display-game').innerText = this.cards;
+                document.getElementById('highscore-display').innerText = this.highScore;
+                document.getElementById('total-points-end').innerText = this.totalPoints;
+            }
+        }
+
+        /**
+         * Основной движок игры
+         */
+        class GameEngine {
+            constructor() {
+                this.user = new UserState();
+                this.score = 0;
+                this.timeLeft = CONFIG.gameDuration;
+                this.isPlaying = false;
+                this.spawnTimer = null;
+                this.gameTimer = null;
+                this.combo = 0;
+                this.bombsAvoided = 0;
+                
+                this.gameArea = document.getElementById('game-area');
+                this.uiLayer = document.getElementById('ui-layer');
+                this.timerDisplay = document.getElementById('timer');
+                this.scoreDisplay = document.getElementById('score');
+                this.comboDisplay = document.getElementById('combo');
+            }
+
+            tryStartGame() {
+                if (this.user.hasCards()) {
+                    this.user.useCard();
+                    this.startGame();
+                } else {
+                    alert("У вас закончились карточки! (Имитация покупки...)");
+                    // Тут можно вызвать модалку покупки
+                }
+            }
+
+            startGame() {
+                this.isPlaying = true;
+                this.score = 0;
+                this.timeLeft = CONFIG.gameDuration;
+                this.combo = 0;
+                this.bombsAvoided = 0;
+                
+                // UI переключение
+                document.getElementById('start-screen').classList.add('hidden');
+                document.getElementById('end-screen').classList.add('hidden');
+                this.uiLayer.classList.remove('hidden');
+                
+                this.updateScoreUI();
+                
+                // Запуск таймеров
+                this.gameTimer = setInterval(() => this.tick(), 1000);
+                this.scheduleSpawn();
+            }
+
+            tick() {
+                this.timeLeft--;
+                const mins = Math.floor(this.timeLeft / 60).toString().padStart(2, '0');
+                const secs = (this.timeLeft % 60).toString().padStart(2, '0');
+                this.timerDisplay.innerText = `${mins}:${secs}`;
+
+                if (this.timeLeft <= 10) {
+                    this.timerDisplay.classList.add('danger');
+                } else {
+                    this.timerDisplay.classList.remove('danger');
+                }
+
+                if (this.timeLeft <= 0) {
+                    this.endGame();
+                }
+            }
+
+            scheduleSpawn() {
+                if (!this.isPlaying) return;
+
+                // Расчет сложности на основе времени
+                const timePassed = CONFIG.gameDuration - this.timeLeft;
+                let speedFactor = 1;
+                let spawnInterval = Math.random() * (CONFIG.spawnRate.max - CONFIG.spawnRate.min) + CONFIG.spawnRate.min;
+
+                if (timePassed > CONFIG.difficulty.mediumStart) {
+                    speedFactor = 1.5; // Быстрее падают
+                    spawnInterval *= 0.8; // Чаще появляются
+                }
+                if (timePassed > CONFIG.difficulty.hardStart) {
+                    speedFactor = 2;
+                    spawnInterval *= 0.6;
+                }
+
+                this.spawnObject(speedFactor);
+
+                this.spawnTimer = setTimeout(() => this.scheduleSpawn(), spawnInterval);
+            }
+
+            spawnObject(speedFactor) {
+                // Выбор объекта на основе весов (шансов)
+                const rand = Math.random() * 100;
+                let cumulativeWeight = 0;
+                let selectedObj = CONFIG.objects.points[0];
+                
+                const allObjects = [...CONFIG.objects.points, ...CONFIG.objects.bombs];
+                
+                for (let obj of allObjects) {
+                    cumulativeWeight += obj.weight;
+                    if (rand <= cumulativeWeight) {
+                        selectedObj = obj;
+                        break;
+                    }
+                }
+
+                this.createDOMObject(selectedObj, speedFactor);
+            }
+
+            createDOMObject(objData, speedFactor) {
+                const el = document.createElement('div');
+                el.classList.add('falling-object');
+                el.innerText = objData.emoji;
+                
+                // Позиционирование
+                const startX = Math.random() * (window.innerWidth - 50);
+                el.style.left = `${startX}px`;
+                
+                // Скорость падения
+                const baseDuration = 4000; // 4 секунды база
+                const duration = baseDuration / speedFactor;
+                el.style.animationName = 'fall';
+                el.style.animationDuration = `${duration}ms`;
+
+                // Обработка клика
+                el.onmousedown = (e) => {
+                    e.stopPropagation(); // Чтобы не кликнуть по фону
+                    this.handleObjectClick(objData, el, e.clientX, e.clientY);
+                };
+
+                // Удаление после анимации
+                el.addEventListener('animationend', () => {
+                    // Если это была бомба и мы на нее НЕ нажали (она упала)
+                    if (objData.type === 'bomb') {
+                        this.handleBombAvoided(el);
+                    }
+                    el.remove();
+                });
+
+                this.gameArea.appendChild(el);
+            }
+
+            handleObjectClick(objData, element, x, y) {
+                if (!this.isPlaying) return;
+
+                element.remove(); // Убрать объект
+
+                if (objData.type === 'bomb') {
+                    // Логика взрыва
+                    this.score = 0;
+                    this.combo = 0;
+                    this.showFloatingText(x, y, "💥 СБРОС!", "red");
+                    // Визуальный эффект тряски экрана можно добавить здесь
+                } else {
+                    // Логика очков
+                    this.combo++;
+                    let multiplier = 1;
+                    if (this.combo >= 10) multiplier = 1.5;
+                    else if (this.combo >= 5) multiplier = 1.2;
+
+                    const points = Math.round(objData.value * multiplier);
+                    this.score += points;
+                    this.showFloatingText(x, y, `+${points}`, "gold");
+                }
+
+                this.updateScoreUI();
+            }
+
+            handleBombAvoided(element) {
+                // Если бомба упала сама
+                this.bombsAvoided++;
+                const bonus = 20; // Вариант 2 из ТЗ
+                this.score += bonus;
+                
+                // Получаем координаты, где бомба исчезла (низ экрана)
+                const rect = element.getBoundingClientRect();
+                this.showFloatingText(rect.left, window.innerHeight - 50, `Бонус! +${bonus}`, "#2ed573");
+                this.updateScoreUI();
+            }
+
+            showFloatingText(x, y, text, color) {
+                const floatEl = document.createElement('div');
+                floatEl.classList.add('pop-text');
+                floatEl.innerText = text;
+                floatEl.style.color = color;
+                floatEl.style.left = `${x}px`;
+                floatEl.style.top = `${y}px`;
+                document.body.appendChild(floatEl);
+                setTimeout(() => floatEl.remove(), 1000);
+            }
+
+            updateScoreUI() {
+                this.scoreDisplay.innerText = this.score;
+                let mult = 1;
+                if (this.combo >= 10) mult = 1.5;
+                else if (this.combo >= 5) mult = 1.2;
+                this.comboDisplay.innerText = `x${mult}`;
+            }
+
+            endGame() {
+                this.isPlaying = false;
+                clearInterval(this.gameTimer);
+                clearTimeout(this.spawnTimer);
+                
+                // Очистка поля
+                this.gameArea.innerHTML = '';
+                this.uiLayer.classList.add('hidden');
+
+                // Сохранение результатов
+                this.user.addPoints(this.score);
+
+                // Отображение итогов
+                document.getElementById('final-score').innerText = this.score;
+                document.getElementById('final-bombs').innerText = this.bombsAvoided;
+                document.getElementById('end-screen').classList.remove('hidden');
+
+                // TODO: Отправка данных на Firebase
+                // api.sendResult({ score: this.score, ... })
+            }
+        }
+
+        // Инициализация игры
+        const game = new GameEngine();
+
+    </script>
+</body>
+</html>
