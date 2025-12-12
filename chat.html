@@ -1105,7 +1105,7 @@
             }
         }
 
-        // ==================== ОТПРАВКА ОБРАЩЕНИЯ (ИСПРАВЛЕННАЯ) ====================
+        // ==================== ОТПРАВКА ОБРАЩЕНИЯ ====================
         async function submitSupportTicket(type) {
             showLoading(true);
             hideStatus();
@@ -1285,7 +1285,7 @@
             });
         }
 
-        // ==================== СОЗДАНИЕ КАРТОЧКИ ОБРАЩЕНИЯ ====================
+        // ==================== СОЗДАНИЕ КАРТОЧКИ ОБРАЩЕНИЯ (ИСПРАВЛЕННАЯ) ====================
         function createRequestCard(request) {
             const typeText = request.type === 'complaint' ? 'Жалоба' : 
                             request.type === 'appeal' ? 'Апелляция' : 
@@ -1339,29 +1339,43 @@
                     .replace(/\n/g, '<br>');
             };
             
-            // Поиск последнего ответа администратора
+            // ПОИСК ОТВЕТОВ АДМИНИСТРАТОРА - ИСПРАВЛЕННАЯ ЛОГИКА
             let adminAnswerHtml = '';
             if (request.answers && Object.keys(request.answers).length > 0) {
-                const answers = Object.values(request.answers);
-                const adminAnswers = answers.filter(ans => 
-                    ans.senderId && !ans.senderId.startsWith(request.userId)
-                );
+                // Преобразуем объект ответов в массив
+                const answersArray = Object.entries(request.answers).map(([key, value]) => ({
+                    id: key,
+                    ...value
+                }));
                 
+                // Фильтруем ответы администратора
+                const adminAnswers = answersArray.filter(answer => {
+                    // Проверяем, является ли ответ от администратора
+                    // 1. Если есть adminName - точно администратор
+                    // 2. Если senderId не равен userId игрока
+                    // 3. Если senderId содержит 'admin'
+                    return answer.adminName || 
+                           (answer.senderId && !answer.senderId.startsWith('guest_')) ||
+                           (answer.senderId && answer.senderId.includes('admin'));
+                });
+                
+                // Сортируем по времени (сначала новые)
+                adminAnswers.sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Берем последний ответ администратора
                 if (adminAnswers.length > 0) {
-                    const latestAnswer = adminAnswers.sort((a, b) => 
-                        b.timestamp - a.timestamp
-                    )[0];
+                    const latestAdminAnswer = adminAnswers[0];
                     
                     adminAnswerHtml = `
                         <div class="admin-response">
                             <div class="admin-response-header">
                                 <div class="admin-name">
                                     <i class="fas fa-crown"></i>
-                                    ${latestAnswer.adminName || 'Администратор'}
+                                    ${latestAdminAnswer.adminName || 'Администратор'}
                                 </div>
-                                <small>${formatDate(latestAnswer.timestamp)}</small>
+                                <small>${formatDate(latestAdminAnswer.timestamp)}</small>
                             </div>
-                            <p class="admin-response-text">${escapeHtml(latestAnswer.text)}</p>
+                            <p class="admin-response-text">${escapeHtml(latestAdminAnswer.text)}</p>
                         </div>
                     `;
                 }
