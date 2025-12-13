@@ -208,6 +208,7 @@ function setupRealtimeUpdates() {
             // Обновляем данные и интерфейс
             wheelData = newData;
             updatePlayerStats();
+            updateWheelTimer(); // Обновляем таймер при изменении данных
         }
     });
 }
@@ -266,7 +267,7 @@ async function spinWheel() {
             </div>
             <div class="spin-timer">
                 <span class="timer-icon">⏰</span>
-                <span class="timer-text">Удачи!</span>
+                <span class="timer-text" id="timer-text">Удачи!</span>
             </div>
         `;
         
@@ -311,6 +312,7 @@ async function spinWheel() {
     } finally {
         isSpinning = false;
         updateWheelButton();
+        updateWheelTimer(); // Обновляем таймер после вращения
     }
 }
 
@@ -402,8 +404,10 @@ function updateWheelButton() {
     }
     
     const timeToNext = getTimeToNextSpin();
+    const todayKey = TimeManager.getTodayKey();
+    const hasToday = wheelData?.wheel_spins && wheelData.wheel_spins[todayKey];
     
-    if (timeToNext > 0 || TimeManager.wasActionTodayInObject(wheelData?.wheel_spins)) {
+    if (timeToNext > 0 || hasToday) {
         // Нельзя крутить
         spinBtn.disabled = true;
         spinBtn.innerHTML = `
@@ -413,7 +417,7 @@ function updateWheelButton() {
             </div>
             <div class="spin-timer">
                 <span class="timer-icon">⏰</span>
-                <span class="timer-text">Доступно через: ${TimeManager.formatTime(timeToNext)}</span>
+                <span class="timer-text" id="timer-text">Доступно через: ${TimeManager.formatTime(timeToNext)}</span>
             </div>
         `;
     } else {
@@ -426,7 +430,7 @@ function updateWheelButton() {
             </div>
             <div class="spin-timer">
                 <span class="timer-icon">⏰</span>
-                <span class="timer-text">Бесплатно!</span>
+                <span class="timer-text" id="timer-text">Бесплатно!</span>
             </div>
         `;
     }
@@ -437,21 +441,42 @@ function updateWheelTimer() {
     // Очищаем предыдущий интервал, если есть
     if (updateTimerInterval) {
         clearInterval(updateTimerInterval);
-    }
-    
-    const timerElement = document.getElementById('timer-text');
-    if (!timerElement) {
-        console.error('❌ Таймер не найден');
-        return;
+        updateTimerInterval = null;
     }
     
     const updateTimer = () => {
+        // Ищем элемент каждый раз, так как он может пересоздаваться
+        const timerElement = document.getElementById('timer-text');
+        if (!timerElement) {
+            console.log('⏰ Элемент timer-text не найден, попробуем найти через класс...');
+            
+            // Пробуем найти элемент через класс
+            const spinBtn = document.getElementById('spin-btn');
+            if (spinBtn) {
+                const timerText = spinBtn.querySelector('.timer-text');
+                if (timerText) {
+                    // Если нашли по классу, добавляем ID
+                    timerText.id = 'timer-text';
+                    updateTimerTextContent(timerText);
+                    return;
+                }
+            }
+            
+            console.error('❌ Элемент таймера не найден ни по ID, ни по классу');
+            return;
+        }
+        
+        updateTimerTextContent(timerElement);
+    };
+    
+    // Вспомогательная функция для обновления текста таймера
+    const updateTimerTextContent = (element) => {
         const timeToNext = getTimeToNextSpin();
         
         if (timeToNext > 0) {
-            timerElement.textContent = `Доступно через: ${TimeManager.formatTime(timeToNext)}`;
+            element.textContent = `Доступно через: ${TimeManager.formatTime(timeToNext)}`;
         } else {
-            timerElement.textContent = 'Бесплатно!';
+            element.textContent = 'Бесплатно!';
         }
     };
     
@@ -605,7 +630,11 @@ function showWinModal(prize) {
     // Закрытие модального окна
     const closeButton = document.getElementById('close-win');
     if (closeButton) {
-        closeButton.addEventListener('click', function() {
+        // Удаляем старые обработчики
+        closeButton.replaceWith(closeButton.cloneNode(true));
+        const newCloseButton = document.getElementById('close-win');
+        
+        newCloseButton.addEventListener('click', function() {
             modal.style.opacity = '0';
             setTimeout(() => {
                 modal.style.display = 'none';
@@ -777,3 +806,15 @@ window.addEventListener('beforeunload', () => {
         clearInterval(updateTimerInterval);
     }
 });
+
+// Экспортируем функции для отладки
+if (typeof window !== 'undefined') {
+    window.debugWheel = {
+        getTimeToNextSpin,
+        canSpinWheel,
+        updateWheelTimer,
+        updateWheelButton,
+        wheelData: () => wheelData,
+        TimeManager
+    };
+}
