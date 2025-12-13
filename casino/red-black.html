@@ -215,8 +215,8 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
 <script>
 // Инициализация Firebase
@@ -241,19 +241,41 @@ let userBalance = 0;
 let selectedColor = null;
 let currentBet = 100;
 let currentGameId = null;
+let cleanupListeners = [];
+
+// Очистка слушателей при уходе со страницы
+['pagehide', 'unload'].forEach(event => {
+    window.addEventListener(event, cleanupAllListeners);
+});
+
+function cleanupAllListeners() {
+    cleanupListeners.forEach(cleanup => {
+        try {
+            cleanup();
+        } catch (e) {
+            console.warn('Ошибка при очистке слушателя:', e);
+        }
+    });
+    cleanupListeners = [];
+}
 
 window.onload = async function() {
-    if (await checkAuth()) {
-        await loadUserBalance();
-        setupEventListeners();
-        updateWinAmounts();
-        
-        // Проверяем параметр игры в URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameId = urlParams.get('game');
-        if (gameId) {
-            await joinExistingGame(gameId);
+    try {
+        if (await checkAuth()) {
+            await loadUserBalance();
+            setupEventListeners();
+            updateWinAmounts();
+            
+            // Проверяем параметр игры в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('game');
+            if (gameId) {
+                await joinExistingGame(gameId);
+            }
         }
+    } catch (error) {
+        console.error('Ошибка инициализации:', error);
+        showError('Ошибка загрузки страницы');
     }
 };
 
@@ -443,7 +465,8 @@ async function createGame() {
         showGameModal(gameData);
         
         // Подписываемся на обновления игры
-        database.ref('casino_games/' + gameId).on('value', async (snapshot) => {
+        const gameRef = database.ref('casino_games/' + gameId);
+        const listener = gameRef.on('value', async (snapshot) => {
             if (snapshot.exists()) {
                 const updatedGame = snapshot.val();
                 updateGameModal(updatedGame);
@@ -454,6 +477,9 @@ async function createGame() {
                 }
             }
         });
+        
+        // Добавляем очистку слушателя
+        cleanupListeners.push(() => gameRef.off());
         
     } catch (error) {
         console.error('Ошибка создания игры:', error);
@@ -483,7 +509,8 @@ async function joinExistingGame(gameId) {
         showGameModal(game);
         
         // Подписываемся на обновления
-        database.ref('casino_games/' + gameId).on('value', async (snapshot) => {
+        const gameRef = database.ref('casino_games/' + gameId);
+        const listener = gameRef.on('value', async (snapshot) => {
             if (snapshot.exists()) {
                 const updatedGame = snapshot.val();
                 updateGameModal(updatedGame);
@@ -493,6 +520,9 @@ async function joinExistingGame(gameId) {
                 }
             }
         });
+        
+        // Добавляем очистку слушателя
+        cleanupListeners.push(() => gameRef.off());
         
     } catch (error) {
         console.error('Ошибка присоединения к игре:', error);
@@ -578,6 +608,33 @@ async function startWheelAnimation(result) {
     }, 3000);
 }
 
+async function processGameResult(game) {
+    const playerData = game.players[userId];
+    
+    if (!playerData) return;
+    
+    // Сохраняем историю
+    const historyData = {
+        game_type: 'red_black',
+        bet: game.bet,
+        choice: playerData.choice === 'red' ? 'Красное' : 'Черное',
+        result: playerData.result,
+        win_amount: playerData.result === 'win' ? game.bet * 2 : 0,
+        opponent: Object.keys(game.players).find(id => id !== userId),
+        timestamp: new Date().toISOString()
+    };
+    
+    await database.ref('casino_history/' + userId + '/' + currentGameId).set(historyData);
+    
+    // Обновляем баланс если выиграли
+    if (playerData.result === 'win') {
+        await loadUserBalance();
+    }
+    
+    // Добавляем в историю на странице
+    addToGameHistory(historyData);
+}
+
 function addToGameHistory(history) {
     const historyList = document.getElementById('game-history');
     
@@ -604,7 +661,7 @@ function addToGameHistory(history) {
     `;
     
     // Добавляем в начало
-    if (historyList.firstChild) {
+    if (historyList.firstChild && !historyList.firstChild.classList.contains('empty-history')) {
         historyList.insertBefore(historyItem, historyList.firstChild);
     } else {
         historyList.innerHTML = '';
@@ -695,7 +752,6 @@ function getNoun(number, titles) {
         (number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]
     ];
 }
-
 </script>
 
 </body>
