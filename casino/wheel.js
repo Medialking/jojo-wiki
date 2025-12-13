@@ -11,18 +11,18 @@ const WHEEL_CONFIG = {
     COOLDOWN: 3000, // Кулдаун между вращениями (3 секунды)
     AUTO_SPIN_COUNT: 3, // Количество авто-вращений
     SECTORS: [
-        // Формат: [множитель, вероятность%, название, цвет, класс]
-        { multiplier: 10, probability: 2, name: "ДЖЕКПОТ", color: "#ffcc00", class: "jackpot" },
-        { multiplier: 5, probability: 5, name: "МЕГА ВЫИГРЫШ", color: "#ff0000", class: "big-win" },
-        { multiplier: 3, probability: 8, name: "БОЛЬШОЙ ВЫИГРЫШ", color: "#ff6600", class: "big-win" },
-        { multiplier: 2, probability: 10, name: "ХОРОШИЙ ВЫИГРЫШ", color: "#ff9900", class: "medium-win" },
-        { multiplier: 1.5, probability: 15, name: "ВЫИГРЫШ", color: "#00ff00", class: "small-win" },
-        { multiplier: 1, probability: 20, name: "ВОЗВРАТ", color: "#0088ff", class: "small-win" },
-        { multiplier: 0.8, probability: 15, name: "МАЛЕНЬКИЙ ВЫИГРЫШ", color: "#8800ff", class: "small-win" },
-        { multiplier: 0.5, probability: 10, name: "УТЕШИТЕЛЬНЫЙ", color: "#ff00ff", class: "small-win" },
-        { multiplier: 0.2, probability: 8, name: "МАЛЕНЬКИЙ ПРИЗ", color: "#00ffff", class: "small-win" },
-        { multiplier: 0, probability: 7, name: "ПУСТО", color: "#666666", class: "small-win" }
-    ]
+    // Меньше шансов на выигрыш, больше на проигрыш
+    { multiplier: 10, probability: 1, name: "ДЖЕКПОТ", color: "#ffcc00", class: "jackpot" },
+    { multiplier: 5, probability: 3, name: "МЕГА ВЫИГРЫШ", color: "#ff0000", class: "big-win" },
+    { multiplier: 3, probability: 5, name: "БОЛЬШОЙ ВЫИГРЫШ", color: "#ff6600", class: "big-win" },
+    { multiplier: 2, probability: 7, name: "ХОРОШИЙ ВЫИГРЫШ", color: "#ff9900", class: "medium-win" },
+    { multiplier: 1.5, probability: 10, name: "ВЫИГРЫШ", color: "#00ff00", class: "small-win" },
+    { multiplier: 1, probability: 15, name: "ВОЗВРАТ", color: "#0088ff", class: "small-win" },
+    { multiplier: 0.8, probability: 15, name: "МАЛЕНЬКИЙ ВЫИГРЫШ", color: "#8800ff", class: "small-win" },
+    { multiplier: 0.5, probability: 15, name: "УТЕШИТЕЛЬНЫЙ", color: "#ff00ff", class: "small-win" },
+    { multiplier: 0.2, probability: 15, name: "МАЛЕНЬКИЙ ПРИЗ", color: "#00ffff", class: "small-win" },
+    { multiplier: 0, probability: 14, name: "ПУСТО", color: "#666666", class: "small-win" }
+]
 };
 
 // Состояние игры
