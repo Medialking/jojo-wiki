@@ -7,7 +7,7 @@ let casinoData = null;
 
 // Конфигурация колеса
 const WHEEL_CONFIG = {
-    SPIN_COST: 50, // Стоимость одного вращения
+    SPIN_COST: 150, // Стоимость одного вращения
     COOLDOWN: 3000, // Кулдаун между вращениями (3 секунды)
     AUTO_SPIN_COUNT: 3, // Количество авто-вращений
     SECTORS: [
