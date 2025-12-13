@@ -1,3 +1,5 @@
+[file name]: points.js
+[file content begin]
 // Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
@@ -9,7 +11,10 @@ const firebaseConfig = {
     appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Инициализируем только если еще не инициализировано
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const database = firebase.database();
 
 // Глобальные переменные
@@ -27,6 +32,7 @@ window.onload = async function() {
         document.getElementById("content").style.opacity = "1";
         
         if (await checkAuth()) {
+            await TimeManager.syncWithServer(); // Синхронизируем время
             await loadPointsData();
             await updateUIWithTop();
             setupEventListeners();
@@ -69,23 +75,9 @@ function createParticles() {
 
 // ПОДПИСКА НА ОБНОВЛЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ
 function setupRealtimeUpdates() {
-    // Слушаем изменения в holiday_points
     database.ref('holiday_points/' + userId).on('value', (snapshot) => {
         if (snapshot.exists()) {
             const newData = snapshot.val();
-            
-            // Проверяем, увеличились ли очки
-            if (pointsData && newData.total_points > pointsData.total_points) {
-                const diff = newData.total_points - pointsData.total_points;
-                
-                // Показываем уведомление если это не ежедневный подарок
-                const now = new Date();
-                const lastClaim = localStorage.getItem('last_daily_claim_' + userId);
-                
-                if (!lastClaim || (now - new Date(lastClaim)) > 5000) {
-                    showNotification(`🎉 +${diff} новогодних очков!`, 'success');
-                }
-            }
             
             // Обновляем данные и интерфейс
             pointsData = newData;
@@ -119,16 +111,21 @@ async function loadPointsData() {
             pointsData = snapshot.val();
             console.log('✅ Данные очков загружены:', pointsData);
         } else {
-            // Создаем новую запись
+            // Создаем новую запись с улучшенной структурой
+            const todayKey = TimeManager.getTodayKey();
             pointsData = {
                 total_points: 0,
                 available_points: 0,
                 spent_points: 0,
                 daily_gifts: {},
+                wheel_spins: {},
                 rewards_history: [],
+                last_actions: {
+                    daily_gift: null,
+                    wheel_spin: null
+                },
                 current_streak: 0,
-                max_streak: 0,
-                last_claim: null
+                max_streak: 0
             };
             
             await database.ref('holiday_points/' + userId).set(pointsData);
@@ -212,34 +209,34 @@ function getRandomPoints(streakBonus = 0) {
 
 // ПРОВЕРКА, МОЖНО ЛИ ПОЛУЧИТЬ ПОДАРОК
 function canClaimGift() {
-    if (!pointsData || !pointsData.last_claim) {
-        return true; // Никогда не получали
-    }
+    console.log('🎁 Проверка возможности получения подарка');
     
-    const lastClaim = new Date(pointsData.last_claim);
-    const now = new Date();
-    const hoursSinceLastClaim = (now - lastClaim) / (1000 * 60 * 60);
+    // Проверка 1: по дате последнего получения
+    const lastGiftTime = pointsData?.last_actions?.daily_gift;
+    const canByTime = TimeManager.canPerformAction(lastGiftTime);
     
-    return hoursSinceLastClaim >= 24;
+    // Проверка 2: по данным сегодняшнего дня
+    const todayKey = TimeManager.getTodayKey();
+    const hasToday = pointsData?.daily_gifts && pointsData.daily_gifts[todayKey];
+    
+    console.log(`🎁 Результаты проверки: по времени ${canByTime}, сегодня получен ${hasToday}`);
+    
+    return canByTime && !hasToday;
 }
 
 // ПОЛУЧЕНИЕ ВРЕМЕНИ ДО СЛЕДУЮЩЕГО ПОДАРКА
 function getTimeToNextGift() {
-    if (!pointsData || !pointsData.last_claim) {
-        return 0; // Можно получить сразу
-    }
-    
-    const lastClaim = new Date(pointsData.last_claim);
-    const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
-    const now = new Date();
-    
-    return Math.max(0, nextClaim - now);
+    const lastGiftTime = pointsData?.last_actions?.daily_gift;
+    return TimeManager.getTimeToNextAction(lastGiftTime);
 }
 
 // ОТКРЫТИЕ ЕЖЕДНЕВНОГО ПОДАРКА
 async function openDailyGift() {
+    console.log('🎁 Попытка открытия ежедневного подарка');
+    
     if (!canClaimGift()) {
-        showError('Вы уже получили подарок сегодня. Возвращайтесь через ' + formatTime(getTimeToNextGift()));
+        const timeLeft = getTimeToNextGift();
+        showError('Вы уже получили подарок сегодня. Возвращайтесь через ' + TimeManager.formatTime(timeLeft));
         return;
     }
     
@@ -248,18 +245,26 @@ async function openDailyGift() {
         const streak = pointsData.current_streak || 0;
         const points = getRandomPoints(streak);
         
+        // Текущее время с серверной синхронизацией
+        const now = new Date(TimeManager.getCurrentTime());
+        const todayKey = TimeManager.getTodayKey();
+        
         // Обновляем серию
-        const now = new Date();
-        const lastClaim = pointsData.last_claim ? new Date(pointsData.last_claim) : null;
         let newStreak = 1;
         
-        if (lastClaim) {
+        // Проверяем серию по датам из daily_gifts
+        const dailyGifts = pointsData.daily_gifts || {};
+        const giftDates = Object.keys(dailyGifts).sort();
+        
+        if (giftDates.length > 0) {
+            const lastDate = new Date(giftDates[giftDates.length - 1] + 'T00:00:00');
             const yesterday = new Date(now);
             yesterday.setDate(yesterday.getDate() - 1);
+            yesterday.setHours(0, 0, 0, 0);
             
-            // Проверяем, была ли претензия вчера
-            if (lastClaim.toDateString() === yesterday.toDateString()) {
-                newStreak = (pointsData.current_streak || 0) + 1;
+            // Если последний подарок был вчера - продолжаем серию
+            if (lastDate.toDateString() === yesterday.toDateString()) {
+                newStreak = streak + 1;
             }
         }
         
@@ -271,29 +276,33 @@ async function openDailyGift() {
             streak: newStreak
         };
         
-        // Обновляем данные
+        // Обновляем данные с новой структурой
         const newPointsData = {
+            ...pointsData,
             total_points: (pointsData.total_points || 0) + points,
             available_points: (pointsData.available_points || 0) + points,
-            spent_points: pointsData.spent_points || 0,
             daily_gifts: {
                 ...pointsData.daily_gifts,
-                [now.toISOString().split('T')[0]]: points
+                [todayKey]: {
+                    points: points,
+                    timestamp: now.toISOString(),
+                    streak: newStreak
+                }
             },
             rewards_history: [
                 reward,
                 ...(pointsData.rewards_history || [])
             ],
+            last_actions: {
+                ...pointsData.last_actions,
+                daily_gift: now.toISOString()
+            },
             current_streak: newStreak,
-            max_streak: Math.max(newStreak, pointsData.max_streak || 0),
-            last_claim: now.toISOString()
+            max_streak: Math.max(newStreak, pointsData.max_streak || 0)
         };
         
         // Сохраняем в Firebase
         await database.ref('holiday_points/' + userId).set(newPointsData);
-        
-        // Сохраняем время получения подарка
-        localStorage.setItem('last_daily_claim_' + userId, now.toISOString());
         
         // Обновляем локальные данные
         pointsData = newPointsData;
@@ -304,8 +313,10 @@ async function openDailyGift() {
         // Обновляем UI
         updateUI();
         
+        console.log(`✅ Подарок получен: ${points} очков, серия: ${newStreak} дней`);
+        
     } catch (error) {
-        console.error('Ошибка открытия подарка:', error);
+        console.error('❌ Ошибка открытия подарка:', error);
         showError('Ошибка при открытии подарка');
     }
 }
@@ -381,15 +392,6 @@ function createConfetti() {
     }
 }
 
-// ФОРМАТИРОВАНИЕ ВРЕМЕНИ
-function formatTime(ms) {
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
 // ОБНОВЛЕНИЕ ТАЙМЕРА
 function updateCountdown() {
     const timerElement = document.getElementById('countdown');
@@ -399,16 +401,19 @@ function updateCountdown() {
     const updateTimer = () => {
         const timeToNext = getTimeToNextGift();
         
-        if (timeToNext > 0) {
+        if (timeToNext > 0 || TimeManager.wasActionTodayInObject(pointsData?.daily_gifts)) {
             // Нельзя получить подарок
             giftBox.classList.add('disabled');
             giftBox.classList.remove('opened');
-            timerElement.textContent = formatTime(timeToNext);
+            timerElement.textContent = TimeManager.formatTime(timeToNext);
             statusElement.textContent = 'Доступно через:';
         } else {
             // Можно получить подарок
             giftBox.classList.remove('disabled');
-            if (canClaimGift()) {
+            const todayKey = TimeManager.getTodayKey();
+            const hasToday = pointsData?.daily_gifts && pointsData.daily_gifts[todayKey];
+            
+            if (!hasToday) {
                 giftBox.classList.remove('opened');
                 statusElement.textContent = 'Нажмите, чтобы открыть';
                 timerElement.textContent = 'Сейчас!';
@@ -430,8 +435,8 @@ function updateCountdown() {
 // ОБНОВЛЕНИЕ ДНЕЙ ДО КОНЦА АКЦИИ
 function updateDaysLeft() {
     const daysElement = document.getElementById('days-left');
-    const now = new Date();
-    const endDate = new Date('2026-01-01');
+    const now = TimeManager.getCurrentTime();
+    const endDate = new Date('2026-01-01').getTime();
     
     const timeDiff = endDate - now;
     const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
@@ -507,6 +512,9 @@ function updateRewardsHistory() {
         } else if (reward.type === 'referral_reward') {
             typeText = 'Награда за приглашение';
             icon = '👥';
+        } else if (reward.type === 'wheel_spin') {
+            typeText = 'Колесо фортуны';
+            icon = '🎡';
         }
         
         let desc = `Серия: ${reward.streak || 1} дней`;
@@ -570,13 +578,12 @@ async function loadTopPlayers() {
         
         const allPointsData = snapshot.val();
         const players = [];
-        const userId = localStorage.getItem('jojoland_userId');
         let userInTop = false;
         
         // Собираем данные всех игроков
         for (const playerId in allPointsData) {
-            const pointsData = allPointsData[playerId];
-            const totalPoints = pointsData.total_points || pointsData.totalPoints || 0;
+            const playerData = allPointsData[playerId];
+            const totalPoints = playerData.total_points || playerData.totalPoints || 0;
             
             // Получаем никнейм из users
             const userSnapshot = await database.ref('users/' + playerId).once('value');
@@ -591,8 +598,8 @@ async function loadTopPlayers() {
                 id: playerId,
                 nickname: nickname,
                 points: totalPoints,
-                streak: pointsData.current_streak || pointsData.currentStreak || 0,
-                gifts: Object.keys(pointsData.daily_gifts || {}).length,
+                streak: playerData.current_streak || playerData.currentStreak || 0,
+                gifts: Object.keys(playerData.daily_gifts || {}).length,
                 isCurrentUser: playerId === userId
             });
         }
@@ -773,7 +780,7 @@ function setupEventListeners() {
     // Открытие подарка
     const giftBox = document.getElementById('daily-gift');
     giftBox.addEventListener('click', async function() {
-        if (!this.classList.contains('disabled') && canClaimGift()) {
+        if (!this.classList.contains('disabled')) {
             await openDailyGift();
         }
     });
@@ -909,3 +916,4 @@ notificationStyle.textContent = `
     }
 `;
 document.head.appendChild(notificationStyle);
+[file content end]
