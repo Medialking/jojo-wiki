@@ -7,22 +7,22 @@ let casinoData = null;
 
 // Конфигурация колеса
 const WHEEL_CONFIG = {
-    SPIN_COST: 150, // Стоимость одного вращения
+    SPIN_COST: 50, // Стоимость одного вращения
     COOLDOWN: 3000, // Кулдаун между вращениями (3 секунды)
     AUTO_SPIN_COUNT: 3, // Количество авто-вращений
     SECTORS: [
-    // Меньше шансов на выигрыш, больше на проигрыш
-    { multiplier: 10, probability: 1, name: "ДЖЕКПОТ", color: "#ffcc00", class: "jackpot" },
-    { multiplier: 5, probability: 3, name: "МЕГА ВЫИГРЫШ", color: "#ff0000", class: "big-win" },
-    { multiplier: 3, probability: 5, name: "БОЛЬШОЙ ВЫИГРЫШ", color: "#ff6600", class: "big-win" },
-    { multiplier: 2, probability: 7, name: "ХОРОШИЙ ВЫИГРЫШ", color: "#ff9900", class: "medium-win" },
-    { multiplier: 1.5, probability: 10, name: "ВЫИГРЫШ", color: "#00ff00", class: "small-win" },
-    { multiplier: 1, probability: 15, name: "ВОЗВРАТ", color: "#0088ff", class: "small-win" },
-    { multiplier: 0.8, probability: 15, name: "МАЛЕНЬКИЙ ВЫИГРЫШ", color: "#8800ff", class: "small-win" },
-    { multiplier: 0.5, probability: 15, name: "УТЕШИТЕЛЬНЫЙ", color: "#ff00ff", class: "small-win" },
-    { multiplier: 0.2, probability: 15, name: "МАЛЕНЬКИЙ ПРИЗ", color: "#00ffff", class: "small-win" },
-    { multiplier: 0, probability: 14, name: "ПУСТО", color: "#666666", class: "small-win" }
-]
+        // СНИЖАЕМ множители и УВЕЛИЧИВАЕМ вероятность "ПУСТО"
+        { multiplier: 5, probability: 1, name: "ДЖЕКПОТ", color: "#ffcc00", class: "jackpot" }, // Было ×10 (2%)
+        { multiplier: 3, probability: 2, name: "МЕГА ВЫИГРЫШ", color: "#ff0000", class: "big-win" }, // Было ×5 (5%)
+        { multiplier: 2, probability: 3, name: "БОЛЬШОЙ ВЫИГРЫШ", color: "#ff6600", class: "big-win" }, // Было ×3 (8%)
+        { multiplier: 1.5, probability: 5, name: "ХОРОШИЙ ВЫИГРЫШ", color: "#ff9900", class: "medium-win" }, // Было ×2 (10%)
+        { multiplier: 1.2, probability: 8, name: "ВЫИГРЫШ", color: "#00ff00", class: "small-win" }, // Было ×1.5 (15%)
+        { multiplier: 1, probability: 10, name: "ВОЗВРАТ", color: "#0088ff", class: "small-win" }, // Было ×1 (20%)
+        { multiplier: 0.8, probability: 12, name: "МАЛЕНЬКИЙ ВЫИГРЫШ", color: "#8800ff", class: "small-win" }, // Было ×0.8 (15%)
+        { multiplier: 0.5, probability: 15, name: "УТЕШИТЕЛЬНЫЙ", color: "#ff00ff", class: "small-win" }, // Было ×0.5 (10%)
+        { multiplier: 0.3, probability: 18, name: "МАЛЕНЬКИЙ ПРИЗ", color: "#00ffff", class: "small-win" }, // Было ×0.2 (8%)
+        { multiplier: 0, probability: 26, name: "ПУСТО", color: "#666666", class: "small-win" } // Было ×0 (7%)
+    ]
 };
 
 // Состояние игры
