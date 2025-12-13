@@ -1,5 +1,3 @@
-[file name]: timeManager.js
-[file content begin]
 // timeManager.js - Общий менеджер времени для всех новогодних активностей
 let SERVER_TIME_OFFSET = 0;
 
@@ -100,4 +98,3 @@ class TimeManager {
         return now - lastTime;
     }
 }
-[file content end]
