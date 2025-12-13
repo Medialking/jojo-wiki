@@ -214,8 +214,8 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
 <script>
 // Инициализация Firebase
@@ -239,20 +239,42 @@ let userNickname = null;
 let userBalance = 0;
 let currentDuelId = null;
 let currentBet = 100;
+let cleanupListeners = [];
+
+// Очистка слушателей при уходе со страницы
+['pagehide', 'unload'].forEach(event => {
+    window.addEventListener(event, cleanupAllListeners);
+});
+
+function cleanupAllListeners() {
+    cleanupListeners.forEach(cleanup => {
+        try {
+            cleanup();
+        } catch (e) {
+            console.warn('Ошибка при очистке слушателя:', e);
+        }
+    });
+    cleanupListeners = [];
+}
 
 window.onload = async function() {
-    if (await checkAuth()) {
-        await loadUserBalance();
-        setupEventListeners();
-        loadActiveDuels();
-        loadMyDuels();
-        
-        // Проверяем параметр игры в URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameId = urlParams.get('game');
-        if (gameId) {
-            await joinExistingDuel(gameId);
+    try {
+        if (await checkAuth()) {
+            await loadUserBalance();
+            setupEventListeners();
+            loadActiveDuels();
+            loadMyDuels();
+            
+            // Проверяем параметр игры в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('game');
+            if (gameId) {
+                await joinExistingDuel(gameId);
+            }
         }
+    } catch (error) {
+        console.error('Ошибка инициализации:', error);
+        showError('Ошибка загрузки страницы');
     }
 };
 
@@ -401,6 +423,10 @@ async function loadActiveDuels() {
     try {
         const duelsList = document.getElementById('active-duels');
         
+        // Проверяем, не загружается ли уже
+        if (window.isLoadingDuels) return;
+        window.isLoadingDuels = true;
+        
         // Показываем загрузку
         duelsList.innerHTML = `
             <div class="loading">
@@ -420,6 +446,7 @@ async function loadActiveDuels() {
                     <small>Создайте первую дуэль!</small>
                 </div>
             `;
+            window.isLoadingDuels = false;
             return;
         }
         
@@ -509,14 +536,20 @@ async function loadActiveDuels() {
             }).join('');
         }
         
+        window.isLoadingDuels = false;
+        
     } catch (error) {
         console.error('Ошибка загрузки дуэлей:', error);
         document.getElementById('active-duels').innerHTML = `
             <div style="color: #ff4444; text-align: center;">
                 <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
                 <p>Ошибка загрузки дуэлей</p>
+                <button onclick="loadActiveDuels()" style="margin-top: 10px; padding: 10px 20px; background: #6200ff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Попробовать снова
+                </button>
             </div>
         `;
+        window.isLoadingDuels = false;
     }
 }
 
@@ -714,6 +747,9 @@ function startDuelTimer(duelData) {
             startDuel(duelData);
         }
     }, 1000);
+    
+    // Сохраняем таймер для очистки
+    cleanupListeners.push(() => clearInterval(timer));
 }
 
 async function startDuel(duelData) {
@@ -937,7 +973,14 @@ async function loadMyDuels(status = 'active') {
 }
 
 function setupDuelListener(duelId) {
-    database.ref('casino_games/' + duelId).on('value', async (snapshot) => {
+    // Отписываемся от предыдущего слушателя
+    if (window.currentDuelListenerRef) {
+        window.currentDuelListenerRef.off();
+    }
+    
+    window.currentDuelListenerRef = database.ref('casino_games/' + duelId);
+    
+    const listener = window.currentDuelListenerRef.on('value', async (snapshot) => {
         if (!snapshot.exists()) {
             // Дуэль была удалена
             document.getElementById('duel-modal').style.display = 'none';
@@ -971,6 +1014,22 @@ function setupDuelListener(duelId) {
                     );
                 }
             }
+            
+            // Отписываемся от слушателя через 5 секунд после завершения
+            setTimeout(() => {
+                if (window.currentDuelListenerRef) {
+                    window.currentDuelListenerRef.off();
+                    window.currentDuelListenerRef = null;
+                }
+            }, 5000);
+        }
+    });
+    
+    // Добавляем очистку в список
+    cleanupListeners.push(() => {
+        if (window.currentDuelListenerRef) {
+            window.currentDuelListenerRef.off();
+            window.currentDuelListenerRef = null;
         }
     });
 }
