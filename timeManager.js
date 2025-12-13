@@ -96,5 +96,38 @@ class TimeManager {
         const now = this.getCurrentTime();
         const lastTime = new Date(lastActionTime).getTime();
         return now - lastTime;
+
+    static isCooldownActive(cooldownUntil) {
+        if (!cooldownUntil) return false;
+        
+        const cooldownTime = new Date(cooldownUntil).getTime();
+        const now = this.getCurrentTime();
+        
+        return cooldownTime > now;
+    }
+    
+    // Получение времени до окончания кулдауна
+    static getCooldownTimeLeft(cooldownUntil) {
+        if (!cooldownUntil) return 0;
+        
+        const cooldownTime = new Date(cooldownUntil).getTime();
+        const now = this.getCurrentTime();
+        
+        return Math.max(0, cooldownTime - now);
+    }
+    
+    // Форматирование времени кулдауна
+    static formatCooldown(timeLeft) {
+        if (timeLeft <= 0) return 'Сейчас';
+        
+        const seconds = Math.ceil(timeLeft / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        
+        if (minutes > 0) {
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        } else {
+            return `${seconds}с`;
+        }
     }
 }
