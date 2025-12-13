@@ -96,6 +96,7 @@ class TimeManager {
         const now = this.getCurrentTime();
         const lastTime = new Date(lastActionTime).getTime();
         return now - lastTime;
+    }
 
     static isCooldownActive(cooldownUntil) {
         if (!cooldownUntil) return false;
