@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Красное или Черное | Казино JojoLand</title>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="casino.css">
-    <link rel="stylesheet" href="game.css">
-    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="red-black.css">
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -22,737 +20,242 @@
 <div id="content">
     <header>
         <div class="header-top">
-            <a href="casino.html" class="profile-btn">
-                <span class="profile-icon">🎰</span>
-                <span class="profile-text">В казино</span>
-            </a>
             <a href="index.html" class="profile-btn">
                 <span class="profile-icon">🏠</span>
                 <span class="profile-text">На главную</span>
             </a>
-            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+            <a href="casino.html" class="profile-btn">
+                <span class="profile-icon">🎰</span>
+                <span class="profile-text">Все игры</span>
+            </a>
+            <img src="images/logo.png" class="logo" alt="JojoLand Logo">
         </div>
         
-        <h1>🎯 Красное или Черное</h1>
-        <p class="subtitle">Угадай цвет и выиграй х2!</p>
+        <h1>🎲 Красное или Черное</h1>
+        <p class="subtitle">Угадайте цвет и выиграйте ×1.5 ставки!</p>
     </header>
 
     <div class="game-container">
-        <!-- ИНФО ИГРЫ -->
-        <div class="game-info-section">
-            <div class="game-rules">
-                <h2>🎯 Правила игры</h2>
-                <ul>
-                    <li>Сделайте ставку от 10 до 1000 очков</li>
-                    <li>Выберите цвет: Красное или Черное</li>
-                    <li>Шанс выигрыша: 50%</li>
-                    <li>Коэффициент выигрыша: x2</li>
-                    <li>Если угадаете цвет - выигрываете удвоенную ставку!</li>
-                </ul>
-            </div>
-            
-            <div class="game-balance">
-                <div class="balance-card">
-                    <div class="balance-icon">💰</div>
-                    <div class="balance-info">
-                        <h3>Ваш баланс</h3>
-                        <div class="balance-amount" id="user-balance">0</div>
-                        <p class="balance-label">новогодних очков</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- СТАВКА -->
-        <div class="bet-section">
-            <h2>💰 Сделайте ставку</h2>
-            
-            <div class="bet-amount">
-                <div class="bet-slider">
-                    <input type="range" id="bet-slider" min="10" max="1000" step="10" value="100">
-                    <div class="slider-values">
-                        <span>10</span>
-                        <span>1000</span>
-                    </div>
-                </div>
-                
-                <div class="bet-input">
-                    <label for="bet-input">Сумма ставки:</label>
-                    <div class="input-group">
-                        <input type="number" id="bet-input" min="10" max="1000" value="100">
-                        <span class="input-suffix">очков</span>
-                    </div>
-                    <div class="bet-buttons">
-                        <button class="quick-bet" data-amount="10">10</button>
-                        <button class="quick-bet" data-amount="50">50</button>
-                        <button class="quick-bet" data-amount="100">100</button>
-                        <button class="quick-bet" data-amount="500">500</button>
-                        <button class="quick-bet" data-amount="1000">1000</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ВЫБОР ЦВЕТА -->
-        <div class="choice-section">
-            <h2>🎨 Выберите цвет</h2>
-            
-            <div class="color-choices">
-                <div class="color-choice" data-color="red">
-                    <div class="color-display red"></div>
-                    <div class="color-info">
-                        <h3>Красное</h3>
-                        <p>Коэффициент: x2</p>
-                    </div>
-                    <div class="color-stats">
-                        <div class="stat">Шанс: 50%</div>
-                        <div class="stat">Выигрыш: <span id="red-win">200</span></div>
-                    </div>
-                </div>
-                
-                <div class="color-choice" data-color="black">
-                    <div class="color-display black"></div>
-                    <div class="color-info">
-                        <h3>Черное</h3>
-                        <p>Коэффициент: x2</p>
-                    </div>
-                    <div class="color-stats">
-                        <div class="stat">Шанс: 50%</div>
-                        <div class="stat">Выигрыш: <span id="black-win">200</span></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="selected-choice" id="selected-choice" style="display: none;">
-                <h3>Ваш выбор:</h3>
-                <div class="selected-display">
-                    <div class="selected-color" id="selected-color"></div>
-                    <span id="selected-color-name">Красное</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- КНОПКА ИГРЫ -->
-        <div class="play-section">
-            <button class="play-btn" id="play-btn" disabled>
-                🎯 Сделать ставку
-            </button>
-            <p class="play-note">Минимальная ставка: 10 очков</p>
-        </div>
-
-        <!-- ИСТОРИЯ -->
-        <div class="history-section">
-            <h2>📜 История игры</h2>
-            <div class="history-list" id="game-history">
-                <!-- История будет загружаться через JS -->
-                <div class="empty-history">
-                    <div class="empty-icon">🎰</div>
-                    <p>Нет истории игр</p>
-                    <small>Сделайте первую ставку!</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- КНОПКИ -->
-        <div class="action-buttons">
-            <button class="action-btn" id="back-btn">⬅️ Назад</button>
-            <button class="action-btn" id="create-game-btn">🎮 Создать игру</button>
-            <button class="action-btn" id="join-game-btn">🤝 Присоединиться</button>
-        </div>
-    </div>
-</div>
-
-<!-- МОДАЛЬНОЕ ОКНО ИГРЫ -->
-<div id="game-modal" class="modal-overlay">
-    <div class="modal-content game-modal">
-        <div class="game-header">
-            <h2>🎰 Игра в процессе</h2>
-            <p id="game-status">Ожидание игроков...</p>
-        </div>
-        
-        <div class="game-body">
-            <div class="game-info">
-                <div class="info-item">
-                    <span class="info-label">Ставка:</span>
-                    <span class="info-value" id="modal-bet">100</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Игроков:</span>
-                    <span class="info-value" id="modal-players">1/2</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Ваш выбор:</span>
-                    <span class="info-value" id="modal-choice">Красное</span>
-                </div>
-            </div>
-            
-            <div class="game-wheel" id="game-wheel">
-                <div class="wheel-container">
-                    <div class="wheel" id="wheel">
-                        <div class="wheel-section red"></div>
-                        <div class="wheel-section black"></div>
-                        <div class="wheel-section red"></div>
-                        <div class="wheel-section black"></div>
-                        <div class="wheel-section red"></div>
-                        <div class="wheel-section black"></div>
-                        <div class="wheel-center"></div>
-                    </div>
+        <!-- ИГРОВОЕ ПОЛЕ -->
+        <div class="game-area">
+            <!-- БАРАБАН -->
+            <div class="roulette-wheel" id="roulette-wheel">
+                <div class="wheel-inner">
+                    <div class="wheel-sector red">КРАСНОЕ</div>
+                    <div class="wheel-sector black">ЧЕРНОЕ</div>
+                    <div class="wheel-sector red">КРАСНОЕ</div>
+                    <div class="wheel-sector black">ЧЕРНОЕ</div>
+                    <div class="wheel-sector red">КРАСНОЕ</div>
+                    <div class="wheel-sector black">ЧЕРНОЕ</div>
                     <div class="wheel-pointer"></div>
                 </div>
             </div>
             
-            <div class="game-result" id="game-result" style="display: none;">
-                <div class="result-title" id="result-title">Результат:</div>
-                <div class="result-color" id="result-color"></div>
-                <div class="result-message" id="result-message"></div>
-                <div class="result-amount" id="result-amount"></div>
+            <!-- РЕЗУЛЬТАТ -->
+            <div class="result-display" id="result-display">
+                <div class="result-title">Результат</div>
+                <div class="result-color" id="result-color">-</div>
+                <div class="result-amount" id="result-amount">0</div>
             </div>
         </div>
-        
-        <div class="game-footer">
-            <button class="close-btn" id="close-game">Закрыть</button>
+
+        <!-- СТАВКИ -->
+        <div class="betting-section">
+            <div class="bet-controls">
+                <!-- ВЫБОР ЦВЕТА -->
+                <div class="color-selector">
+                    <h3>Выберите цвет:</h3>
+                    <div class="color-buttons">
+                        <button class="color-btn red-btn" data-color="red">
+                            <div class="color-circle red"></div>
+                            <span>Красное</span>
+                            <div class="color-multiplier">×1.5</div>
+                        </button>
+                        <button class="color-btn black-btn" data-color="black">
+                            <div class="color-circle black"></div>
+                            <span>Черное</span>
+                            <div class="color-multiplier">×1.5</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ВЫБОР СТАВКИ -->
+                <div class="bet-amount">
+                    <h3>Сумма ставки:</h3>
+                    <div class="amount-display">
+                        <button class="amount-btn" id="decrease-bet">-</button>
+                        <input type="number" id="bet-input" value="10" min="10" max="1000" step="10">
+                        <button class="amount-btn" id="increase-bet">+</button>
+                    </div>
+                    <div class="amount-presets">
+                        <button class="preset-btn" data-amount="10">10</button>
+                        <button class="preset-btn" data-amount="50">50</button>
+                        <button class="preset-btn" data-amount="100">100</button>
+                        <button class="preset-btn" data-amount="200">200</button>
+                        <button class="preset-btn" data-amount="500">500</button>
+                    </div>
+                </div>
+
+                <!-- КНОПКА СТАВКИ -->
+                <div class="bet-action">
+                    <button class="place-bet-btn" id="place-bet" disabled>
+                        <span class="bet-icon">🎲</span>
+                        <span class="bet-text">Сделать ставку</span>
+                    </button>
+                    <div class="bet-info">
+                        <div class="info-item">
+                            <span class="info-icon">💰</span>
+                            <span>Ваша ставка: <strong id="current-bet">0</strong></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">🎯</span>
+                            <span>Возможный выигрыш: <strong id="possible-win">0</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- БАЛАНС -->
+            <div class="balance-panel">
+                <div class="balance-display">
+                    <div class="balance-label">Ваш баланс:</div>
+                    <div class="balance-amount" id="current-balance">0</div>
+                </div>
+                <div class="cooldown-info" id="cooldown-info" style="display: none;">
+                    <span class="cooldown-icon">⏰</span>
+                    <span>Следующая ставка через: <span id="cooldown-timer">10с</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ИНФОРМАЦИЯ ОБ ИГРЕ -->
+        <div class="game-info">
+            <div class="info-card">
+                <div class="info-icon">🎯</div>
+                <div class="info-content">
+                    <h4>Как играть?</h4>
+                    <p>Выберите цвет (красное или черное), установите ставку и нажмите "Сделать ставку"</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon">💰</div>
+                <div class="info-content">
+                    <h4>Выигрыш</h4>
+                    <p>При выигрыше вы получаете ×1.5 от суммы ставки</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon">📊</div>
+                <div class="info-content">
+                    <h4>Шансы</h4>
+                    <p>Вероятность выигрыша: ~49% (один сектор - ноль)</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon">⚠️</div>
+                <div class="info-content">
+                    <h4>Минимальная ставка</h4>
+                    <p>Минимальная сумма для ставки - 10 новогодних очков</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ -->
+        <div class="recent-results">
+            <h3>Последние результаты:</h3>
+            <div class="results-list" id="results-list">
+                <!-- Результаты будут добавляться динамически -->
+                <div class="empty-results">
+                    Еще нет сыгранных игр
+                </div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <a href="casino.html" class="action-btn">🎰 Все игры</a>
+            <button class="action-btn" id="double-bet-btn">2× Удвоить</button>
+            <button class="action-btn" id="clear-bet-btn">🗑️ Очистить</button>
+            <a href="points.html" class="action-btn">🎄 Получить очки</a>
         </div>
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
-<script>
-// Инициализация Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-    authDomain: "jojoland-chat.firebasestorage.app",
-    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
-    projectId: "jojoland-chat",
-    storageBucket: "jojoland-chat.firebasestorage.app",
-    messagingSenderId: "602788305122",
-    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
-};
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const database = firebase.database();
-
-let userId = null;
-let userNickname = null;
-let userBalance = 0;
-let selectedColor = null;
-let currentBet = 100;
-let currentGameId = null;
-let cleanupListeners = [];
-
-// Очистка слушателей при уходе со страницы
-['pagehide', 'unload'].forEach(event => {
-    window.addEventListener(event, cleanupAllListeners);
-});
-
-function cleanupAllListeners() {
-    cleanupListeners.forEach(cleanup => {
-        try {
-            cleanup();
-        } catch (e) {
-            console.warn('Ошибка при очистке слушателя:', e);
-        }
-    });
-    cleanupListeners = [];
-}
-
-window.onload = async function() {
-    try {
-        if (await checkAuth()) {
-            await loadUserBalance();
-            setupEventListeners();
-            updateWinAmounts();
-            
-            // Проверяем параметр игры в URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameId = urlParams.get('game');
-            if (gameId) {
-                await joinExistingGame(gameId);
-            }
-        }
-    } catch (error) {
-        console.error('Ошибка инициализации:', error);
-        showError('Ошибка загрузки страницы');
-    }
-};
-
-async function checkAuth() {
-    userId = localStorage.getItem('jojoland_userId');
-    userNickname = localStorage.getItem('jojoland_nickname');
-    
-    if (!userId || !userNickname) {
-        alert('Для игры необходимо войти в аккаунт');
-        window.location.href = 'index.html';
-        return false;
-    }
-    return true;
-}
-
-async function loadUserBalance() {
-    try {
-        const snapshot = await database.ref('holiday_points/' + userId).once('value');
-        if (snapshot.exists()) {
-            const pointsData = snapshot.val();
-            userBalance = pointsData.available_points || 0;
-            document.getElementById('user-balance').textContent = userBalance;
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки баланса:', error);
-    }
-}
-
-function setupEventListeners() {
-    // Слайдер ставки
-    const betSlider = document.getElementById('bet-slider');
-    const betInput = document.getElementById('bet-input');
-    
-    betSlider.addEventListener('input', function() {
-        currentBet = parseInt(this.value);
-        betInput.value = currentBet;
-        updateWinAmounts();
-        checkPlayButton();
-    });
-    
-    betInput.addEventListener('input', function() {
-        let value = parseInt(this.value) || 10;
-        value = Math.min(Math.max(value, 10), 1000);
-        currentBet = value;
-        betSlider.value = value;
-        this.value = value;
-        updateWinAmounts();
-        checkPlayButton();
-    });
-    
-    // Быстрые ставки
-    document.querySelectorAll('.quick-bet').forEach(btn => {
-        btn.addEventListener('click', function() {
-            currentBet = parseInt(this.getAttribute('data-amount'));
-            betSlider.value = currentBet;
-            betInput.value = currentBet;
-            updateWinAmounts();
-            checkPlayButton();
-        });
-    });
-    
-    // Выбор цвета
-    document.querySelectorAll('.color-choice').forEach(choice => {
-        choice.addEventListener('click', function() {
-            selectedColor = this.getAttribute('data-color');
-            
-            // Сбрасываем выделение
-            document.querySelectorAll('.color-choice').forEach(c => {
-                c.classList.remove('selected');
-            });
-            
-            // Выделяем выбранный
-            this.classList.add('selected');
-            
-            // Показываем выбранный цвет
-            const selectedDisplay = document.getElementById('selected-choice');
-            const selectedColorEl = document.getElementById('selected-color');
-            const selectedName = document.getElementById('selected-color-name');
-            
-            selectedDisplay.style.display = 'block';
-            selectedColorEl.className = `selected-color ${selectedColor}`;
-            selectedName.textContent = selectedColor === 'red' ? 'Красное' : 'Черное';
-            
-            checkPlayButton();
-        });
-    });
-    
-    // Кнопка игры
-    document.getElementById('play-btn').addEventListener('click', createGame);
-    
-    // Кнопка создания игры
-    document.getElementById('create-game-btn').addEventListener('click', createGame);
-    
-    // Кнопка присоединения
-    document.getElementById('join-game-btn').addEventListener('click', function() {
-        window.location.href = 'casino.html';
-    });
-    
-    // Кнопка назад
-    document.getElementById('back-btn').addEventListener('click', function() {
-        window.location.href = 'casino.html';
-    });
-    
-    // Закрытие модального окна
-    document.getElementById('close-game').addEventListener('click', function() {
-        document.getElementById('game-modal').style.display = 'none';
-        if (currentGameId) {
-            // Покидаем игру если она еще не началась
-            leaveGame();
-        }
-    });
-}
-
-function updateWinAmounts() {
-    const winAmount = currentBet * 2;
-    document.getElementById('red-win').textContent = winAmount;
-    document.getElementById('black-win').textContent = winAmount;
-}
-
-function checkPlayButton() {
-    const playBtn = document.getElementById('play-btn');
-    const canPlay = selectedColor && currentBet >= 10 && currentBet <= userBalance;
-    
-    playBtn.disabled = !canPlay;
-    
-    if (!canPlay) {
-        if (!selectedColor) {
-            playBtn.innerHTML = '🎯 Выберите цвет';
-        } else if (currentBet > userBalance) {
-            playBtn.innerHTML = `💸 Недостаточно очков`;
-        } else {
-            playBtn.innerHTML = '🎯 Сделать ставку';
-        }
-    } else {
-        playBtn.innerHTML = `🎯 Поставить ${currentBet} очков`;
-    }
-}
-
-async function createGame() {
-    if (!selectedColor || currentBet < 10 || currentBet > userBalance) {
-        showError('Проверьте ставку и выбор цвета');
-        return;
-    }
-    
-    try {
-        // Списываем ставку
-        const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
-        if (pointsSnapshot.exists()) {
-            const pointsData = pointsSnapshot.val();
-            const newBalance = (pointsData.available_points || 0) - currentBet;
-            
-            await database.ref('holiday_points/' + userId).update({
-                available_points: newBalance
-            });
-            
-            userBalance = newBalance;
-            document.getElementById('user-balance').textContent = userBalance;
-        }
-        
-        // Создаем игру
-        const gameId = 'red_black_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        currentGameId = gameId;
-        
-        const gameData = {
-            game_type: 'red_black',
-            created_by: userId,
-            creator_nickname: userNickname,
-            bet: currentBet,
-            created_at: new Date().toISOString(),
-            status: 'waiting',
-            max_players: 2,
-            players: {
-                [userId]: {
-                    nickname: userNickname,
-                    choice: selectedColor,
-                    joined_at: new Date().toISOString(),
-                    result: null
-                }
-            },
-            result: null,
-            winner: null
-        };
-        
-        await database.ref('casino_games/' + gameId).set(gameData);
-        
-        // Показываем модальное окно игры
-        showGameModal(gameData);
-        
-        // Подписываемся на обновления игры
-        const gameRef = database.ref('casino_games/' + gameId);
-        const listener = gameRef.on('value', async (snapshot) => {
-            if (snapshot.exists()) {
-                const updatedGame = snapshot.val();
-                updateGameModal(updatedGame);
-                
-                // Если игра завершена, обрабатываем результат
-                if (updatedGame.status === 'finished' && updatedGame.result) {
-                    await processGameResult(updatedGame);
-                }
-            }
-        });
-        
-        // Добавляем очистку слушателя
-        cleanupListeners.push(() => gameRef.off());
-        
-    } catch (error) {
-        console.error('Ошибка создания игры:', error);
-        showError('Ошибка создания игры');
-    }
-}
-
-async function joinExistingGame(gameId) {
-    try {
-        const gameSnapshot = await database.ref('casino_games/' + gameId).once('value');
-        
-        if (!gameSnapshot.exists()) {
-            showError('Игра не найдена');
-            return;
-        }
-        
-        const game = gameSnapshot.val();
-        currentGameId = gameId;
-        
-        // Если игра уже началась, показываем результат
-        if (game.status === 'finished') {
-            await processGameResult(game);
-            return;
-        }
-        
-        // Показываем модальное окно игры
-        showGameModal(game);
-        
-        // Подписываемся на обновления
-        const gameRef = database.ref('casino_games/' + gameId);
-        const listener = gameRef.on('value', async (snapshot) => {
-            if (snapshot.exists()) {
-                const updatedGame = snapshot.val();
-                updateGameModal(updatedGame);
-                
-                if (updatedGame.status === 'finished' && updatedGame.result) {
-                    await processGameResult(updatedGame);
-                }
-            }
-        });
-        
-        // Добавляем очистку слушателя
-        cleanupListeners.push(() => gameRef.off());
-        
-    } catch (error) {
-        console.error('Ошибка присоединения к игре:', error);
-        showError('Ошибка присоединения к игре');
-    }
-}
-
-function showGameModal(gameData) {
-    const modal = document.getElementById('game-modal');
-    document.getElementById('modal-bet').textContent = gameData.bet;
-    document.getElementById('modal-choice').textContent = 
-        gameData.players[userId]?.choice === 'red' ? 'Красное' : 'Черное';
-    
-    const playersCount = Object.keys(gameData.players || {}).length;
-    document.getElementById('modal-players').textContent = `${playersCount}/${gameData.max_players}`;
-    
-    modal.style.display = 'flex';
-}
-
-function updateGameModal(gameData) {
-    const playersCount = Object.keys(gameData.players || {}).length;
-    document.getElementById('modal-players').textContent = `${playersCount}/${gameData.max_players}`;
-    
-    if (gameData.status === 'in_progress') {
-        document.getElementById('game-status').textContent = 'Игра началась!';
-        startWheelAnimation(gameData.result);
-    } else if (gameData.status === 'finished') {
-        document.getElementById('game-status').textContent = 'Игра завершена';
-    }
-}
-
-async function startWheelAnimation(result) {
-    const wheel = document.getElementById('wheel');
-    const resultDiv = document.getElementById('game-result');
-    const resultColor = document.getElementById('result-color');
-    const resultMessage = document.getElementById('result-message');
-    const resultAmount = document.getElementById('result-amount');
-    
-    // Анимация вращения
-    wheel.style.transition = 'transform 3s cubic-bezier(0.1, 0.7, 0.1, 1)';
-    
-    // Вращаем колесо (2 полных оборота + угол для выбранного цвета)
-    const rotations = 2;
-    const redAngle = 60; // Красное на 60 градусов
-    const blackAngle = 240; // Черное на 240 градусов
-    
-    const finalAngle = result === 'red' ? 
-        rotations * 360 + redAngle : 
-        rotations * 360 + blackAngle;
-    
-    wheel.style.transform = `rotate(${finalAngle}deg)`;
-    
-    // После анимации показываем результат
-    setTimeout(() => {
-        wheel.style.transition = 'none';
-        
-        resultDiv.style.display = 'block';
-        resultColor.className = `result-color ${result}`;
-        
-        if (result === 'red') {
-            resultMessage.textContent = 'Выпало: Красное';
-        } else {
-            resultMessage.textContent = 'Выпало: Черное';
-        }
-        
-        // Получаем результат для текущего пользователя
-        const gameRef = database.ref('casino_games/' + currentGameId);
-        gameRef.once('value').then(snapshot => {
-            const game = snapshot.val();
-            const playerData = game.players[userId];
-            
-            if (playerData && playerData.result) {
-                if (playerData.result === 'win') {
-                    resultAmount.textContent = `+${game.bet * 2} очков`;
-                    resultAmount.style.color = '#00ff00';
-                } else {
-                    resultAmount.textContent = `-${game.bet} очков`;
-                    resultAmount.style.color = '#ff4444';
-                }
-            }
-        });
-        
-    }, 3000);
-}
-
-async function processGameResult(game) {
-    const playerData = game.players[userId];
-    
-    if (!playerData) return;
-    
-    // Сохраняем историю
-    const historyData = {
-        game_type: 'red_black',
-        bet: game.bet,
-        choice: playerData.choice === 'red' ? 'Красное' : 'Черное',
-        result: playerData.result,
-        win_amount: playerData.result === 'win' ? game.bet * 2 : 0,
-        opponent: Object.keys(game.players).find(id => id !== userId),
-        timestamp: new Date().toISOString()
-    };
-    
-    await database.ref('casino_history/' + userId + '/' + currentGameId).set(historyData);
-    
-    // Обновляем баланс если выиграли
-    if (playerData.result === 'win') {
-        await loadUserBalance();
-    }
-    
-    // Добавляем в историю на странице
-    addToGameHistory(historyData);
-}
-
-function addToGameHistory(history) {
-    const historyList = document.getElementById('game-history');
-    
-    const historyItem = document.createElement('div');
-    historyItem.className = `history-item ${history.result}`;
-    
-    historyItem.innerHTML = `
-        <div class="history-game">
-            <div class="game-type-icon">🎯</div>
-            <div class="game-info">
-                <div class="game-name">${history.choice}</div>
-                <div class="game-time">${new Date(history.timestamp).toLocaleTimeString('ru-RU')}</div>
-            </div>
+<!-- МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТА -->
+<div id="result-modal" class="modal-overlay">
+    <div class="modal-content result-modal">
+        <div class="result-confetti" id="win-confetti" style="display: none;">
+            <!-- Конфетти для выигрыша -->
         </div>
-        <div class="history-result">
-            <div class="result-icon">${history.result === 'win' ? '💰' : '💸'}</div>
-            <div class="result-text">
-                <div class="result-title">${history.result === 'win' ? 'Выигрыш' : 'Проигрыш'}</div>
-                <div class="result-amount ${history.result}">
-                    ${history.result === 'win' ? '+' : '-'}${history.bet} очков
+        
+        <div class="result-header" id="result-modal-header">
+            <h2 id="modal-title">🎲 Результат</h2>
+            <p id="modal-subtitle">Игра завершена!</p>
+        </div>
+        
+        <div class="result-body">
+            <div class="result-color-display" id="modal-color">
+                <div class="color-circle large" id="modal-color-circle"></div>
+                <div class="color-text" id="modal-color-text">-</div>
+            </div>
+            
+            <div class="result-details">
+                <div class="detail-item">
+                    <span class="detail-label">Вы выбрали:</span>
+                    <span class="detail-value" id="modal-selected">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Выпало:</span>
+                    <span class="detail-value" id="modal-result">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Ставка:</span>
+                    <span class="detail-value" id="modal-bet">0</span>
                 </div>
             </div>
+            
+            <div class="result-amount-display" id="modal-amount-display">
+                <div class="amount-label" id="modal-amount-label">Вы выиграли:</div>
+                <div class="amount-value" id="modal-amount-value">0</div>
+            </div>
+            
+            <div class="result-message" id="modal-message">
+                <!-- Сообщение будет добавляться динамически -->
+            </div>
         </div>
-    `;
-    
-    // Добавляем в начало
-    if (historyList.firstChild && !historyList.firstChild.classList.contains('empty-history')) {
-        historyList.insertBefore(historyItem, historyList.firstChild);
-    } else {
-        historyList.innerHTML = '';
-        historyList.appendChild(historyItem);
-    }
-}
-
-async function leaveGame() {
-    if (!currentGameId) return;
-    
-    try {
-        const gameRef = database.ref('casino_games/' + currentGameId);
-        const snapshot = await gameRef.once('value');
-        const game = snapshot.val();
         
-        // Если игра еще не началась, возвращаем ставку
-        if (game.status === 'waiting') {
-            const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
-            if (pointsSnapshot.exists()) {
-                const pointsData = pointsSnapshot.val();
-                const newBalance = (pointsData.available_points || 0) + currentBet;
-                
-                await database.ref('holiday_points/' + userId).update({
-                    available_points: newBalance
-                });
-                
-                userBalance = newBalance;
-                document.getElementById('user-balance').textContent = userBalance;
-            }
-            
-            // Удаляем игрока из игры
-            delete game.players[userId];
-            await gameRef.update({ players: game.players });
-            
-            // Если игроков не осталось, удаляем игру
-            if (Object.keys(game.players).length === 0) {
-                await gameRef.remove();
-            }
-        }
-        
-        currentGameId = null;
-        
-    } catch (error) {
-        console.error('Ошибка выхода из игры:', error);
+        <div class="result-footer">
+            <button id="close-result" class="result-btn">Продолжить</button>
+            <button id="play-again" class="result-btn secondary">Играть снова</button>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+        authDomain: "jojoland-chat.firebasestorage.app",
+        databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+        projectId: "jojoland-chat",
+        storageBucket: "jojoland-chat.firebasestorage.app",
+        messagingSenderId: "602788305122",
+        appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
     }
-}
-
-function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'notification error';
-    errorDiv.textContent = message;
-    
-    document.body.appendChild(errorDiv);
-    
-    setTimeout(() => {
-        errorDiv.remove();
-    }, 3000);
-}
-
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-function getTimeAgo(date) {
-    if (!date) return 'давно';
-    
-    const now = new Date();
-    const dateObj = date instanceof Date ? date : new Date(date);
-    
-    if (isNaN(dateObj.getTime())) return 'давно';
-    
-    const diff = Math.floor((now - dateObj) / 1000); // разница в секундах
-    
-    if (diff < 60) {
-        return 'только что';
-    } else if (diff < 3600) {
-        const minutes = Math.floor(diff / 60);
-        return `${minutes} ${getNoun(minutes, ['минуту', 'минуты', 'минут'])} назад`;
-    } else if (diff < 86400) {
-        const hours = Math.floor(diff / 3600);
-        return `${hours} ${getNoun(hours, ['час', 'часа', 'часов'])} назад`;
-    } else {
-        const days = Math.floor(diff / 86400);
-        return `${days} ${getNoun(days, ['день', 'дня', 'дней'])} назад`;
-    }
-}
-
-function getNoun(number, titles) {
-    const cases = [2, 0, 1, 1, 1, 2];
-    return titles[
-        (number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]
-    ];
-}
+    const database = firebase.database();
 </script>
+
+<script src="red-black.js"></script>
 
 </body>
 </html>
