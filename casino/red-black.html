@@ -690,6 +690,152 @@ function showError(message) {
         errorDiv.remove();
     }, 3000);
 }
+
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+function getTimeAgo(date) {
+    if (!date) return 'давно';
+    
+    const now = new Date();
+    const dateObj = date instanceof Date ? date : new Date(date);
+    
+    if (isNaN(dateObj.getTime())) return 'давно';
+    
+    const diff = Math.floor((now - dateObj) / 1000); // разница в секундах
+    
+    if (diff < 60) {
+        return 'только что';
+    } else if (diff < 3600) {
+        const minutes = Math.floor(diff / 60);
+        return `${minutes} ${getNoun(minutes, ['минуту', 'минуты', 'минут'])} назад`;
+    } else if (diff < 86400) {
+        const hours = Math.floor(diff / 3600);
+        return `${hours} ${getNoun(hours, ['час', 'часа', 'часов'])} назад`;
+    } else {
+        const days = Math.floor(diff / 86400);
+        return `${days} ${getNoun(days, ['день', 'дня', 'дней'])} назад`;
+    }
+}
+
+function getNoun(number, titles) {
+    const cases = [2, 0, 1, 1, 1, 2];
+    return titles[
+        (number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]
+    ];
+}
+
+// Функция для запуска игры (реализация для красное/черное)
+async function startRedBlackGame(gameId) {
+    try {
+        const gameRef = database.ref('casino_games/' + gameId);
+        const snapshot = await gameRef.once('value');
+        const game = snapshot.val();
+        
+        if (!game || game.status !== 'in_progress') return;
+        
+        // Случайно определяем результат (красное или черное)
+        const isRed = Math.random() < 0.5;
+        const result = isRed ? 'red' : 'black';
+        
+        // Определяем победителей
+        const players = game.players || {};
+        const updatedPlayers = { ...players };
+        let winners = [];
+        
+        for (const playerId in updatedPlayers) {
+            const player = updatedPlayers[playerId];
+            if (player.choice === result) {
+                player.result = 'win';
+                player.win_amount = game.bet * 2;
+                winners.push(playerId);
+            } else {
+                player.result = 'lose';
+                player.win_amount = 0;
+            }
+        }
+        
+        // Обновляем игру
+        await gameRef.update({
+            status: 'finished',
+            result: result,
+            finished_at: new Date().toISOString(),
+            players: updatedPlayers
+        });
+        
+        // Начисляем выигрыши победителям
+        for (const winnerId of winners) {
+            const pointsSnapshot = await database.ref('holiday_points/' + winnerId).once('value');
+            if (pointsSnapshot.exists()) {
+                const pointsData = pointsSnapshot.val();
+                const newBalance = (pointsData.available_points || 0) + (game.bet * 2);
+                
+                await database.ref('holiday_points/' + winnerId).update({
+                    available_points: newBalance
+                });
+                
+                // Сохраняем историю для победителя
+                const winnerHistory = {
+                    game_type: 'red_black',
+                    bet: game.bet,
+                    choice: updatedPlayers[winnerId].choice === 'red' ? 'Красное' : 'Черное',
+                    result: 'win',
+                    win_amount: game.bet * 2,
+                    opponent: Object.keys(players).find(id => id !== winnerId),
+                    timestamp: new Date().toISOString()
+                };
+                
+                await database.ref('casino_history/' + winnerId + '/' + gameId).set(winnerHistory);
+            }
+        }
+        
+        // Сохраняем историю для проигравших
+        for (const playerId in updatedPlayers) {
+            if (!winners.includes(playerId)) {
+                const loserHistory = {
+                    game_type: 'red_black',
+                    bet: game.bet,
+                    choice: updatedPlayers[playerId].choice === 'red' ? 'Красное' : 'Черное',
+                    result: 'lose',
+                    win_amount: 0,
+                    opponent: winners[0] || Object.keys(players).find(id => id !== playerId),
+                    timestamp: new Date().toISOString()
+                };
+                
+                await database.ref('casino_history/' + playerId + '/' + gameId).set(loserHistory);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Ошибка завершения игры:', error);
+    }
+}
+
+// Функция для обработки результата игры
+async function processGameResult(game) {
+    const playerData = game.players[userId];
+    
+    if (!playerData) return;
+    
+    // Сохраняем историю
+    const historyData = {
+        game_type: 'red_black',
+        bet: game.bet,
+        choice: playerData.choice === 'red' ? 'Красное' : 'Черное',
+        result: playerData.result,
+        win_amount: playerData.result === 'win' ? game.bet * 2 : 0,
+        opponent: Object.keys(game.players).find(id => id !== userId),
+        timestamp: new Date().toISOString()
+    };
+    
+    await database.ref('casino_history/' + userId + '/' + currentGameId).set(historyData);
+    
+    // Обновляем баланс если выиграли
+    if (playerData.result === 'win') {
+        await loadUserBalance();
+    }
+    
+    // Добавляем в историю на странице
+    addToGameHistory(historyData);
+        }
 </script>
 
 </body>
