@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Казино | JojoLand</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="casino.css">
+    
+    <!-- Игровой шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<!-- ФОНОВЫЕ ЭФФЕКТЫ -->
+<div class="background-effects" id="particles"></div>
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <a href="points.html" class="profile-btn">
+                <span class="profile-icon">🎁</span>
+                <span class="profile-text">Мои очки</span>
+            </a>
+            <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>🎰 Казино</h1>
+        <p class="subtitle">Испытай удачу и выиграй новогодние очки!</p>
+    </header>
+
+    <div class="casino-container">
+        <!-- БАЛАНС ПОЛЬЗОВАТЕЛЯ -->
+        <div class="balance-section">
+            <div class="balance-card">
+                <div class="balance-icon">💰</div>
+                <div class="balance-info">
+                    <h3>Ваш баланс</h3>
+                    <div class="balance-amount" id="user-balance">0</div>
+                    <p class="balance-label">новогодних очков</p>
+                </div>
+            </div>
+            <div class="balance-actions">
+                <button class="action-btn" id="refresh-balance">🔄 Обновить</button>
+                <button class="action-btn" id="withdraw-btn">💸 Вывести</button>
+            </div>
+        </div>
+
+        <!-- ИГРЫ -->
+        <div class="games-section">
+            <h2 class="section-title">🎲 Доступные игры</h2>
+            <p class="section-subtitle">Выберите игру и испытайте удачу!</p>
+            
+            <div class="games-grid">
+                <!-- ИГРА 1: КРАСНОЕ ИЛИ ЧЕРНОЕ -->
+                <div class="game-card" data-game="red-black">
+                    <div class="game-icon">🎯</div>
+                    <div class="game-info">
+                        <h3>Красное или Черное</h3>
+                        <p>Угадай цвет и выиграй х2</p>
+                    </div>
+                    <div class="game-stats">
+                        <div class="stat">
+                            <span class="stat-label">Шанс:</span>
+                            <span class="stat-value">50%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Коэф:</span>
+                            <span class="stat-value">x2</span>
+                        </div>
+                    </div>
+                    <button class="play-btn" onclick="window.location.href='red-black.html'">Играть</button>
+                </div>
+                
+                <!-- ИГРА 2: ДУЭЛЬ -->
+                <div class="game-card" data-game="duel">
+                    <div class="game-icon">⚔️</div>
+                    <div class="game-info">
+                        <h3>Дуэль</h3>
+                        <p>Сразитесь с другим игроком 1 на 1</p>
+                    </div>
+                    <div class="game-stats">
+                        <div class="stat">
+                            <span class="stat-label">Игроков:</span>
+                            <span class="stat-value">2</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Победитель:</span>
+                            <span class="stat-value">50%</span>
+                        </div>
+                    </div>
+                    <button class="play-btn" onclick="window.location.href='duel.html'">Играть</button>
+                </div>
+                
+                <!-- ИГРА 3: ЧИСЛО -->
+                <div class="game-card" data-game="number">
+                    <div class="game-icon">🎯</div>
+                    <div class="game-info">
+                        <h3>Угадай число</h3>
+                        <p>Угадайте число от 1 до 100</p>
+                    </div>
+                    <div class="game-stats">
+                        <div class="stat">
+                            <span class="stat-label">Шанс:</span>
+                            <span class="stat-value">1%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Коэф:</span>
+                            <span class="stat-value">x5</span>
+                        </div>
+                    </div>
+                    <button class="play-btn" onclick="window.location.href='number.html'">Играть</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- АКТИВНЫЕ ИГРЫ -->
+        <div class="active-games-section">
+            <h2 class="section-title">⚡ Активные игры</h2>
+            <p class="section-subtitle">Присоединяйтесь к играм других игроков</p>
+            
+            <div class="active-games-container">
+                <div class="loading" id="games-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка игр...</p>
+                </div>
+                <div class="active-games-list" id="active-games-list">
+                    <!-- Активные игры будут загружаться через JS -->
+                </div>
+            </div>
+            
+            <div class="refresh-btn-container">
+                <button class="refresh-btn" id="refresh-games">🔄 Обновить список</button>
+            </div>
+        </div>
+
+        <!-- ИСТОРИЯ ИГР -->
+        <div class="history-section">
+            <h2 class="section-title">📜 История игр</h2>
+            
+            <div class="history-tabs">
+                <button class="history-tab active" data-type="all">Все игры</button>
+                <button class="history-tab" data-type="won">Выигранные</button>
+                <button class="history-tab" data-type="lost">Проигранные</button>
+                <button class="history-tab" data-type="duel">Дуэли</button>
+            </div>
+            
+            <div class="history-list" id="history-list">
+                <!-- История будет загружаться через JS -->
+                <div class="empty-history">
+                    <div class="empty-icon">📭</div>
+                    <p>Пока нет истории игр</p>
+                    <small>Сыграйте в первую игру!</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВИЛА КАЗИНО -->
+        <div class="rules-section">
+            <h2 class="section-title">📋 Правила казино</h2>
+            
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <div class="rule-icon">💰</div>
+                    <h3>Ставки</h3>
+                    <p>Ставка должна быть от <strong>10 до 1000</strong> новогодних очков</p>
+                </div>
+                
+                <div class="rule-card">
+                    <div class="rule-icon">⏰</div>
+                    <h3>Время игры</h3>
+                    <p>Игра начинается когда набирается нужное количество игроков</p>
+                </div>
+                
+                <div class="rule-card">
+                    <div class="rule-icon">👥</div>
+                    <h3>Дуэли</h3>
+                    <p>В дуэлях победитель забирает всю ставку проигравшего</p>
+                </div>
+                
+                <div class="rule-card">
+                    <div class="rule-icon">⚠️</div>
+                    <h3>Предупреждение</h3>
+                    <p>Азартные игры могут вызывать зависимость. Играйте ответственно!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ НАВИГАЦИИ -->
+        <div class="navigation-buttons">
+            <a href="index.html" class="nav-btn">🏠 На главную</a>
+            <a href="profile.html" class="nav-btn">👤 Профиль</a>
+            <a href="points.html" class="nav-btn">🎁 Мои очки</a>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+// Инициализация Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+    authDomain: "jojoland-chat.firebasestorage.app",
+    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+    projectId: "jojoland-chat",
+    storageBucket: "jojoland-chat.firebasestorage.app",
+    messagingSenderId: "602788305122",
+    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+};
+
+// Инициализируем только если еще не инициализировано
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const database = firebase.database();
+
+// Глобальные переменные
+let userId = null;
+let userNickname = null;
+let userBalance = 0;
+
+// ЗАГРУЗКА СТРАНИЦЫ
+window.onload = async function() {
+    createParticles();
+    
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(async () => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+        
+        if (await checkAuth()) {
+            await loadUserBalance();
+            await loadActiveGames();
+            await loadGameHistory();
+            setupEventListeners();
+            setupRealtimeUpdates();
+        }
+    }, 400);
+};
+
+// СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        
+        const size = Math.random() * 2 + 1;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        particle.style.opacity = Math.random() * 0.5 + 0.2;
+        
+        const duration = Math.random() * 20 + 15;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `${Math.random() * 10}s`;
+        
+        particlesContainer.appendChild(particle);
+    }
+}
+
+// ПРОВЕРКА АВТОРИЗАЦИИ
+async function checkAuth() {
+    userId = localStorage.getItem('jojoland_userId');
+    userNickname = localStorage.getItem('jojoland_nickname');
+    
+    if (!userId || !userNickname) {
+        showError('Для игры в казино необходимо войти в аккаунт');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 3000);
+        return false;
+    }
+    
+    return true;
+}
+
+// ЗАГРУЗКА БАЛАНСА ПОЛЬЗОВАТЕЛЯ
+async function loadUserBalance() {
+    try {
+        const snapshot = await database.ref('holiday_points/' + userId).once('value');
+        
+        if (snapshot.exists()) {
+            const pointsData = snapshot.val();
+            userBalance = pointsData.available_points || 0;
+            document.getElementById('user-balance').textContent = userBalance;
+        }
+    } catch (error) {
+        console.error('❌ Ошибка загрузки баланса:', error);
+        showError('Ошибка загрузки баланса');
+    }
+}
+
+// ЗАГРУЗКА АКТИВНЫХ ИГР
+async function loadActiveGames() {
+    try {
+        const loadingElement = document.getElementById('games-loading');
+        const gamesList = document.getElementById('active-games-list');
+        
+        // Показываем загрузку
+        loadingElement.style.display = 'flex';
+        gamesList.innerHTML = '';
+        
+        // Получаем все активные игры
+        const snapshot = await database.ref('casino_games').once('value');
+        
+        if (!snapshot.exists()) {
+            gamesList.innerHTML = `
+                <div class="empty-games">
+                    <div class="empty-icon">🎲</div>
+                    <p>Нет активных игр</p>
+                    <small>Создайте первую игру!</small>
+                </div>
+            `;
+            loadingElement.style.display = 'none';
+            return;
+        }
+        
+        const gamesData = snapshot.val();
+        const activeGames = [];
+        
+        // Фильтруем только активные игры
+        for (const gameId in gamesData) {
+            const game = gamesData[gameId];
+            
+            // Пропускаем завершенные игры
+            if (game.status === 'finished' || game.status === 'cancelled') {
+                continue;
+            }
+            
+            // Пропускаем игры текущего пользователя
+            if (game.created_by === userId) {
+                continue;
+            }
+            
+            // Проверяем, не участвует ли уже пользователь
+            const players = game.players || {};
+            if (players[userId]) {
+                continue;
+            }
+            
+            // Получаем никнейм создателя
+            const creatorSnapshot = await database.ref('users/' + game.created_by).once('value');
+            let creatorNickname = 'Игрок';
+            
+            if (creatorSnapshot.exists()) {
+                const creatorData = creatorSnapshot.val();
+                creatorNickname = creatorData.nickname || 'Игрок';
+            }
+            
+            activeGames.push({
+                id: gameId,
+                gameType: game.game_type,
+                bet: game.bet,
+                creator: creatorNickname,
+                creatorId: game.created_by,
+                playersCount: Object.keys(players || {}).length,
+                maxPlayers: game.max_players || 2,
+                createdTime: game.created_at
+            });
+        }
+        
+        // Сортируем по времени создания (новые сверху)
+        activeGames.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+        
+        // Отображаем игры
+        if (activeGames.length === 0) {
+            gamesList.innerHTML = `
+                <div class="empty-games">
+                    <div class="empty-icon">🎲</div>
+                    <p>Нет активных игр</p>
+                    <small>Создайте первую игру!</small>
+                </div>
+            `;
+        } else {
+            gamesList.innerHTML = activeGames.map(game => {
+                let gameTypeText = '';
+                let gameIcon = '🎲';
+                
+                if (game.gameType === 'red_black') {
+                    gameTypeText = 'Красное/Черное';
+                    gameIcon = '🎯';
+                } else if (game.gameType === 'duel') {
+                    gameTypeText = 'Дуэль';
+                    gameIcon = '⚔️';
+                } else if (game.gameType === 'number') {
+                    gameTypeText = 'Угадай число';
+                    gameIcon = '🎯';
+                }
+                
+                const timeAgo = getTimeAgo(new Date(game.createdTime));
+                
+                return `
+                    <div class="active-game-card" data-game-id="${game.id}">
+                        <div class="game-header">
+                            <div class="game-type">
+                                <span class="game-icon">${gameIcon}</span>
+                                <span class="game-name">${gameTypeText}</span>
+                            </div>
+                            <div class="game-time">${timeAgo}</div>
+                        </div>
+                        <div class="game-info">
+                            <div class="game-creator">
+                                <span class="info-label">Создатель:</span>
+                                <span class="info-value">${game.creator}</span>
+                            </div>
+                            <div class="game-bet">
+                                <span class="info-label">Ставка:</span>
+                                <span class="info-value">${game.bet} очков</span>
+                            </div>
+                            <div class="game-players">
+                                <span class="info-label">Игроков:</span>
+                                <span class="info-value">${game.playersCount}/${game.maxPlayers}</span>
+                            </div>
+                        </div>
+                        <button class="join-btn" onclick="joinGame('${game.id}')">
+                            Присоединиться
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        loadingElement.style.display = 'none';
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки активных игр:', error);
+        document.getElementById('games-loading').innerHTML = `
+            <div style="color: #ff4444; text-align: center;">
+                <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+                <p>Ошибка загрузки игр</p>
+            </div>
+        `;
+    }
+}
+
+// ФУНКЦИЯ ДЛЯ ПРИСОЕДИНЕНИЯ К ИГРЕ
+async function joinGame(gameId) {
+    try {
+        // Проверяем баланс
+        if (userBalance <= 0) {
+            showError('Недостаточно очков для присоединения');
+            return;
+        }
+        
+        // Получаем информацию об игре
+        const gameSnapshot = await database.ref('casino_games/' + gameId).once('value');
+        
+        if (!gameSnapshot.exists()) {
+            showError('Игра не найдена');
+            return;
+        }
+        
+        const game = gameSnapshot.val();
+        
+        // Проверяем статус игры
+        if (game.status !== 'waiting') {
+            showError('Игра уже началась или завершена');
+            return;
+        }
+        
+        // Проверяем количество игроков
+        const players = game.players || {};
+        if (Object.keys(players).length >= game.max_players) {
+            showError('Игра уже заполнена');
+            return;
+        }
+        
+        // Проверяем, не участвует ли уже пользователь
+        if (players[userId]) {
+            showError('Вы уже участвуете в этой игре');
+            return;
+        }
+        
+        // Списываем ставку
+        const bet = game.bet;
+        if (userBalance < bet) {
+            showError(`Недостаточно очков. Нужно: ${bet}, у вас: ${userBalance}`);
+            return;
+        }
+        
+        // Обновляем баланс
+        const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
+        if (pointsSnapshot.exists()) {
+            const pointsData = pointsSnapshot.val();
+            const newBalance = (pointsData.available_points || 0) - bet;
+            
+            await database.ref('holiday_points/' + userId).update({
+                available_points: newBalance
+            });
+            
+            userBalance = newBalance;
+            document.getElementById('user-balance').textContent = userBalance;
+        }
+        
+        // Добавляем игрока в игру
+        players[userId] = {
+            nickname: userNickname,
+            joined_at: new Date().toISOString(),
+            choice: null,
+            result: null
+        };
+        
+        await database.ref('casino_games/' + gameId).update({
+            players: players
+        });
+        
+        // Если игра заполнена, запускаем ее
+        if (Object.keys(players).length >= game.max_players) {
+            await startGame(gameId, game.game_type);
+        }
+        
+        showNotification(`Вы присоединились к игре! Ставка: ${bet} очков`, 'success');
+        
+        // Перенаправляем на страницу игры
+        if (game.game_type === 'red_black') {
+            window.location.href = `red-black.html?game=${gameId}`;
+        } else if (game.game_type === 'duel') {
+            window.location.href = `duel.html?game=${gameId}`;
+        } else if (game.game_type === 'number') {
+            window.location.href = `number.html?game=${gameId}`;
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка присоединения к игре:', error);
+        showError('Ошибка присоединения к игре');
+    }
+}
+
+// ЗАПУСК ИГРЫ
+async function startGame(gameId, gameType) {
+    try {
+        // Обновляем статус игры
+        await database.ref('casino_games/' + gameId).update({
+            status: 'in_progress',
+            started_at: new Date().toISOString()
+        });
+        
+        // В зависимости от типа игры запускаем логику
+        if (gameType === 'red_black') {
+            await startRedBlackGame(gameId);
+        } else if (gameType === 'duel') {
+            await startDuelGame(gameId);
+        } else if (gameType === 'number') {
+            await startNumberGame(gameId);
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка запуска игры:', error);
+    }
+}
+
+// ЗАГРУЗКА ИСТОРИИ ИГР
+async function loadGameHistory() {
+    try {
+        const historyList = document.getElementById('history-list');
+        
+        // Получаем историю игр пользователя
+        const snapshot = await database.ref('casino_history/' + userId).once('value');
+        
+        if (!snapshot.exists()) {
+            historyList.innerHTML = `
+                <div class="empty-history">
+                    <div class="empty-icon">📭</div>
+                    <p>Пока нет истории игр</p>
+                    <small>Сыграйте в первую игру!</small>
+                </div>
+            `;
+            return;
+        }
+        
+        const historyData = snapshot.val();
+        const historyItems = [];
+        
+        // Преобразуем объект в массив
+        for (const gameId in historyData) {
+            historyItems.push({
+                id: gameId,
+                ...historyData[gameId]
+            });
+        }
+        
+        // Сортируем по времени (новые сверху)
+        historyItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // Отображаем историю
+        displayHistory(historyItems, 'all');
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки истории:', error);
+        showError('Ошибка загрузки истории игр');
+    }
+}
+
+// ОТОБРАЖЕНИЕ ИСТОРИИ
+function displayHistory(historyItems, filterType) {
+    const historyList = document.getElementById('history-list');
+    
+    if (historyItems.length === 0) {
+        historyList.innerHTML = `
+            <div class="empty-history">
+                <div class="empty-icon">📭</div>
+                <p>Нет истории игр</p>
+                <small>Сыграйте в первую игру!</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // Фильтруем по типу
+    let filteredItems = historyItems;
+    
+    if (filterType === 'won') {
+        filteredItems = historyItems.filter(item => item.result === 'win');
+    } else if (filterType === 'lost') {
+        filteredItems = historyItems.filter(item => item.result === 'lose');
+    } else if (filterType === 'duel') {
+        filteredItems = historyItems.filter(item => item.game_type === 'duel');
+    }
+    
+    if (filteredItems.length === 0) {
+        historyList.innerHTML = `
+            <div class="empty-history">
+                <div class="empty-icon">🔍</div>
+                <p>Нет игр по выбранному фильтру</p>
+            </div>
+        `;
+        return;
+    }
+    
+    historyList.innerHTML = filteredItems.slice(0, 10).map(item => {
+        let gameTypeText = '';
+        let gameIcon = '🎲';
+        let resultClass = '';
+        let resultText = '';
+        let resultIcon = '';
+        
+        if (item.game_type === 'red_black') {
+            gameTypeText = 'Красное/Черное';
+            gameIcon = '🎯';
+        } else if (item.game_type === 'duel') {
+            gameTypeText = 'Дуэль';
+            gameIcon = '⚔️';
+        } else if (item.game_type === 'number') {
+            gameTypeText = 'Угадай число';
+            gameIcon = '🎯';
+        }
+        
+        if (item.result === 'win') {
+            resultClass = 'win';
+            resultText = 'Выигрыш';
+            resultIcon = '💰';
+        } else if (item.result === 'lose') {
+            resultClass = 'lose';
+            resultText = 'Проигрыш';
+            resultIcon = '💸';
+        } else {
+            resultClass = 'draw';
+            resultText = 'Ничья';
+            resultIcon = '🤝';
+        }
+        
+        const date = new Date(item.timestamp);
+        const formattedDate = date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        return `
+            <div class="history-item ${resultClass}">
+                <div class="history-game">
+                    <div class="game-type-icon">${gameIcon}</div>
+                    <div class="game-info">
+                        <div class="game-name">${gameTypeText}</div>
+                        <div class="game-time">${formattedDate}</div>
+                    </div>
+                </div>
+                <div class="history-details">
+                    <div class="history-bet">Ставка: <strong>${item.bet}</strong> очков</div>
+                    ${item.choice ? `<div class="history-choice">Выбор: ${item.choice}</div>` : ''}
+                </div>
+                <div class="history-result">
+                    <div class="result-icon">${resultIcon}</div>
+                    <div class="result-text">
+                        <div class="result-title">${resultText}</div>
+                        <div class="result-amount">
+                            ${item.result === 'win' ? '+' : '-'}${item.bet} очков
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ПОДПИСКА НА ОБНОВЛЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ
+function setupRealtimeUpdates() {
+    // Обновление баланса
+    database.ref('holiday_points/' + userId).on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            const pointsData = snapshot.val();
+            userBalance = pointsData.available_points || 0;
+            document.getElementById('user-balance').textContent = userBalance;
+        }
+    });
+    
+    // Обновление активных игр
+    database.ref('casino_games').on('value', () => {
+        loadActiveGames();
+    });
+}
+
+// НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
+function setupEventListeners() {
+    // Кнопка обновления баланса
+    document.getElementById('refresh-balance').addEventListener('click', loadUserBalance);
+    
+    // Кнопка вывода очков
+    document.getElementById('withdraw-btn').addEventListener('click', async function() {
+        if (userBalance <= 0) {
+            showError('Недостаточно очков для вывода');
+            return;
+        }
+        
+        // Здесь можно добавить логику вывода
+        showNotification('Функция вывода в разработке', 'info');
+    });
+    
+    // Кнопка обновления списка игр
+    document.getElementById('refresh-games').addEventListener('click', loadActiveGames);
+    
+    // Вкладки истории
+    const historyTabs = document.querySelectorAll('.history-tab');
+    historyTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Обновляем активную вкладку
+            historyTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Загружаем историю с фильтром
+            const filterType = this.getAttribute('data-type');
+            loadGameHistory().then(() => {
+                // После загрузки нужно перефильтровать
+                const historyItems = Array.from(document.querySelectorAll('.history-item'));
+                displayHistory(
+                    historyItems.map(item => ({
+                        game_type: item.getAttribute('data-type'),
+                        result: item.classList.contains('win') ? 'win' : 
+                                item.classList.contains('lose') ? 'lose' : 'draw',
+                        bet: parseInt(item.querySelector('.history-bet strong').textContent),
+                        timestamp: item.querySelector('.game-time').textContent,
+                        choice: item.querySelector('.history-choice')?.textContent.replace('Выбор: ', '')
+                    })),
+                    filterType
+                );
+            });
+        });
+    });
+}
+
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+function getTimeAgo(date) {
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000); // разница в секундах
+    
+    if (diff < 60) {
+        return 'только что';
+    } else if (diff < 3600) {
+        const minutes = Math.floor(diff / 60);
+        return `${minutes} ${getNoun(minutes, ['минуту', 'минуты', 'минут'])} назад`;
+    } else if (diff < 86400) {
+        const hours = Math.floor(diff / 3600);
+        return `${hours} ${getNoun(hours, ['час', 'часа', 'часов'])} назад`;
+    } else {
+        const days = Math.floor(diff / 86400);
+        return `${days} ${getNoun(days, ['день', 'дня', 'дней'])} назад`;
+    }
+}
+
+function getNoun(number, titles) {
+    const cases = [2, 0, 1, 1, 1, 2];
+    return titles[
+        (number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]
+    ];
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(0, 204, 102, 0.9)' : 
+                    type === 'error' ? 'rgba(255, 68, 68, 0.9)' : 'rgba(98, 0, 255, 0.9)'};
+        border: 1px solid ${type === 'success' ? '#00cc66' : 
+                    type === 'error' ? '#ff4444' : '#6200ff'};
+        border-radius: 10px;
+        padding: 15px 25px;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+        max-width: 300px;
+        font-size: 14px;
+    `;
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">
+            ${type === 'success' ? '✅ Успешно!' : type === 'error' ? '⚠️ Ошибка' : 'ℹ️ Информация'}
+        </div>
+        <div>${message}</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+function showError(message) {
+    showNotification(message, 'error');
+}
+
+// Добавляем анимацию для уведомления
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(notificationStyle);
+</script>
+
+</body>
+</html>
