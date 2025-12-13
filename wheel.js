@@ -1,5 +1,3 @@
-[file name]: wheel.js
-[file content begin]
 // Используем ту же конфигурацию Firebase
 if (!firebase.apps.length) {
     const firebaseConfig = {
