@@ -91,7 +91,14 @@ async function loadUserData() {
         const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
         if (pointsSnapshot.exists()) {
             pointsData = pointsSnapshot.val();
+            
+            // Используем total_points
             updateBalance();
+            
+            // Если есть available_points, мигрируем их
+            if (pointsData.available_points !== undefined && pointsData.available_points !== null) {
+                console.log('⚠️ Обнаружены старые available_points');
+            }
         } else {
             pointsData = null;
             document.getElementById('user-balance').textContent = '0';
@@ -129,7 +136,8 @@ function setupRealtimeUpdates() {
 // ОБНОВЛЕНИЕ БАЛАНСА
 function updateBalance() {
     if (pointsData) {
-        const balance = pointsData.available_points || pointsData.total_points || 0;
+        // Используем total_points
+        const balance = pointsData.total_points || 0;
         document.getElementById('user-balance').textContent = balance;
     } else {
         document.getElementById('user-balance').textContent = '0';
