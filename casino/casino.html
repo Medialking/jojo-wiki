@@ -1,19 +1,230 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>🎰 Казино | JojoLand</title>
-<link rel="stylesheet" href="casino.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Казино | JojoLand</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="casino.css">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<h1>🎰 Казино JojoLand</h1>
-
-<div class="grid">
-    <a href="redblack.html">🔴 Красное / ⚫ Чёрное</a>
-    <a href="duel.html">⚔️ Дуэль (2 игрока)</a>
-    <a href="number.html">🎡 Число 1–100</a>
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
 </div>
+
+<div class="background-effects" id="particles"></div>
+
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <a href="points.html" class="profile-btn">
+                <span class="profile-icon">🎄</span>
+                <span class="profile-text">Новогодние очки</span>
+            </a>
+            <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>🎰 Новогоднее Казино</h1>
+        <p class="subtitle">Сделайте ставку новогодними очками и выигрывайте!</p>
+    </header>
+
+    <div class="casino-container">
+        <!-- БАЛАНС ПОЛЬЗОВАТЕЛЯ -->
+        <div class="balance-section">
+            <div class="balance-card">
+                <div class="balance-icon">💰</div>
+                <div class="balance-info">
+                    <div class="balance-label">Ваши новогодние очки</div>
+                    <div class="balance-amount" id="user-balance">0</div>
+                </div>
+            </div>
+            <div class="balance-notice">
+                <span class="notice-icon">ℹ️</span>
+                <span>Очки можно получить в разделе "Новогодние очки"</span>
+            </div>
+        </div>
+
+        <!-- ИГРЫ -->
+        <div class="games-section">
+            <h2 class="section-title">🎮 Доступные игры</h2>
+            <p class="section-subtitle">Минимальная ставка: <strong>10 очков</strong></p>
+            
+            <div class="games-grid">
+                <!-- ИГРА 1: КРАСНОЕ ИЛИ ЧЕРНОЕ -->
+                <div class="game-card" data-game="red-black">
+                    <div class="game-header">
+                        <div class="game-icon">🎲</div>
+                        <div class="game-status active">Доступно</div>
+                    </div>
+                    <div class="game-body">
+                        <h3>Красное или Черное</h3>
+                        <p>Угадайте цвет и выиграйте ×1.5</p>
+                        <div class="game-stats">
+                            <div class="stat">
+                                <span class="stat-icon">📈</span>
+                                <span>Шанс: 49%</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-icon">🎯</span>
+                                <span>Множитель: ×1.5</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-footer">
+                        <a href="red-black.html" class="play-btn">Играть</a>
+                    </div>
+                    <div class="game-badge popular">Популярное</div>
+                </div>
+
+                <!-- СОЗДАЕМ МЕСТО ДЛЯ БУДУЩИХ ИГР -->
+                <div class="game-card coming-soon">
+                    <div class="game-header">
+                        <div class="game-icon">🎪</div>
+                        <div class="game-status">Скоро</div>
+                    </div>
+                    <div class="game-body">
+                        <h3>Колесо Фортуны</h3>
+                        <p>Крутите колесо за призами</p>
+                        <div class="game-stats">
+                            <div class="stat">
+                                <span class="stat-icon">🎁</span>
+                                <span>Призы до ×10</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-footer">
+                        <button class="play-btn disabled" disabled>Скоро</button>
+                    </div>
+                    <div class="game-badge">Скоро</div>
+                </div>
+
+                <div class="game-card coming-soon">
+                    <div class="game-header">
+                        <div class="game-icon">🎯</div>
+                        <div class="game-status">Скоро</div>
+                    </div>
+                    <div class="game-body">
+                        <h3>Слоты</h3>
+                        <p>Соберите выигрышную комбинацию</p>
+                        <div class="game-stats">
+                            <div class="stat">
+                                <span class="stat-icon">⭐</span>
+                                <span>Джекпот</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-footer">
+                        <button class="play-btn disabled" disabled>Скоро</button>
+                    </div>
+                    <div class="game-badge">Скоро</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ИСТОРИЯ ИГР -->
+        <div class="history-section">
+            <h2 class="section-title">📜 История ставок</h2>
+            <div class="history-container">
+                <div class="history-list" id="bet-history">
+                    <div class="empty-history">
+                        <div class="empty-icon">📭</div>
+                        <p>История ставок пуста</p>
+                        <small>Сделайте первую ставку!</small>
+                    </div>
+                </div>
+                
+                <div class="history-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Всего ставок</div>
+                            <div class="stat-value" id="total-bets">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Выиграно</div>
+                            <div class="stat-value" id="total-won">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Процент побед</div>
+                            <div class="stat-value" id="win-rate">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВИЛА -->
+        <div class="rules-section">
+            <h2 class="section-title">📋 Правила казино</h2>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <div class="rule-icon">⚠️</div>
+                    <h3>Минимальная ставка</h3>
+                    <p>Минимальная сумма для ставки - <strong>10 новогодних очков</strong></p>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">🎰</div>
+                    <h3>Честная игра</h3>
+                    <p>Все игры используют случайный генератор чисел</p>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">💰</div>
+                    <h3>Вывод очков</h3>
+                    <p>Выигранные очки можно использовать для получения наград</p>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">🔞</div>
+                    <h3>Ответственность</h3>
+                    <p>Играйте ответственно. Помните, это всего лишь игра</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <a href="points.html" class="action-btn">🎄 Получить очки</a>
+            <a href="index.html" class="action-btn">🏠 На главную</a>
+            <button class="action-btn" id="refresh-balance">🔄 Обновить баланс</button>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+    // Инициализация Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+        authDomain: "jojoland-chat.firebasestorage.app",
+        databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+        projectId: "jojoland-chat",
+        storageBucket: "jojoland-chat.firebasestorage.app",
+        messagingSenderId: "602788305122",
+        appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+</script>
+
+<script src="casino.js"></script>
 
 </body>
 </html>
