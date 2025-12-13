@@ -1,5 +1,3 @@
-[file name]: points.js
-[file content begin]
 // Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
@@ -916,4 +914,3 @@ notificationStyle.textContent = `
     }
 `;
 document.head.appendChild(notificationStyle);
-[file content end]
