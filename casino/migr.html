@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Миграция очков | JojoLand</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</head>
+<body style="background: #0a0a0a; color: white; font-family: Arial; padding: 20px;">
+    <h1>🔄 Миграция системы очков</h1>
+    <p>Эта страница мигрирует всех пользователей с системы available_points на total_points.</p>
+    
+    <button onclick="migrateAllUsers()" style="padding: 15px 30px; background: #6200ff; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer;">
+        Запустить миграцию
+    </button>
+    
+    <div id="status" style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;"></div>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebasestorage.app",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        async function migrateAllUsers() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<div style="color: #ffcc00;">🔄 Начинаю миграцию...</div>';
+            
+            try {
+                console.log('🔄 Начинаю миграцию всех пользователей...');
+                
+                // Получаем всех пользователей
+                const snapshot = await database.ref('holiday_points').once('value');
+                
+                if (!snapshot.exists()) {
+                    status.innerHTML = '<div style="color: #ff4444;">❌ Нет пользователей для миграции</div>';
+                    return;
+                }
+                
+                const usersData = snapshot.val();
+                let migratedCount = 0;
+                let errorsCount = 0;
+                
+                status.innerHTML += '<div>📊 Найдено пользователей: ' + Object.keys(usersData).length + '</div>';
+                
+                // Проходим по всем пользователям
+                for (const userId in usersData) {
+                    try {
+                        const userData = usersData[userId];
+                        
+                        // Проверяем, есть ли available_points
+                        if (userData.available_points !== undefined && userData.available_points !== null) {
+                            const available = userData.available_points || 0;
+                            const total = userData.total_points || 0;
+                            
+                            // Берем максимальное значение
+                            const newTotal = Math.max(available, total);
+                            
+                            // Обновляем данные пользователя
+                            await database.ref('holiday_points/' + userId).update({
+                                total_points: newTotal,
+                                available_points: null // Удаляем старую переменную
+                            });
+                            
+                            migratedCount++;
+                            status.innerHTML += `<div style="color: #00ff00; margin: 5px 0;">✅ ${userId}: ${available} → ${newTotal}</div>`;
+                            
+                            // Прокрутка вниз
+                            status.scrollTop = status.scrollHeight;
+                        }
+                    } catch (error) {
+                        errorsCount++;
+                        status.innerHTML += `<div style="color: #ff4444; margin: 5px 0;">❌ ${userId}: ${error.message}</div>`;
+                    }
+                }
+                
+                status.innerHTML += `<div style="margin-top: 20px; padding: 15px; background: rgba(0,255,0,0.1); border-radius: 10px;">
+                    <h3>🎉 Миграция завершена!</h3>
+                    <div>✅ Успешно мигрировано: ${migratedCount} пользователей</div>
+                    <div>❌ Ошибок: ${errorsCount}</div>
+                </div>`;
+                
+                console.log(`🎉 Миграция завершена! Успешно: ${migratedCount}, Ошибок: ${errorsCount}`);
+                
+            } catch (error) {
+                status.innerHTML = `<div style="color: #ff4444;">❌ Критическая ошибка: ${error.message}</div>`;
+                console.error('❌ Критическая ошибка миграции:', error);
+            }
+        }
+    </script>
+</body>
+</html>
