@@ -108,12 +108,16 @@ async function loadPointsData() {
         if (snapshot.exists()) {
             pointsData = snapshot.val();
             console.log('✅ Данные очков загружены:', pointsData);
+            
+            // Проверяем и мигрируем если есть старые данные
+            if (pointsData.available_points !== undefined && pointsData.available_points !== null) {
+                await migrateAvailablePointsToTotal();
+            }
         } else {
-            // Создаем новую запись с улучшенной структурой
+            // Создаем новую запись с правильной структурой (без available_points)
             const todayKey = TimeManager.getTodayKey();
             pointsData = {
                 total_points: 0,
-                available_points: 0,
                 spent_points: 0,
                 daily_gifts: {},
                 wheel_spins: {},
@@ -133,6 +137,32 @@ async function loadPointsData() {
         console.error('❌ Ошибка загрузки данных очков:', error);
         showError('Ошибка загрузки данных');
         pointsData = null;
+    }
+}
+
+// МИГРАЦИЯ available_points В total_points
+async function migrateAvailablePointsToTotal() {
+    try {
+        const available = pointsData.available_points || 0;
+        const total = pointsData.total_points || 0;
+        
+        // Используем максимальное значение из двух
+        const newTotal = Math.max(available, total);
+        
+        // Обновляем в базе данных
+        await database.ref('holiday_points/' + userId).update({
+            total_points: newTotal,
+            available_points: null // Удаляем старую переменную
+        });
+        
+        // Обновляем локальные данные
+        pointsData.total_points = newTotal;
+        delete pointsData.available_points;
+        
+        console.log(`✅ Миграция завершена: available_points(${available}) → total_points(${newTotal})`);
+        
+    } catch (error) {
+        console.error('❌ Ошибка миграции:', error);
     }
 }
 
@@ -274,11 +304,10 @@ async function openDailyGift() {
             streak: newStreak
         };
         
-        // Обновляем данные с новой структурой
+        // Обновляем данные только с total_points
         const newPointsData = {
             ...pointsData,
             total_points: (pointsData.total_points || 0) + points,
-            available_points: (pointsData.available_points || 0) + points,
             daily_gifts: {
                 ...pointsData.daily_gifts,
                 [todayKey]: {
@@ -299,6 +328,10 @@ async function openDailyGift() {
             max_streak: Math.max(newStreak, pointsData.max_streak || 0)
         };
         
+        // Удаляем available_points если он существует
+        delete newPointsData.available_points;
+        delete newPointsData.spent_points; // Если есть, тоже удаляем
+        
         // Сохраняем в Firebase
         await database.ref('holiday_points/' + userId).set(newPointsData);
         
@@ -311,7 +344,7 @@ async function openDailyGift() {
         // Обновляем UI
         updateUI();
         
-        console.log(`✅ Подарок получен: ${points} очков, серия: ${newStreak} дней`);
+        console.log(`✅ Подарок получен: ${points} очков, серия: ${newStreak} дней, всего: ${newPointsData.total_points}`);
         
     } catch (error) {
         console.error('❌ Ошибка открытия подарка:', error);
@@ -540,7 +573,7 @@ function updateRewardsHistory() {
 function updateUI() {
     if (!pointsData) return;
     
-    // Обновляем статистику
+    // Обновляем статистику (используем только total_points)
     document.getElementById('total-points').textContent = pointsData.total_points || 0;
     document.getElementById('gifts-opened').textContent = Object.keys(pointsData.daily_gifts || {}).length;
     document.getElementById('streak-days').textContent = pointsData.current_streak || 0;
@@ -581,7 +614,9 @@ async function loadTopPlayers() {
         // Собираем данные всех игроков
         for (const playerId in allPointsData) {
             const playerData = allPointsData[playerId];
-            const totalPoints = playerData.total_points || playerData.totalPoints || 0;
+            
+            // Используем total_points, если нет - используем 0
+            const totalPoints = playerData.total_points || 0;
             
             // Получаем никнейм из users
             const userSnapshot = await database.ref('users/' + playerId).once('value');
@@ -596,7 +631,7 @@ async function loadTopPlayers() {
                 id: playerId,
                 nickname: nickname,
                 points: totalPoints,
-                streak: playerData.current_streak || playerData.currentStreak || 0,
+                streak: playerData.current_streak || 0,
                 gifts: Object.keys(playerData.daily_gifts || {}).length,
                 isCurrentUser: playerId === userId
             });
@@ -807,7 +842,8 @@ function setupEventListeners() {
     const shareBtn = document.getElementById('share-btn');
     if (shareBtn) {
         shareBtn.addEventListener('click', function() {
-            const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${pointsData.total_points || 0} очков! Присоединяйся: ${window.location.origin}`;
+            const totalPoints = pointsData.total_points || 0;
+            const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${totalPoints} очков! Присоединяйся: ${window.location.origin}`;
             
             if (navigator.share) {
                 navigator.share({
