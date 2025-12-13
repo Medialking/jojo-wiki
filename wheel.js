@@ -682,4 +682,3 @@ notificationStyle.textContent = `
     }
 `;
 document.head.appendChild(notificationStyle);
-[file content end]
