@@ -104,6 +104,14 @@ async function loadUserData() {
             document.getElementById('user-balance').textContent = '0';
             showNotification('У вас нет новогодних очков. Получите их в разделе "Новогодние очки"', 'warning');
         }
+
+        // Загружаем статистику колеса фортуны
+        const wheelSnapshot = await database.ref('casino_wheel/' + userId).once('value');
+        if (wheelSnapshot.exists()) {
+            const wheelData = wheelSnapshot.val();
+            // Можно объединить статистику с общей статистикой казино
+            console.log('✅ Статистика колеса загружена:', wheelData);
+        }
         
         // Обновляем UI
         updateCasinoUI();
