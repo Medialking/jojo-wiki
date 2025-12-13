@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Диагностика Колеса</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        button:hover { background: #45a049; }
+        #debug-output { 
+            background: #333; 
+            color: #0f0; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin-top: 15px; 
+            font-family: monospace; 
+            white-space: pre-wrap; 
+            max-height: 400px; 
+            overflow-y: auto; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Диагностика Колеса Фортуны</h1>
+    
+    <div class="debug-section">
+        <h2>Проверка данных игрока</h2>
+        <button onclick="checkUserData()">Проверить данные</button>
+        <button onclick="checkFirebaseConnection()">Проверить Firebase</button>
+        <button onclick="checkTimeManager()">Проверить TimeManager</button>
+        <button onclick="checkWheelState()">Проверить состояние колеса</button>
+        <button onclick="fixUserData()">Исправить данные</button>
+    </div>
+    
+    <div id="debug-output"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <script>
+        // Настройки Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebasestorage.app",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+
+        // Инициализация Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        let currentUserId = null;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('debug-output');
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : type === 'warning' ? 'orange' : 'white';
+            output.innerHTML += `<span style="color: ${color}">[${time}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('debug-output').innerHTML = '';
+        }
+
+        // Получить ID текущего пользователя
+        function getCurrentUserId() {
+            const userId = localStorage.getItem('jojoland_userId');
+            if (!userId) {
+                log('❌ Пользователь не авторизован', 'error');
+                return null;
+            }
+            currentUserId = userId;
+            log(`✅ ID пользователя: ${userId}`, 'success');
+            return userId;
+        }
+
+        // Проверить данные пользователя
+        async function checkUserData() {
+            clearLog();
+            const userId = getCurrentUserId();
+            if (!userId) return;
+
+            try {
+                log('🔍 Загрузка данных пользователя...');
+                const snapshot = await database.ref('holiday_points/' + userId).once('value');
+                
+                if (!snapshot.exists()) {
+                    log('❌ Данные пользователя не найдены в holiday_points', 'error');
+                    log('⚠️ Создаем новую структуру данных...', 'warning');
+                    return;
+                }
+
+                const data = snapshot.val();
+                log('✅ Данные загружены:', 'success');
+                log(JSON.stringify(data, null, 2));
+                
+                // Проверка структуры
+                const checks = [
+                    { field: 'total_points', type: 'number', optional: false },
+                    { field: 'wheel_spins', type: 'object', optional: true },
+                    { field: 'last_actions', type: 'object', optional: false },
+                    { field: 'current_streak', type: 'number', optional: true },
+                    { field: 'max_streak', type: 'number', optional: true },
+                    { field: 'max_win', type: 'number', optional: true }
+                ];
+
+                checks.forEach(check => {
+                    if (!check.optional && !data.hasOwnProperty(check.field)) {
+                        log(`❌ Отсутствует обязательное поле: ${check.field}`, 'error');
+                    } else if (data[check.field] && typeof data[check.field] !== check.type) {
+                        log(`⚠️ Неправильный тип для ${check.field}: ожидается ${check.type}, получен ${typeof data[check.field]}`, 'warning');
+                    } else if (data[check.field]) {
+                        log(`✓ ${check.field}: OK (${JSON.stringify(data[check.field])})`, 'success');
+                    }
+                });
+
+                // Проверка последнего вращения
+                const lastSpin = data.last_actions?.wheel_spin;
+                if (lastSpin) {
+                    log(`📅 Последнее вращение: ${lastSpin}`, 'info');
+                    const lastDate = new Date(lastSpin);
+                    const now = new Date();
+                    const hoursDiff = (now - lastDate) / (1000 * 60 * 60);
+                    log(`⏰ Прошло часов: ${hoursDiff.toFixed(2)}`, 'info');
+                    log(`🔄 Можно крутить: ${hoursDiff >= 24 ? 'ДА' : 'НЕТ'}`, hoursDiff >= 24 ? 'success' : 'warning');
+                } else {
+                    log('✅ Последнего вращения не было - можно крутить!', 'success');
+                }
+
+                // Проверка вращений за сегодня
+                const today = new Date().toISOString().split('T')[0];
+                const todaySpin = data.wheel_spins?.[today];
+                if (todaySpin) {
+                    log(`🎡 Сегодня уже крутили: ${JSON.stringify(todaySpin)}`, 'warning');
+                } else {
+                    log('✅ Сегодня еще не крутили', 'success');
+                }
+
+            } catch (error) {
+                log(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Проверить соединение с Firebase
+        async function checkFirebaseConnection() {
+            clearLog();
+            log('🔗 Проверка соединения с Firebase...');
+            
+            try {
+                const ref = database.ref('.info/connected');
+                ref.on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        log('✅ Соединение с Firebase установлено', 'success');
+                    } else {
+                        log('❌ Нет соединения с Firebase', 'error');
+                    }
+                });
+                
+                // Проверка доступности базы данных
+                const testRef = database.ref('.info/serverTimeOffset');
+                const timeSnapshot = await testRef.once('value');
+                const offset = timeSnapshot.val();
+                log(`⏰ Смещение времени сервера: ${offset} мс`, 'info');
+                
+            } catch (error) {
+                log(`❌ Ошибка соединения: ${error.message}`, 'error');
+            }
+        }
+
+        // Проверить TimeManager
+        async function checkTimeManager() {
+            clearLog();
+            log('⏰ Проверка TimeManager...');
+            
+            try {
+                // Проверяем наличие TimeManager
+                if (typeof TimeManager === 'undefined') {
+                    log('❌ TimeManager не загружен', 'error');
+                    return;
+                }
+                
+                log('✅ TimeManager загружен', 'success');
+                
+                // Синхронизируем время
+                const serverTime = await TimeManager.syncWithServer();
+                log(`⏰ Серверное время: ${new Date(serverTime).toLocaleString()}`, 'info');
+                log(`📅 Сегодняшний ключ: ${TimeManager.getTodayKey()}`, 'info');
+                
+                // Проверка функций
+                const testDate = new Date(TimeManager.getCurrentTime() - 25 * 60 * 60 * 1000).toISOString();
+                log(`🔄 canPerformAction (25 часов назад): ${TimeManager.canPerformAction(testDate)}`, 'info');
+                log(`⏱️ getTimeToNextAction (25 часов назад): ${TimeManager.formatTime(TimeManager.getTimeToNextAction(testDate))}`, 'info');
+                
+            } catch (error) {
+                log(`❌ Ошибка TimeManager: ${error.message}`, 'error');
+            }
+        }
+
+        // Проверить состояние колеса
+        async function checkWheelState() {
+            clearLog();
+            const userId = getCurrentUserId();
+            if (!userId) return;
+
+            log('🎡 Проверка состояния колеса...');
+            
+            try {
+                const snapshot = await database.ref('holiday_points/' + userId).once('value');
+                if (!snapshot.exists()) {
+                    log('❌ Данные не найдены', 'error');
+                    return;
+                }
+
+                const data = snapshot.val();
+                
+                // Эмулируем функции из wheel.js
+                function canSpinWheel(wheelData) {
+                    const lastSpinTime = wheelData?.last_actions?.wheel_spin;
+                    const todayKey = new Date().toISOString().split('T')[0];
+                    const hasToday = wheelData?.wheel_spins && wheelData.wheel_spins[todayKey];
+                    
+                    let canByTime = true;
+                    if (lastSpinTime) {
+                        const lastTime = new Date(lastSpinTime).getTime();
+                        const now = Date.now();
+                        const hoursSinceLast = (now - lastTime) / (1000 * 60 * 60);
+                        canByTime = hoursSinceLast >= 24;
+                        log(`⏰ Часов с последнего вращения: ${hoursSinceLast.toFixed(2)}`, 'info');
+                    }
+                    
+                    log(`📅 Вращение сегодня: ${hasToday ? 'ДА' : 'НЕТ'}`, hasToday ? 'warning' : 'success');
+                    log(`🔄 Можно крутить по времени: ${canByTime ? 'ДА' : 'НЕТ'}`, canByTime ? 'success' : 'warning');
+                    
+                    return canByTime && !hasToday;
+                }
+
+                const canSpin = canSpinWheel(data);
+                log(`🎡 Итог: ${canSpin ? 'МОЖНО крутить колесо' : 'НЕЛЬЗЯ крутить колесо'}`, 
+                    canSpin ? 'success' : 'error');
+
+            } catch (error) {
+                log(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Исправить данные пользователя
+        async function fixUserData() {
+            clearLog();
+            const userId = getCurrentUserId();
+            if (!userId) return;
+
+            log('🔧 Исправление данных пользователя...', 'warning');
+            
+            const confirmFix = confirm('Вы уверены, что хотите исправить данные пользователя?');
+            if (!confirmFix) {
+                log('❌ Отменено пользователем', 'error');
+                return;
+            }
+
+            try {
+                // Загружаем текущие данные
+                const snapshot = await database.ref('holiday_points/' + userId).once('value');
+                const currentData = snapshot.exists() ? snapshot.val() : {};
+                
+                // Создаем исправленную структуру
+                const fixedData = {
+                    total_points: currentData.total_points || 0,
+                    available_points: currentData.available_points || 0,
+                    spent_points: currentData.spent_points || 0,
+                    daily_gifts: currentData.daily_gifts || {},
+                    wheel_spins: currentData.wheel_spins || {},
+                    rewards_history: currentData.rewards_history || [],
+                    last_actions: {
+                        daily_gift: currentData.last_actions?.daily_gift || null,
+                        wheel_spin: currentData.last_actions?.wheel_spin || null
+                    },
+                    current_streak: currentData.current_streak || 0,
+                    max_streak: currentData.max_streak || 0,
+                    max_win: currentData.max_win || 0
+                };
+
+                // Сохраняем исправленные данные
+                await database.ref('holiday_points/' + userId).set(fixedData);
+                
+                log('✅ Данные успешно исправлены!', 'success');
+                log(JSON.stringify(fixedData, null, 2));
+                
+                // Предлагаем перезагрузить страницу
+                setTimeout(() => {
+                    if (confirm('Данные исправлены. Перезагрузить страницу колеса?')) {
+                        window.location.href = 'wheel.html';
+                    }
+                }, 1000);
+
+            } catch (error) {
+                log(`❌ Ошибка при исправлении данных: ${error.message}`, 'error');
+            }
+        }
+
+        // Автозапуск при загрузке
+        window.onload = function() {
+            log('🚀 Диагностика загружена. Нажмите кнопки для проверки.', 'info');
+            getCurrentUserId();
+        };
+    </script>
+</body>
+</html>
