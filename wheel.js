@@ -1,4 +1,6 @@
-// Инициализация Firebase (если еще не инициализировано)
+[file name]: wheel.js
+[file content begin]
+// Используем ту же конфигурацию Firebase
 if (!firebase.apps.length) {
     const firebaseConfig = {
         apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
@@ -19,7 +21,6 @@ let userId = null;
 let userNickname = null;
 let wheelData = null;
 let isSpinning = false;
-let lastSpinTime = null;
 
 // Настройки колеса
 const WHEEL_SEGMENTS = 8;
@@ -44,6 +45,7 @@ window.onload = async function() {
         document.getElementById("content").style.opacity = "1";
         
         if (await checkAuth()) {
+            await TimeManager.syncWithServer(); // Синхронизируем время
             await loadWheelData();
             createWheelSegments();
             createPrizesGrid();
@@ -107,24 +109,26 @@ async function loadWheelData() {
             wheelData = snapshot.val();
             console.log('✅ Данные колеса загружены:', wheelData);
         } else {
-            // Создаем новую запись
+            // Создаем новую запись с улучшенной структурой
             wheelData = {
                 total_points: 0,
                 available_points: 0,
                 spent_points: 0,
+                daily_gifts: {},
                 wheel_spins: {},
                 rewards_history: [],
+                last_actions: {
+                    daily_gift: null,
+                    wheel_spin: null
+                },
                 current_streak: 0,
                 max_streak: 0,
-                last_spin: null,
                 max_win: 0
             };
             
             await database.ref('holiday_points/' + userId).set(wheelData);
             console.log('✅ Новая запись колеса создана');
         }
-        
-        lastSpinTime = wheelData.last_spin ? new Date(wheelData.last_spin) : null;
         
     } catch (error) {
         console.error('❌ Ошибка загрузки данных колеса:', error);
@@ -191,14 +195,6 @@ function setupRealtimeUpdates() {
         if (snapshot.exists()) {
             const newData = snapshot.val();
             
-            // Проверяем, увеличились ли очки
-            if (wheelData && newData.total_points > wheelData.total_points) {
-                const diff = newData.total_points - wheelData.total_points;
-                
-                // Не показываем уведомление если это было вращение колеса
-                // (уведомление показывается в модальном окне)
-            }
-            
             // Обновляем данные и интерфейс
             wheelData = newData;
             updatePlayerStats();
@@ -206,14 +202,42 @@ function setupRealtimeUpdates() {
     });
 }
 
+// ПРОВЕРКА, МОЖНО ЛИ КРУТИТЬ КОЛЕСО
+function canSpinWheel() {
+    console.log('🎡 Проверка возможности вращения колеса');
+    
+    // Проверка 1: по дате последнего вращения
+    const lastSpinTime = wheelData?.last_actions?.wheel_spin;
+    const canByTime = TimeManager.canPerformAction(lastSpinTime);
+    
+    // Проверка 2: по данным сегодняшнего дня
+    const todayKey = TimeManager.getTodayKey();
+    const hasToday = wheelData?.wheel_spins && wheelData.wheel_spins[todayKey];
+    
+    console.log(`🎡 Результаты проверки: по времени ${canByTime}, сегодня вращал ${hasToday}`);
+    
+    return canByTime && !hasToday;
+}
+
+// ПОЛУЧЕНИЕ ВРЕМЕНИ ДО СЛЕДУЮЩЕГО ВРАЩЕНИЯ
+function getTimeToNextSpin() {
+    const lastSpinTime = wheelData?.last_actions?.wheel_spin;
+    return TimeManager.getTimeToNextAction(lastSpinTime);
+}
+
 // ВРАЩЕНИЕ КОЛЕСА
 async function spinWheel() {
-    if (isSpinning) return;
+    console.log('🎡 Начало вращения колеса');
+    
+    if (isSpinning) {
+        console.log('⚠️ Колесо уже крутится');
+        return;
+    }
     
     // Проверяем, можно ли крутить
     if (!canSpinWheel()) {
         const timeLeft = getTimeToNextSpin();
-        showError('Вы уже крутили колесо сегодня. Возвращайтесь через ' + formatTime(timeLeft));
+        showError('Вы уже крутили колесо сегодня. Возвращайтесь через ' + TimeManager.formatTime(timeLeft));
         return;
     }
     
@@ -235,6 +259,8 @@ async function spinWheel() {
         // Определяем выигрышный сегмент (взвешенная случайность)
         const prizeIndex = getWeightedPrizeIndex();
         const prize = PRIZES[prizeIndex];
+        
+        console.log(`🎡 Выигрышный приз: ${prize.amount} очков (индекс: ${prizeIndex})`);
         
         // Рассчитываем угол вращения
         const fullSpins = 5; // 5 полных оборотов
@@ -289,21 +315,13 @@ function getWeightedPrizeIndex() {
 // ОБРАБОТКА ВЫИГРЫША
 async function processWheelWin(prize, prizeIndex) {
     try {
-        const now = new Date();
-        const streak = wheelData.current_streak || 0;
+        // Текущее время с серверной синхронизацией
+        const now = new Date(TimeManager.getCurrentTime());
+        const todayKey = TimeManager.getTodayKey();
         
-        // Обновляем серию
-        const lastSpin = wheelData.last_spin ? new Date(wheelData.last_spin) : null;
-        let newStreak = 1;
-        
-        if (lastSpin) {
-            const yesterday = new Date(now);
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            // Проверяем, было ли вращение вчера
-            if (lastSpin.toDateString() === yesterday.toDateString()) {
-                newStreak = streak + 1;
-            }
+        // Проверяем, не было ли сегодня вращения
+        if (wheelData.wheel_spins && wheelData.wheel_spins[todayKey]) {
+            throw new Error('Сегодня уже было вращение колеса');
         }
         
         // Обновляем максимальный выигрыш
@@ -314,70 +332,47 @@ async function processWheelWin(prize, prizeIndex) {
             date: now.toISOString(),
             points: prize.amount,
             type: 'wheel_spin',
-            streak: newStreak,
+            streak: wheelData.current_streak || 0,
             prize_index: prizeIndex,
             prize_label: prize.label
         };
         
-        // Обновляем данные
+        // Обновляем данные с новой структурой
         const newWheelData = {
+            ...wheelData,
             total_points: (wheelData.total_points || 0) + prize.amount,
             available_points: (wheelData.available_points || 0) + prize.amount,
-            spent_points: wheelData.spent_points || 0,
             wheel_spins: {
                 ...wheelData.wheel_spins,
-                [now.toISOString().split('T')[0]]: prize.amount
+                [todayKey]: {
+                    points: prize.amount,
+                    timestamp: now.toISOString(),
+                    prize_label: prize.label
+                }
             },
             rewards_history: [
                 reward,
                 ...(wheelData.rewards_history || [])
             ],
-            current_streak: newStreak,
-            max_streak: Math.max(newStreak, wheelData.max_streak || 0),
-            last_spin: now.toISOString(),
+            last_actions: {
+                ...wheelData.last_actions,
+                wheel_spin: now.toISOString()
+            },
             max_win: maxWin
         };
         
         // Сохраняем в Firebase
         await database.ref('holiday_points/' + userId).set(newWheelData);
         
-        // Сохраняем время вращения
-        localStorage.setItem('last_wheel_spin_' + userId, now.toISOString());
-        
         // Обновляем локальные данные
         wheelData = newWheelData;
-        lastSpinTime = now;
+        
+        console.log(`✅ Вращение обработано: ${prize.amount} очков`);
         
     } catch (error) {
         console.error('❌ Ошибка обработки выигрыша:', error);
         throw error;
     }
-}
-
-// ПРОВЕРКА, МОЖНО ЛИ КРУТИТЬ КОЛЕСО
-function canSpinWheel() {
-    if (!wheelData || !wheelData.last_spin) {
-        return true;
-    }
-    
-    const lastSpin = new Date(wheelData.last_spin);
-    const now = new Date();
-    const hoursSinceLastSpin = (now - lastSpin) / (1000 * 60 * 60);
-    
-    return hoursSinceLastSpin >= 24;
-}
-
-// ПОЛУЧЕНИЕ ВРЕМЕНИ ДО СЛЕДУЮЩЕГО ВРАЩЕНИЯ
-function getTimeToNextSpin() {
-    if (!wheelData || !wheelData.last_spin) {
-        return 0;
-    }
-    
-    const lastSpin = new Date(wheelData.last_spin);
-    const nextSpin = new Date(lastSpin.getTime() + 24 * 60 * 60 * 1000);
-    const now = new Date();
-    
-    return Math.max(0, nextSpin - now);
 }
 
 // ОБНОВЛЕНИЕ КНОПКИ ВРАЩЕНИЯ
@@ -387,7 +382,7 @@ function updateWheelButton() {
     
     const timeToNext = getTimeToNextSpin();
     
-    if (timeToNext > 0) {
+    if (timeToNext > 0 || TimeManager.wasActionTodayInObject(wheelData?.wheel_spins)) {
         // Нельзя крутить
         spinBtn.disabled = true;
         spinBtn.innerHTML = `
@@ -397,7 +392,7 @@ function updateWheelButton() {
             </div>
             <div class="spin-timer">
                 <span class="timer-icon">⏰</span>
-                <span class="timer-text">Доступно через: ${formatTime(timeToNext)}</span>
+                <span class="timer-text">Доступно через: ${TimeManager.formatTime(timeToNext)}</span>
             </div>
         `;
     } else {
@@ -423,7 +418,7 @@ function updateWheelTimer() {
         const timerText = document.getElementById('timer-text');
         
         if (timeToNext > 0) {
-            timerText.textContent = `Доступно через: ${formatTime(timeToNext)}`;
+            timerText.textContent = `Доступно через: ${TimeManager.formatTime(timeToNext)}`;
         } else {
             timerText.textContent = 'Бесплатно!';
         }
@@ -493,7 +488,7 @@ function updateHistoryList() {
                     <div class="history-type">
                         ${isJackpot ? '🏆' : '🎡'} ${spin.prize_label || 'Вращение колеса'}
                     </div>
-                    <div class="history-desc">Серия: ${spin.streak || 1} дней</div>
+                    <div class="history-desc">${spin.prize_label || 'Колесо фортуны'}</div>
                 </div>
                 <div class="history-points">+${spin.points}</div>
             </div>
@@ -574,15 +569,6 @@ function createConfetti(count = 50) {
         
         container.appendChild(confetti);
     }
-}
-
-// ФОРМАТИРОВАНИЕ ВРЕМЕНИ
-function formatTime(ms) {
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 // НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
@@ -698,3 +684,4 @@ notificationStyle.textContent = `
     }
 `;
 document.head.appendChild(notificationStyle);
+[file content end]
