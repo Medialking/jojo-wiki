@@ -82,7 +82,14 @@ async function loadUserData() {
         const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
         if (pointsSnapshot.exists()) {
             pointsData = pointsSnapshot.val();
-            gameState.balance = pointsData.available_points || pointsData.total_points || 0;
+            
+            // Используем total_points
+            gameState.balance = pointsData.total_points || 0;
+            
+            // Если есть available_points, мигрируем их
+            if (pointsData.available_points !== undefined && pointsData.available_points !== null) {
+                await migrateAvailablePointsToTotal();
+            }
         } else {
             showError('У вас нет новогодних очков. Получите их в разделе "Новогодние очки"');
             gameState.balance = 0;
@@ -139,9 +146,37 @@ async function loadUserData() {
     }
 }
 
+// МИГРАЦИЯ available_points В total_points
+async function migrateAvailablePointsToTotal() {
+    try {
+        const available = pointsData.available_points || 0;
+        const total = pointsData.total_points || 0;
+        
+        // Используем максимальное значение из двух
+        const newTotal = Math.max(available, total);
+        
+        // Обновляем в базе данных
+        await database.ref('holiday_points/' + userId).update({
+            total_points: newTotal,
+            available_points: null // Удаляем старую переменную
+        });
+        
+        // Обновляем локальные данные
+        pointsData.total_points = newTotal;
+        delete pointsData.available_points;
+        
+        gameState.balance = newTotal;
+        
+        console.log(`✅ Миграция: available_points(${available}) → total_points(${newTotal})`);
+        
+    } catch (error) {
+        console.error('❌ Ошибка миграции:', error);
+    }
+}
+
 // ПРОВЕРКА ВОЗМОЖНОСТИ СТАВКИ
 function canPlaceBet() {
-    // Проверка 1: Достаточно ли баланса
+    // Проверка 1: Достаточно ли баланса (используем total_points)
     if (gameState.balance < gameState.betAmount) {
         showError('Недостаточно очков для ставки');
         return false;
@@ -253,7 +288,7 @@ function generateResult() {
         return 'black';
     } else {
         // Ноль - автоматический проигрыш
-        return Math.random() < 0.5 ? 'red' : 'black'; // Для простоты возвращаем случайный цвет
+        return Math.random() < 0.5 ? 'red' : 'black';
     }
 }
 
@@ -262,23 +297,29 @@ async function updatePointsBalance(change) {
     try {
         if (!pointsData) return;
         
-        const newAvailable = (pointsData.available_points || pointsData.total_points || 0) + change;
-        const newTotal = (pointsData.total_points || 0) + Math.max(0, change);
+        // Используем total_points
+        const currentPoints = pointsData.total_points || 0;
+        const newTotal = currentPoints + change;
         
         // Обновляем локальные данные
-        pointsData.available_points = newAvailable;
         pointsData.total_points = newTotal;
         
-        // Сохраняем в Firebase
-        await database.ref('holiday_points/' + userId).update({
-            available_points: newAvailable,
+        // Удаляем available_points если он существует
+        const updates = {
             total_points: newTotal
-        });
+        };
+        
+        if (pointsData.available_points !== undefined) {
+            updates.available_points = null;
+        }
+        
+        // Сохраняем в Firebase
+        await database.ref('holiday_points/' + userId).update(updates);
         
         // Обновляем состояние игры
-        gameState.balance = newAvailable;
+        gameState.balance = newTotal;
         
-        console.log(`💰 Баланс обновлен: ${change > 0 ? '+' : ''}${change}`);
+        console.log(`💰 Баланс обновлен: ${change > 0 ? '+' : ''}${change}, всего: ${newTotal}`);
         
     } catch (error) {
         console.error('❌ Ошибка обновления баланса:', error);
