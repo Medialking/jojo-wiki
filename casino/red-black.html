@@ -578,33 +578,6 @@ async function startWheelAnimation(result) {
     }, 3000);
 }
 
-async function processGameResult(game) {
-    const playerData = game.players[userId];
-    
-    if (!playerData) return;
-    
-    // Сохраняем историю
-    const historyData = {
-        game_type: 'red_black',
-        bet: game.bet,
-        choice: playerData.choice === 'red' ? 'Красное' : 'Черное',
-        result: playerData.result,
-        win_amount: playerData.result === 'win' ? game.bet * 2 : 0,
-        opponent: Object.keys(game.players).find(id => id !== userId),
-        timestamp: new Date().toISOString()
-    };
-    
-    await database.ref('casino_history/' + userId + '/' + currentGameId).set(historyData);
-    
-    // Обновляем баланс если выиграли
-    if (playerData.result === 'win') {
-        await loadUserBalance();
-    }
-    
-    // Добавляем в историю на странице
-    addToGameHistory(historyData);
-}
-
 function addToGameHistory(history) {
     const historyList = document.getElementById('game-history');
     
