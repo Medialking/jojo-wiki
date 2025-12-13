@@ -19,6 +19,7 @@ let userId = null;
 let userNickname = null;
 let wheelData = null;
 let isSpinning = false;
+let updateTimerInterval = null;
 
 // Настройки колеса
 const WHEEL_SEGMENTS = 8;
@@ -60,6 +61,7 @@ window.onload = async function() {
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
+    if (!particlesContainer) return;
     
     for (let i = 0; i < 30; i++) {
         const particle = document.createElement('div');
@@ -138,6 +140,11 @@ async function loadWheelData() {
 // СОЗДАНИЕ СЕГМЕНТОВ КОЛЕСА
 function createWheelSegments() {
     const wheel = document.getElementById('wheel');
+    if (!wheel) {
+        console.error('❌ Колесо не найдено');
+        return;
+    }
+    
     wheel.innerHTML = '';
     
     const segmentAngle = 360 / WHEEL_SEGMENTS;
@@ -167,6 +174,11 @@ function createWheelSegments() {
 // СОЗДАНИЕ СЕТКИ ПРИЗОВ
 function createPrizesGrid() {
     const grid = document.getElementById('prizes-grid');
+    if (!grid) {
+        console.error('❌ Сетка призов не найдена');
+        return;
+    }
+    
     grid.innerHTML = '';
     
     PRIZES.forEach((prize, index) => {
@@ -242,6 +254,10 @@ async function spinWheel() {
     try {
         isSpinning = true;
         const spinBtn = document.getElementById('spin-btn');
+        if (!spinBtn) {
+            throw new Error('Кнопка вращения не найдена');
+        }
+        
         spinBtn.disabled = true;
         spinBtn.innerHTML = `
             <div class="spin-btn-content">
@@ -267,6 +283,10 @@ async function spinWheel() {
         
         // Анимация вращения
         const wheel = document.getElementById('wheel');
+        if (!wheel) {
+            throw new Error('Колесо не найдено');
+        }
+        
         wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.21, 0.99)';
         wheel.style.transform = `rotate(${targetAngle}deg)`;
         
@@ -376,7 +396,10 @@ async function processWheelWin(prize, prizeIndex) {
 // ОБНОВЛЕНИЕ КНОПКИ ВРАЩЕНИЯ
 function updateWheelButton() {
     const spinBtn = document.getElementById('spin-btn');
-    const timerText = document.getElementById('timer-text');
+    if (!spinBtn) {
+        console.error('❌ Кнопка вращения не найдена');
+        return;
+    }
     
     const timeToNext = getTimeToNextSpin();
     
@@ -411,14 +434,24 @@ function updateWheelButton() {
 
 // ОБНОВЛЕНИЕ ТАЙМЕРА
 function updateWheelTimer() {
+    // Очищаем предыдущий интервал, если есть
+    if (updateTimerInterval) {
+        clearInterval(updateTimerInterval);
+    }
+    
+    const timerElement = document.getElementById('timer-text');
+    if (!timerElement) {
+        console.error('❌ Таймер не найден');
+        return;
+    }
+    
     const updateTimer = () => {
         const timeToNext = getTimeToNextSpin();
-        const timerText = document.getElementById('timer-text');
         
         if (timeToNext > 0) {
-            timerText.textContent = `Доступно через: ${TimeManager.formatTime(timeToNext)}`;
+            timerElement.textContent = `Доступно через: ${TimeManager.formatTime(timeToNext)}`;
         } else {
-            timerText.textContent = 'Бесплатно!';
+            timerElement.textContent = 'Бесплатно!';
         }
     };
     
@@ -426,7 +459,7 @@ function updateWheelTimer() {
     updateTimer();
     
     // Обновляем каждую секунду
-    setInterval(updateTimer, 1000);
+    updateTimerInterval = setInterval(updateTimer, 1000);
     
     // Обновляем кнопку
     updateWheelButton();
@@ -436,10 +469,29 @@ function updateWheelTimer() {
 function updatePlayerStats() {
     if (!wheelData) return;
     
-    document.getElementById('total-points').textContent = wheelData.total_points || 0;
-    document.getElementById('spins-count').textContent = Object.keys(wheelData.wheel_spins || {}).length;
-    document.getElementById('streak-days').textContent = `${wheelData.current_streak || 0} дн.`;
-    document.getElementById('max-win').textContent = wheelData.max_win || 0;
+    // Обновляем общее количество очков
+    const totalPointsElement = document.getElementById('total-points');
+    if (totalPointsElement) {
+        totalPointsElement.textContent = wheelData.total_points || 0;
+    }
+    
+    // Обновляем количество вращений
+    const spinsCountElement = document.getElementById('spins-count');
+    if (spinsCountElement) {
+        spinsCountElement.textContent = Object.keys(wheelData.wheel_spins || {}).length;
+    }
+    
+    // Обновляем серию дней
+    const streakDaysElement = document.getElementById('streak-days');
+    if (streakDaysElement) {
+        streakDaysElement.textContent = `${wheelData.current_streak || 0} дн.`;
+    }
+    
+    // Обновляем максимальный выигрыш
+    const maxWinElement = document.getElementById('max-win');
+    if (maxWinElement) {
+        maxWinElement.textContent = wheelData.max_win || 0;
+    }
     
     // Обновляем историю вращений
     updateHistoryList();
@@ -448,6 +500,11 @@ function updatePlayerStats() {
 // ОБНОВЛЕНИЕ ИСТОРИИ ВРАЩЕНИЙ
 function updateHistoryList() {
     const historyList = document.getElementById('history-list');
+    if (!historyList) {
+        console.error('❌ Список истории не найден');
+        return;
+    }
+    
     const wheelSpins = wheelData.rewards_history?.filter(r => r.type === 'wheel_spin') || [];
     
     if (wheelSpins.length === 0) {
@@ -497,11 +554,26 @@ function updateHistoryList() {
 // ПОКАЗ МОДАЛЬНОГО ОКНА ВЫИГРЫША
 function showWinModal(prize) {
     const modal = document.getElementById('win-modal');
+    if (!modal) {
+        console.error('❌ Модальное окно не найдено');
+        return;
+    }
     
     // Устанавливаем значения
-    document.getElementById('win-number').textContent = prize.amount;
-    document.getElementById('win-total').textContent = wheelData.total_points || 0;
-    document.getElementById('win-spins').textContent = Object.keys(wheelData.wheel_spins || {}).length + 1;
+    const winNumberElement = document.getElementById('win-number');
+    if (winNumberElement) {
+        winNumberElement.textContent = prize.amount;
+    }
+    
+    const winTotalElement = document.getElementById('win-total');
+    if (winTotalElement) {
+        winTotalElement.textContent = wheelData.total_points || 0;
+    }
+    
+    const winSpinsElement = document.getElementById('win-spins');
+    if (winSpinsElement) {
+        winSpinsElement.textContent = Object.keys(wheelData.wheel_spins || {}).length + 1;
+    }
     
     // Устанавливаем сообщение в зависимости от приза
     let message = '';
@@ -519,7 +591,10 @@ function showWinModal(prize) {
         message = '🎁 НЕПЛОХО! СЛЕДУЮЩИЙ РАЗ ПОВЕЗЁТ БОЛЬШЕ!';
     }
     
-    document.getElementById('win-message').textContent = message;
+    const winMessageElement = document.getElementById('win-message');
+    if (winMessageElement) {
+        winMessageElement.textContent = message;
+    }
     
     // Создаем конфетти
     createConfetti(prize.amount === 50 ? 100 : 50);
@@ -528,18 +603,23 @@ function showWinModal(prize) {
     modal.style.display = 'flex';
     
     // Закрытие модального окна
-    document.getElementById('close-win').addEventListener('click', function() {
-        modal.style.opacity = '0';
-        setTimeout(() => {
-            modal.style.display = 'none';
-            modal.style.opacity = '1';
-        }, 300);
-    });
+    const closeButton = document.getElementById('close-win');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.opacity = '1';
+            }, 300);
+        });
+    }
 }
 
 // СОЗДАНИЕ КОНФЕТТИ
 function createConfetti(count = 50) {
     const container = document.getElementById('confetti-container');
+    if (!container) return;
+    
     container.innerHTML = '';
     
     const colors = ['#ff0000', '#ffff00', '#00ff00', '#0088ff', '#ff00ff', '#ff8800', '#00ffff'];
@@ -572,24 +652,32 @@ function createConfetti(count = 50) {
 // НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
 function setupEventListeners() {
     // Вращение колеса
-    document.getElementById('spin-btn').addEventListener('click', spinWheel);
+    const spinBtn = document.getElementById('spin-btn');
+    if (spinBtn) {
+        spinBtn.addEventListener('click', spinWheel);
+    } else {
+        console.error('❌ Кнопка вращения не найдена');
+    }
     
     // Кнопка "Поделиться"
-    document.getElementById('share-btn').addEventListener('click', function() {
-        const shareText = `🎡 Я крутил колесо фортуны на сервере JojoLand и выиграл ${wheelData.total_points || 0} новогодних очков! Попробуй и ты: ${window.location.origin}/wheel.html`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'JojoLand Колесо фортуны',
-                text: shareText,
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                showNotification('Текст скопирован в буфер обмена! Поделитесь с друзьями!', 'success');
-            });
-        }
-    });
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function() {
+            const shareText = `🎡 Я крутил колесо фортуны на сервере JojoLand и выиграл ${wheelData?.total_points || 0} новогодних очков! Попробуй и ты: ${window.location.origin}/wheel.html`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'JojoLand Колесо фортуны',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showNotification('Текст скопирован в буфер обмена! Поделитесь с друзьями!', 'success');
+                });
+            }
+        });
+    }
 }
 
 // ПОКАЗ УВЕДОМЛЕНИЯ
@@ -682,3 +770,10 @@ notificationStyle.textContent = `
     }
 `;
 document.head.appendChild(notificationStyle);
+
+// Очистка интервала при разгрузке страницы
+window.addEventListener('beforeunload', () => {
+    if (updateTimerInterval) {
+        clearInterval(updateTimerInterval);
+    }
+});
