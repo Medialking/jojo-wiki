@@ -1,7 +1,234 @@
 /* =========================================== */
 /* СТИЛИ ДЛЯ МАГАЗИНА С БИРЖЕЙ И 3D */
 /* =========================================== */
+/* ДОБАВЬТЕ ЭТО В НАЧАЛО shop.css */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0a1a, #1a0033);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+}
 
+.spinner {
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 5px solid #6200ff;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#content {
+    display: none;
+}
+
+/* Основные стили контента */
+body {
+    background: linear-gradient(135deg, #0a0a1a, #1a0033);
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgba(98, 0, 255, 0.5);
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.logo {
+    height: 50px;
+}
+
+.profile-btn {
+    background: rgba(98, 0, 255, 0.2);
+    border: 1px solid #6200ff;
+    border-radius: 10px;
+    padding: 10px 15px;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Orbitron', sans-serif;
+    transition: all 0.3s;
+}
+
+.profile-btn:hover {
+    background: rgba(98, 0, 255, 0.4);
+}
+
+.balance-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.balance-icon {
+    color: #00ff00;
+    font-size: 20px;
+}
+
+.balance-text {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.profile-link {
+    color: white;
+    font-size: 24px;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+h1 {
+    font-size: 36px;
+    margin: 0 0 10px;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(98, 0, 255, 0.5);
+}
+
+.subtitle {
+    color: #aaaaff;
+    font-size: 16px;
+    margin: 0;
+}
+
+.action-btn {
+    background: linear-gradient(90deg, #6200ff, #ff00ff);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(98, 0, 255, 0.3);
+}
+
+.action-btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Частицы фона */
+.particle {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float linear infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) translateX(20px);
+        opacity: 0;
+    }
+}
+
+/* Убедитесь, что модальные окна скрыты по умолчанию */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: rgba(30, 30, 50, 0.95);
+    border-radius: 20px;
+    border: 2px solid #6200ff;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+}
+
+/* Стили для маленьких кнопок */
+.small-btn {
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.small-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Исправляем отображение сеток */
+.gifts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 25px !important;
+}
+
+/* Убедитесь, что все видно */
+* {
+    box-sizing: border-box;
+}
 .shop-container {
     max-width: 1400px;
     margin: 40px auto;
