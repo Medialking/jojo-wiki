@@ -204,24 +204,6 @@ function updateInventoryStats() {
     console.log('Статистика инвентаря обновлена:', elements);
 }
 
-// ДОБАВЬТЕ ЭТИ СТИЛИ ДЛЯ АНИМАЦИЙ УВЕДОМЛЕНИЙ
-const notificationStyles = document.createElement('style');
-notificationStyles.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(notificationStyles);
-
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-
 // ПОЛУЧЕНИЕ НАЗВАНИЯ РЕДКОСТИ
 function getRarityName(rarity) {
     const names = {
@@ -793,28 +775,34 @@ function displayExchangeOrders() {
     container.innerHTML = exchangeOrders.map(order => createOrderRow(order)).join('');
 }
 
-// СОЗДАНИЕ СТРОКИ ОРДЕРА (упрощенная)
+// СОЗДАНИЕ СТРОКИ ОРДЕРА
 function createOrderRow(order) {
     const gift = giftsData[order.gift_id];
     if (!gift) return '';
+    
+    const isMyOrder = order.user_id === userId;
+    const canExecute = !isMyOrder && order.status === 'active';
     
     return `
         <div class="order-row ${order.type}-order" data-order-id="${order.id}">
             <div class="table-col" style="width: 150px;">
                 <div class="order-type ${order.type}-badge">
                     ${order.type === 'sell' ? '💰 Продажа' : '🛒 Покупка'}
+                    ${isMyOrder ? '<span class="order-status status-active">Мой</span>' : ''}
                 </div>
             </div>
             
             <div class="table-col" style="width: 200px;">
                 <div class="order-gift">
-                    <span class="order-gift-icon">${gift.icon}</span>
-                    <span>${gift.name}</span>
+                    <span class="order-gift-icon">${order.gift_icon || gift.icon}</span>
+                    <span>${order.gift_name || gift.name}</span>
                 </div>
             </div>
             
             <div class="table-col" style="width: 120px;">
-                <div class="rarity-badge ${gift.rarity}">${getRarityName(gift.rarity)}</div>
+                <div class="rarity-badge ${order.gift_rarity || gift.rarity}">
+                    ${getRarityName(order.gift_rarity || gift.rarity)}
+                </div>
             </div>
             
             <div class="table-col" style="width: 150px;">
@@ -832,9 +820,14 @@ function createOrderRow(order) {
             </div>
             
             <div class="table-col" style="width: 100px;">
-                <button class="execute-btn" onclick="showNotification('Функция в разработке', 'info')">
-                    🔒 В разработке
-                </button>
+                ${canExecute ? 
+                    `<button class="execute-btn available" onclick="executeOrder('${order.id}')">
+                        ${order.type === 'sell' ? 'Купить' : 'Продать'}
+                    </button>` :
+                    `<button class="execute-btn" disabled>
+                        ${isMyOrder ? 'Мой' : 'Недоступно'}
+                    </button>`
+                }
             </div>
         </div>
     `;
@@ -928,7 +921,7 @@ function showNoOrdersMessage() {
             <div class="empty-icon">📊</div>
             <h3>На бирже пока нет ордеров</h3>
             <p>Будьте первым, кто создаст торговый ордер!</p>
-            <button class="action-btn" onclick="showNotification('Функция в разработке', 'info')">📤 Создать ордер</button>
+            <button class="action-btn" onclick="showCreateOrderModal('sell')">📤 Создать ордер</button>
         </div>
     `;
 }
@@ -947,7 +940,7 @@ function switchTab(tabName) {
         btn.classList.remove('active');
     });
     
-    // Показать выбранную вкладку
+    // Показывать выбранную вкладку
     const tabElement = document.getElementById(`${tabName}-tab`);
     const btnElement = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
     
@@ -959,355 +952,6 @@ function switchTab(tabName) {
         btnElement.classList.add('active');
     }
 }
-
-// ОБНОВЛЕННАЯ ФУНКЦИЯ НАСТРОЙКИ ОБРАБОТЧИКОВ СОБЫТИЙ
-function setupEventListeners() {
-    console.log('Настройка обработчиков событий...');
-    
-    // Переключение вкладок
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabName = this.dataset.tab;
-            switchTab(tabName);
-            
-            // При переключении на "Мои заказы" загружаем данные
-            if (tabName === 'my-orders') {
-                loadMyOrders();
-            }
-        });
-    });
-    
-    // Переключение вкладок "Мои заказы"
-    document.querySelectorAll('.my-tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabName = this.dataset.tab;
-            
-            // Скрываем все вкладки
-            document.querySelectorAll('.my-orders-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Убираем активный класс со всех кнопок
-            document.querySelectorAll('.my-tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Показываем выбранную вкладку
-            const tabElement = document.getElementById(`${tabName}-content`);
-            if (tabElement) {
-                tabElement.classList.add('active');
-                this.classList.add('active');
-            }
-        });
-    });
-    
-    // Закрытие модальных окон
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('close-modal') || 
-            e.target.classList.contains('modal-overlay')) {
-            document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.style.display = 'none';
-            });
-        }
-    });
-    
-    // Кнопка обновления биржи
-    const refreshBtn = document.getElementById('refresh-exchange');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', async () => {
-            refreshBtn.disabled = true;
-            refreshBtn.innerHTML = '⏳ Загрузка...';
-            
-            await loadExchangeOrders();
-            showNotification('Биржа обновлена', 'success');
-            
-            refreshBtn.disabled = false;
-            refreshBtn.innerHTML = '🔄 Обновить';
-        });
-    }
-    
-    // Создание ордера - ОБНОВЛЕННЫЙ КОД
-    const createOrderBtn = document.getElementById('create-order-btn');
-    if (createOrderBtn) {
-        createOrderBtn.addEventListener('click', () => {
-            showCreateOrderModal('sell');
-        });
-    }
-    
-    // Кнопки типа ордера в модальном окне
-    document.querySelectorAll('.order-type-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const type = this.dataset.type;
-            showCreateOrderModal(type);
-        });
-    });
-    
-    // Фильтры биржи
-    const filters = ['search-gift', 'rarity-filter', 'order-type-filter', 'sort-filter'];
-    filters.forEach(filterId => {
-        const element = document.getElementById(filterId);
-        if (element) {
-            element.addEventListener('change', () => {
-                applyExchangeFilters();
-            });
-    if (filterId === 'search-gift') {
-        element.addEventListener('input', () => {
-            applyExchangeFilters();
-        });
-    }
-            });
-    });
-    
-    // Нажатие Escape для закрытия модальных окон
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.style.display = 'none';
-            });
-        }
-    });
-    
-    console.log('Обработчики событий настроены');
-}
-
-// ФУНКЦИЯ ПРИМЕНЕНИЯ ФИЛЬТРОВ
-function applyExchangeFilters() {
-    const searchTerm = document.getElementById('search-gift').value.toLowerCase();
-    const rarityFilter = document.getElementById('rarity-filter').value;
-    const orderTypeFilter = document.getElementById('order-type-filter').value;
-    const sortFilter = document.getElementById('sort-filter').value;
-    
-    const filteredOrders = exchangeOrders.filter(order => {
-        const gift = giftsData[order.gift_id];
-        if (!gift) return false;
-        
-        // Поиск
-        if (searchTerm && !order.gift_name.toLowerCase().includes(searchTerm) && 
-            !gift.description.toLowerCase().includes(searchTerm)) {
-            return false;
-        }
-        
-        // Фильтр редкости
-        if (rarityFilter !== 'all' && gift.rarity !== rarityFilter) {
-            return false;
-        }
-        
-        // Фильтр типа ордера
-        if (orderTypeFilter !== 'all' && order.type !== orderTypeFilter) {
-            return false;
-        }
-        
-        return true;
-    });
-    
-    // Сортировка
-    filteredOrders.sort((a, b) => {
-        switch (sortFilter) {
-            case 'price_asc':
-                return a.price - b.price;
-            case 'price_desc':
-                return b.price - a.price;
-            case 'newest':
-                return new Date(b.created_at) - new Date(a.created_at);
-            case 'popular':
-                // Здесь можно добавить логику популярности
-                return b.quantity - a.quantity;
-            default:
-                return 0;
-        }
-    });
-    
-    // Отображаем отфильтрованные ордера
-    const container = document.getElementById('orders-list');
-    if (!container) return;
-    
-    if (filteredOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-orders">
-                <div class="empty-icon">🔍</div>
-                <h3>Ордеры не найдены</h3>
-                <p>Попробуйте изменить параметры поиска</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = filteredOrders.map(order => createOrderRow(order)).join('');
-}
-
-// ОБНОВЛЕННАЯ ГЛАВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
-async function initializeShop() {
-    console.log('=== ИНИЦИАЛИЗАЦИЯ МАГАЗИНА ===');
-    
-    try {
-        // Проверяем авторизацию
-        const isAuthenticated = await checkAuth();
-        if (!isAuthenticated) {
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                const content = document.getElementById('content');
-                if (loader) loader.style.display = 'none';
-                if (content) content.style.display = 'block';
-            }, 2000);
-            return;
-        }
-        
-        // Скрываем лоадер и показываем контент
-        setTimeout(() => {
-            const loader = document.getElementById('loader');
-            const content = document.getElementById('content');
-            if (loader) loader.style.display = 'none';
-            if (content) content.style.display = 'block';
-            console.log('Интерфейс показан');
-        }, 1000);
-        
-        // Создаем частицы
-        createParticles();
-        
-        // Загружаем данные пользователя
-        await loadUserData();
-        
-        // Инициализируем подарки
-        await initializeGifts();
-        
-        // Загружаем ордера биржи
-        await loadExchangeOrders();
-        
-        // Инициализируем график цен
-        initializePriceChart();
-        
-        // Настраиваем обработчики событий
-        setupEventListeners();
-        
-        // Отображаем инвентарь
-        displayInventory();
-        
-        // Загружаем мои ордера
-        loadMyOrders();
-        
-        // Настраиваем обновления в реальном времени
-        setupRealtimeUpdates();
-        
-        // Инициализируем 3D сцены
-        setTimeout(initialize3DScenes, 2000);
-        
-        console.log('✅ Магазин успешно инициализирован!');
-        
-        // Отладочные функции
-        window.shopDebug = {
-            state: () => {
-                console.log('=== СОСТОЯНИЕ МАГАЗИНА ===');
-                console.log('Пользователь:', { userId, userNickname });
-                console.log('Баланс:', userBalance);
-                console.log('Инвентарь:', userInventory.length, 'предметов');
-                console.log('Подарки:', Object.keys(giftsData).length);
-                console.log('Ордеров:', exchangeOrders.length);
-                console.log('==========================');
-            },
-            reload: () => location.reload(),
-            switchTab: (tab) => switchTab(tab),
-            buyGift: (id) => buyGift(id),
-            createOrder: (type) => showCreateOrderModal(type),
-            cancelOrder: (id) => cancelOrder(id)
-        };
-        
-    } catch (error) {
-        console.error('Критическая ошибка инициализации:', error);
-        showError('Ошибка загрузки магазина: ' + error.message);
-        
-        setTimeout(() => {
-            const loader = document.getElementById('loader');
-            const content = document.getElementById('content');
-            if (loader) loader.style.display = 'none';
-            if (content) content.style.display = 'block';
-        }, 1000);
-    }
-}
-
-// ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ЗАВИСАНИЯ
-function checkForHang() {
-    // Если через 10 секунд лоадер все еще виден, скрываем его принудительно
-    setTimeout(() => {
-        const loader = document.getElementById('loader');
-        const content = document.getElementById('content');
-        if (loader && loader.style.display !== 'none') {
-            console.warn('Принудительное скрытие лоадера (таймаут)');
-            if (loader) loader.style.display = 'none';
-            if (content) content.style.display = 'block';
-            showError('Магазин загрузился с ограничениями. Проверьте консоль.');
-        }
-    }, 10000);
-}
-
-// ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен, запуск инициализации магазина...');
-    
-    // Начинаем инициализацию
-    setTimeout(() => {
-        initializeShop();
-    }, 500);
-    
-    // Проверяем зависание
-    checkForHang();
-});
-
-// ДОБАВЛЕНИЕ АНИМАЦИЙ CSS (упрощенная версия)
-function addCSSAnimations() {
-    const style = document.createElement('style');
-    style.textContent = `
-        /* Простые анимации для подарков */
-        .gift-image {
-            font-size: 48px;
-            animation: gentleFloat 3s ease-in-out infinite;
-        }
-        
-        @keyframes gentleFloat {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(2deg); }
-        }
-        
-        /* Анимация для золотых подарков */
-        .gift-card.golden .gift-image {
-            animation: goldenGlow 2s infinite alternate;
-        }
-        
-        @keyframes goldenGlow {
-            from { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); }
-            to { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)); }
-        }
-        
-        /* Спиннер для загрузки */
-        .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid #fff;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Добавляем CSS анимации сразу
-addCSSAnimations();
-
-// Глобальные функции для отладки
-window.showShopState = function() {
-    console.log('=== СОСТОЯНИЕ МАГАЗИНА ===');
-    console.log('Пользователь:', { userId, userNickname });
-    console.log('Баланс:', userBalance);
-    console.log('Инвентарь:', userInventory);
-    console.log('Подарки:', giftsData);
-    console.log('Ордеры:', exchangeOrders);
-    console.log('==========================');
 
 // ==================== ФУНКЦИИ СОЗДАНИЯ ОРДЕРОВ ====================
 
@@ -1416,7 +1060,6 @@ function populateGiftSelector(type) {
         return `
             <div class="gift-selector-item" 
                  data-gift-id="${gift.id}"
-                 data-inventory-id="${inventoryItem ? inventoryItem.key || '' : ''}"
                  data-max-qty="${type === 'sell' ? countInInventory : 999}">
                 <span class="gift-selector-icon">${gift.icon}</span>
                 <span class="gift-selector-name">${gift.name}</span>
@@ -1624,7 +1267,6 @@ async function submitOrder() {
     
     // Проверка для продажи
     if (type === 'sell') {
-        const inventoryId = selectedGift.dataset.inventoryId;
         const availableQty = parseInt(selectedGift.dataset.maxQty) || 0;
         
         if (quantity > availableQty) {
@@ -1958,64 +1600,6 @@ async function processTrade(order) {
     }
 }
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ СТРОКИ ОРДЕРА
-function createOrderRow(order) {
-    const gift = giftsData[order.gift_id];
-    if (!gift) return '';
-    
-    const isMyOrder = order.user_id === userId;
-    const canExecute = !isMyOrder && order.status === 'active';
-    
-    return `
-        <div class="order-row ${order.type}-order" data-order-id="${order.id}">
-            <div class="table-col" style="width: 150px;">
-                <div class="order-type ${order.type}-badge">
-                    ${order.type === 'sell' ? '💰 Продажа' : '🛒 Покупка'}
-                    ${isMyOrder ? '<span class="order-status status-active">Мой</span>' : ''}
-                </div>
-            </div>
-            
-            <div class="table-col" style="width: 200px;">
-                <div class="order-gift">
-                    <span class="order-gift-icon">${order.gift_icon || gift.icon}</span>
-                    <span>${order.gift_name || gift.name}</span>
-                </div>
-            </div>
-            
-            <div class="table-col" style="width: 120px;">
-                <div class="rarity-badge ${order.gift_rarity || gift.rarity}">
-                    ${getRarityName(order.gift_rarity || gift.rarity)}
-                </div>
-            </div>
-            
-            <div class="table-col" style="width: 150px;">
-                <div class="order-user">
-                    ${order.user_nickname || 'Неизвестный'}
-                </div>
-            </div>
-            
-            <div class="table-col" style="width: 150px;">
-                <div class="order-price">${order.price} 🎄</div>
-            </div>
-            
-            <div class="table-col" style="width: 120px;">
-                <div class="order-quantity">${order.quantity} шт.</div>
-            </div>
-            
-            <div class="table-col" style="width: 100px;">
-                ${canExecute ? 
-                    `<button class="execute-btn available" onclick="executeOrder('${order.id}')">
-                        ${order.type === 'sell' ? 'Купить' : 'Продать'}
-                    </button>` :
-                    `<button class="execute-btn" disabled>
-                        ${isMyOrder ? 'Мой' : 'Недоступно'}
-                    </button>`
-                }
-            </div>
-        </div>
-    `;
-}
-
 // ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ МОИХ ОРДЕРОВ
 async function loadMyOrders() {
     try {
@@ -2175,5 +1759,408 @@ function viewOrderDetails(orderId) {
     
     showNotification(`Детали ордера #${orderId.substr(0, 8)}`, 'info');
     // Здесь можно добавить модальное окно с детальной информацией
+}
+
+// ОБНОВЛЕННАЯ ФУНКЦИЯ НАСТРОЙКИ ОБРАБОТЧИКОВ СОБЫТИЙ
+function setupEventListeners() {
+    console.log('Настройка обработчиков событий...');
+    
+    // Переключение вкладок
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            switchTab(tabName);
+            
+            // При переключении на "Мои заказы" загружаем данные
+            if (tabName === 'my-orders') {
+                loadMyOrders();
+            }
+        });
+    });
+    
+    // Переключение вкладок "Мои заказы"
+    document.querySelectorAll('.my-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Скрываем все вкладки
+            document.querySelectorAll('.my-orders-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Убираем активный класс со всех кнопок
+            document.querySelectorAll('.my-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Показываем выбранную вкладку
+            const tabElement = document.getElementById(`${tabName}-content`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+                this.classList.add('active');
+            }
+        });
+    });
+    
+    // Закрытие модальных окон
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('close-modal') || 
+            e.target.classList.contains('modal-overlay')) {
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+    
+    // Кнопка обновления биржи
+    const refreshBtn = document.getElementById('refresh-exchange');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '⏳ Загрузка...';
+            
+            await loadExchangeOrders();
+            showNotification('Биржа обновлена', 'success');
+            
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '🔄 Обновить';
+        });
     }
+    
+    // Создание ордера - ОБНОВЛЕННЫЙ КОД
+    const createOrderBtn = document.getElementById('create-order-btn');
+    if (createOrderBtn) {
+        createOrderBtn.addEventListener('click', () => {
+            showCreateOrderModal('sell');
+        });
+    }
+    
+    // Кнопки типа ордера в модальном окне
+    document.querySelectorAll('.order-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.dataset.type;
+            showCreateOrderModal(type);
+        });
+    });
+    
+    // Фильтры биржи
+    const filters = ['search-gift', 'rarity-filter', 'order-type-filter', 'sort-filter'];
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', () => {
+                applyExchangeFilters();
+            });
+            if (filterId === 'search-gift') {
+                element.addEventListener('input', () => {
+                    applyExchangeFilters();
+                });
+            }
+        }
+    });
+    
+    // Нажатие Escape для закрытия модальных окон
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+    
+    console.log('Обработчики событий настроены');
+}
+
+// ФУНКЦИЯ ПРИМЕНЕНИЯ ФИЛЬТРОВ
+function applyExchangeFilters() {
+    const searchTerm = document.getElementById('search-gift').value.toLowerCase();
+    const rarityFilter = document.getElementById('rarity-filter').value;
+    const orderTypeFilter = document.getElementById('order-type-filter').value;
+    const sortFilter = document.getElementById('sort-filter').value;
+    
+    const filteredOrders = exchangeOrders.filter(order => {
+        const gift = giftsData[order.gift_id];
+        if (!gift) return false;
+        
+        // Поиск
+        if (searchTerm && !order.gift_name.toLowerCase().includes(searchTerm) && 
+            !gift.description.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+        
+        // Фильтр редкости
+        if (rarityFilter !== 'all' && gift.rarity !== rarityFilter) {
+            return false;
+        }
+        
+        // Фильтр типа ордера
+        if (orderTypeFilter !== 'all' && order.type !== orderTypeFilter) {
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Сортировка
+    filteredOrders.sort((a, b) => {
+        switch (sortFilter) {
+            case 'price_asc':
+                return a.price - b.price;
+            case 'price_desc':
+                return b.price - a.price;
+            case 'newest':
+                return new Date(b.created_at) - new Date(a.created_at);
+            case 'popular':
+                // Здесь можно добавить логику популярности
+                return b.quantity - a.quantity;
+            default:
+                return 0;
+        }
+    });
+    
+    // Отображаем отфильтрованные ордера
+    const container = document.getElementById('orders-list');
+    if (!container) return;
+    
+    if (filteredOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-orders">
+                <div class="empty-icon">🔍</div>
+                <h3>Ордеры не найдены</h3>
+                <p>Попробуйте изменить параметры поиска</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredOrders.map(order => createOrderRow(order)).join('');
+}
+
+// ПОКАЗАТЬ ИНВЕНТАРЬ
+function displayInventory() {
+    const container = document.getElementById('inventory-grid');
+    if (!container) return;
+    
+    if (userInventory.length === 0) {
+        container.innerHTML = `
+            <div class="empty-inventory" style="grid-column: 1 / -1;">
+                <div class="empty-icon">📭</div>
+                <h3>Инвентарь пуст</h3>
+                <p>Купите свой первый подарок в магазине!</p>
+                <button class="action-btn" onclick="switchTab('shop')">🛒 В магазин</button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userInventory.map((item, index) => {
+        const gift = giftsData[item.gift_id];
+        if (!gift) return '';
+        
+        return `
+            <div class="inventory-item ${gift.rarity}" data-item-id="${index}">
+                <div class="rarity-badge ${gift.rarity}">${getRarityName(gift.rarity)}</div>
+                
+                ${item.is_selling ? '<div class="sell-indicator">💰</div>' : ''}
+                
+                <div class="gift-image">
+                    ${gift.icon}
+                </div>
+                
+                <h4>${gift.name}</h4>
+                <div class="inventory-date">
+                    Куплено: ${new Date(item.purchased_at || Date.now()).toLocaleDateString('ru-RU')}
+                </div>
+                
+                <div class="inventory-actions">
+                    <button class="small-btn" onclick="showNotification('Функция продажи в разработке', 'info')">
+                        ℹ️ Подробнее
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ОБНОВЛЕННАЯ ГЛАВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
+async function initializeShop() {
+    console.log('=== ИНИЦИАЛИЗАЦИЯ МАГАЗИНА ===');
+    
+    try {
+        // Проверяем авторизацию
+        const isAuthenticated = await checkAuth();
+        if (!isAuthenticated) {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                const content = document.getElementById('content');
+                if (loader) loader.style.display = 'none';
+                if (content) content.style.display = 'block';
+            }, 2000);
+            return;
+        }
+        
+        // Скрываем лоадер и показываем контент
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            if (loader) loader.style.display = 'none';
+            if (content) content.style.display = 'block';
+            console.log('Интерфейс показан');
+        }, 1000);
+        
+        // Создаем частицы
+        createParticles();
+        
+        // Загружаем данные пользователя
+        await loadUserData();
+        
+        // Инициализируем подарки
+        await initializeGifts();
+        
+        // Загружаем ордера биржи
+        await loadExchangeOrders();
+        
+        // Инициализируем график цен
+        initializePriceChart();
+        
+        // Настраиваем обработчики событий
+        setupEventListeners();
+        
+        // Отображаем инвентарь
+        displayInventory();
+        
+        // Загружаем мои ордера
+        loadMyOrders();
+        
+        // Настраиваем обновления в реальном времени
+        setupRealtimeUpdates();
+        
+        // Инициализируем 3D сцены
+        setTimeout(initialize3DScenes, 2000);
+        
+        console.log('✅ Магазин успешно инициализирован!');
+        
+        // Отладочные функции
+        window.shopDebug = {
+            state: () => {
+                console.log('=== СОСТОЯНИЕ МАГАЗИНА ===');
+                console.log('Пользователь:', { userId, userNickname });
+                console.log('Баланс:', userBalance);
+                console.log('Инвентарь:', userInventory.length, 'предметов');
+                console.log('Подарки:', Object.keys(giftsData).length);
+                console.log('Ордеров:', exchangeOrders.length);
+                console.log('==========================');
+            },
+            reload: () => location.reload(),
+            switchTab: (tab) => switchTab(tab),
+            buyGift: (id) => buyGift(id),
+            createOrder: (type) => showCreateOrderModal(type),
+            cancelOrder: (id) => cancelOrder(id)
+        };
+        
+    } catch (error) {
+        console.error('Критическая ошибка инициализации:', error);
+        showError('Ошибка загрузки магазина: ' + error.message);
+        
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            if (loader) loader.style.display = 'none';
+            if (content) content.style.display = 'block';
+        }, 1000);
+    }
+}
+
+// ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ЗАВИСАНИЯ
+function checkForHang() {
+    // Если через 10 секунд лоадер все еще виден, скрываем его принудительно
+    setTimeout(() => {
+        const loader = document.getElementById('loader');
+        const content = document.getElementById('content');
+        if (loader && loader.style.display !== 'none') {
+            console.warn('Принудительное скрытие лоадера (таймаут)');
+            if (loader) loader.style.display = 'none';
+            if (content) content.style.display = 'block';
+            showError('Магазин загрузился с ограничениями. Проверьте консоль.');
+        }
+    }, 10000);
+}
+
+// ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен, запуск инициализации магазина...');
+    
+    // Начинаем инициализацию
+    setTimeout(() => {
+        initializeShop();
+    }, 500);
+    
+    // Проверяем зависание
+    checkForHang();
+});
+
+// ДОБАВЛЕНИЕ АНИМАЦИЙ CSS (упрощенная версия)
+function addCSSAnimations() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Простые анимации для подарков */
+        .gift-image {
+            font-size: 48px;
+            animation: gentleFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        
+        /* Анимация для золотых подарков */
+        .gift-card.golden .gift-image {
+            animation: goldenGlow 2s infinite alternate;
+        }
+        
+        @keyframes goldenGlow {
+            from { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); }
+            to { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)); }
+        }
+        
+        /* Спиннер для загрузки */
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Добавляем CSS анимации сразу
+addCSSAnimations();
+
+// Глобальные функции для отладки
+window.showShopState = function() {
+    console.log('=== СОСТОЯНИЕ МАГАЗИНА ===');
+    console.log('Пользователь:', { userId, userNickname });
+    console.log('Баланс:', userBalance);
+    console.log('Инвентарь:', userInventory);
+    console.log('Подарки:', giftsData);
+    console.log('Ордеры:', exchangeOrders);
+    console.log('==========================');
 };
+
+// Делаем функции доступными глобально
+window.switchTab = switchTab;
+window.buyGift = buyGift;
+window.showCreateOrderModal = showCreateOrderModal;
+window.executeOrder = executeOrder;
+window.cancelOrder = cancelOrder;
+window.viewOrderDetails = viewOrderDetails;
