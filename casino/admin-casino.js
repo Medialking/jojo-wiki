@@ -1,4 +1,4 @@
-// admin-casino.js - Админ-панель для отслеживания статистики казино
+// admin-casino.js - Админ-панель для отслеживания статистики казино с логами
 
 let allPlayers = [];
 let selectedPlayer = null;
@@ -7,7 +7,6 @@ let currentUser = null;
 
 // ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
-    // Инициализируем Firebase Auth
     try {
         // Проверяем авторизацию
         firebase.auth().onAuthStateChanged(async (user) => {
@@ -25,6 +24,9 @@ window.onload = async function() {
                     
                     // Показываем информацию об админе
                     showAdminInfo(user);
+                    
+                    // Настраиваем кнопку логов
+                    document.getElementById('show-logs-btn').onclick = loadAdminLogs;
                 } else {
                     // Не админ - редирект
                     showError('У вас нет прав доступа к админ-панели');
@@ -70,105 +72,14 @@ function showLoginForm() {
                 
                 <button class="login-btn" onclick="adminLogin()">🚪 Войти</button>
                 
+                <div class="login-error" id="login-error" style="display: none;"></div>
+                
                 <div class="login-info">
                     <p>⚠️ Доступ только для администраторов системы</p>
                     <p>Для получения доступа обратитесь к главному администратору</p>
                 </div>
             </div>
         </div>
-        
-        <style>
-            .login-form {
-                max-width: 400px;
-                margin: 50px auto;
-            }
-            
-            .form-card {
-                background: rgba(0, 0, 0, 0.4);
-                border-radius: 20px;
-                padding: 40px;
-                border: 3px solid #ff00ff;
-                text-align: center;
-            }
-            
-            .form-card h2 {
-                color: #00ff00;
-                margin-bottom: 30px;
-                font-size: 24px;
-            }
-            
-            .input-group {
-                margin-bottom: 20px;
-                text-align: left;
-            }
-            
-            .input-group label {
-                display: block;
-                color: #aaaaff;
-                margin-bottom: 8px;
-                font-size: 14px;
-            }
-            
-            .input-group input {
-                width: 100%;
-                padding: 15px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                border-radius: 10px;
-                color: white;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 16px;
-                outline: none;
-                transition: all 0.3s;
-            }
-            
-            .input-group input:focus {
-                border-color: #00ff00;
-                box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-            }
-            
-            .login-btn {
-                width: 100%;
-                padding: 15px;
-                background: linear-gradient(90deg, #00cc66, #00ff88);
-                border: none;
-                border-radius: 10px;
-                color: white;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s;
-                margin-top: 20px;
-            }
-            
-            .login-btn:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
-            }
-            
-            .login-info {
-                margin-top: 30px;
-                padding: 15px;
-                background: rgba(255, 153, 0, 0.1);
-                border-radius: 10px;
-                border: 1px solid rgba(255, 153, 0, 0.3);
-                color: #ffcc00;
-                font-size: 12px;
-                line-height: 1.5;
-            }
-            
-            .login-error {
-                margin-top: 15px;
-                padding: 10px;
-                background: rgba(255, 0, 0, 0.1);
-                border-radius: 10px;
-                border: 1px solid rgba(255, 0, 0, 0.3);
-                color: #ff4444;
-                font-size: 14px;
-                display: none;
-            }
-        </style>
     `;
 }
 
@@ -176,24 +87,23 @@ function showLoginForm() {
 async function adminLogin() {
     const email = document.getElementById('admin-email').value.trim();
     const password = document.getElementById('admin-password').value;
-    const errorDiv = document.querySelector('.login-error') || createErrorDiv();
+    const errorDiv = document.getElementById('login-error');
     
     if (!email || !password) {
-        showError('Заполните все поля');
+        showLoginError('Заполните все поля');
         return;
     }
     
     try {
         // Входим через Firebase Auth
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        console.log('✅ Админ вошел:', userCredential.user.email);
         
-        // Проверяем права через Custom Claims или базу данных
+        // Проверяем права через базу данных
         const isAdmin = await checkIfAdmin(userCredential.user.uid);
         
         if (!isAdmin) {
             await firebase.auth().signOut();
-            showError('Этот пользователь не является администратором');
+            showLoginError('Этот пользователь не является администратором');
             return;
         }
         
@@ -221,24 +131,14 @@ async function adminLogin() {
                 break;
         }
         
-        showError(errorMessage);
+        showLoginError(errorMessage);
     }
-}
-
-// СОЗДАНИЕ DIV ДЛЯ ОШИБОК
-function createErrorDiv() {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'login-error';
-    document.querySelector('.form-card').appendChild(errorDiv);
-    return errorDiv;
 }
 
 // ПОКАЗ ОШИБКИ ВХОДА
-function showError(message) {
-    let errorDiv = document.querySelector('.login-error');
-    if (!errorDiv) {
-        errorDiv = createErrorDiv();
-    }
+function showLoginError(message) {
+    const errorDiv = document.getElementById('login-error');
+    if (!errorDiv) return;
     
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
@@ -251,7 +151,7 @@ function showError(message) {
 // ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ПОЛЬЗОВАТЕЛЬ АДМИНОМ
 async function checkIfAdmin(userId) {
     try {
-        // Способ 1: Проверка в базе данных
+        // Проверка в базе данных
         const adminSnapshot = await database.ref(`admins/${userId}`).once('value');
         if (adminSnapshot.exists()) {
             const adminData = adminSnapshot.val();
@@ -269,7 +169,7 @@ async function checkIfAdmin(userId) {
             return true;
         }
         
-        // Способ 2: Проверка по email
+        // Проверка по email
         if (currentUser?.email) {
             const emailSnapshot = await database.ref('admin_emails').once('value');
             const adminEmails = emailSnapshot.val() || {};
@@ -304,22 +204,6 @@ async function checkIfAdmin(userId) {
     }
 }
 
-// ПОЛУЧЕНИЕ СПИСКА EMAIL АДМИНОВ ИЗ БАЗЫ
-async function getAdminEmailsFromDB() {
-    try {
-        const snapshot = await database.ref('admin_emails').once('value');
-        const emails = snapshot.val() || [];
-        
-        // Преобразуем в массив и приводим к нижнему регистру
-        return Array.isArray(emails) 
-            ? emails.map(email => email.toLowerCase())
-            : Object.values(emails || {}).map(email => email.toLowerCase());
-    } catch (error) {
-        console.error('❌ Ошибка получения email админов:', error);
-        return [];
-    }
-}
-
 // ПОКАЗ ИНФОРМАЦИИ ОБ АДМИНЕ
 function showAdminInfo(user) {
     const header = document.querySelector('.header');
@@ -327,29 +211,8 @@ function showAdminInfo(user) {
     const adminInfo = document.createElement('div');
     adminInfo.className = 'admin-info';
     adminInfo.innerHTML = `
-        <div style="
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 136, 255, 0.2);
-            border-radius: 10px;
-            padding: 10px 20px;
-            border: 1px solid rgba(0, 136, 255, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        ">
-            <span style="color: #00ff00;">👑 ${user.email}</span>
-            <button onclick="adminLogout()" style="
-                background: rgba(255, 0, 0, 0.3);
-                border: 1px solid rgba(255, 0, 0, 0.5);
-                border-radius: 5px;
-                color: white;
-                padding: 5px 10px;
-                cursor: pointer;
-                font-size: 12px;
-            ">Выйти</button>
-        </div>
+        <span>👑 ${user.email}</span>
+        <button onclick="adminLogout()">Выйти</button>
     `;
     
     header.appendChild(adminInfo);
@@ -491,6 +354,9 @@ async function selectPlayer(playerId) {
     
     // Обновляем информацию об игроке
     await updatePlayerDetails(selectedPlayer);
+    
+    // Загружаем логи для этого игрока
+    loadPlayerLogs(playerId);
 }
 
 // ОБНОВЛЕНИЕ ДЕТАЛЕЙ ИГРОКА
@@ -833,6 +699,216 @@ async function adjustBalance() {
     }
 }
 
+// ФУНКЦИИ ДЛЯ РАБОТЫ С ЛОГАМИ
+
+// ЗАГРУЗКА ЛОГОВ
+async function loadAdminLogs() {
+    try {
+        // Показываем раздел логов
+        document.getElementById('admin-logs').style.display = 'block';
+        
+        // Получаем логи из localStorage
+        const logsJson = localStorage.getItem('jojoland_admin_logs');
+        const logs = logsJson ? JSON.parse(logsJson) : [];
+        
+        // Показываем статистику
+        document.getElementById('total-logs').textContent = logs.length;
+        
+        // Фильтруем по активным игрокам (игроки с логами за последний час)
+        const oneHourAgo = Date.now() - 3600000;
+        const activePlayers = new Set();
+        
+        logs.forEach(log => {
+            if (new Date(log.timestamp).getTime() > oneHourAgo) {
+                activePlayers.add(log.userId);
+            }
+        });
+        
+        document.getElementById('active-players').textContent = activePlayers.size;
+        
+        // Рассчитываем общий оборот (на основе логов)
+        let totalTurnover = 0;
+        logs.forEach(log => {
+            if (log.betAmount) {
+                totalTurnover += log.betAmount;
+            }
+        });
+        
+        document.getElementById('total-turnover-logs').textContent = totalTurnover.toLocaleString();
+        
+        // Отображаем логи
+        displayLogs(logs);
+        
+        // Автоматическое обновление каждые 10 секунд
+        if (!window.logsRefreshInterval) {
+            window.logsRefreshInterval = setInterval(loadAdminLogs, 10000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки логов:', error);
+        document.getElementById('logs-table-body').innerHTML = `
+            <tr>
+                <td colspan="6" class="no-logs">Ошибка загрузки логов</td>
+            </tr>
+        `;
+    }
+}
+
+// ОТОБРАЖЕНИЕ ЛОГОВ
+function displayLogs(logs, filter = 'all') {
+    const tableBody = document.getElementById('logs-table-body');
+    
+    if (!logs || logs.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="no-logs">Нет логов для отображения</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Фильтруем логи
+    let filteredLogs = [...logs];
+    if (filter !== 'all') {
+        filteredLogs = logs.filter(log => log.type === filter);
+    }
+    
+    // Сортируем по времени (новые сверху)
+    filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Отображаем только последние 100 записей
+    const displayLogs = filteredLogs.slice(0, 100);
+    
+    tableBody.innerHTML = displayLogs.map(log => {
+        const date = new Date(log.timestamp);
+        const formattedTime = date.toLocaleTimeString('ru-RU', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        const nickname = log.nickname || `ID:${log.userId?.substring(0, 6)}...`;
+        const betAmount = log.betAmount || 0;
+        const balance = log.balance || 0;
+        
+        return `
+            <tr>
+                <td>${formattedTime}</td>
+                <td title="${log.userId}">${escapeHtml(nickname)}</td>
+                <td><span class="log-type ${log.type}">${log.type}</span></td>
+                <td>${escapeHtml(log.message)}</td>
+                <td>${betAmount.toLocaleString()}</td>
+                <td>${balance.toLocaleString()}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ОБНОВЛЕНИЕ ЛОГОВ
+function refreshLogs() {
+    clearInterval(window.logsRefreshInterval);
+    window.logsRefreshInterval = null;
+    loadAdminLogs();
+}
+
+// ОЧИСТКА ЛОГОВ
+function clearLogs() {
+    if (confirm('Вы уверены, что хотите очистить все логи? Это действие нельзя отменить.')) {
+        localStorage.removeItem('jojoland_admin_logs');
+        alert('Логи очищены');
+        refreshLogs();
+    }
+}
+
+// ЭКСПОРТ ЛОГОВ
+function exportLogs() {
+    try {
+        const logsJson = localStorage.getItem('jojoland_admin_logs');
+        const logs = logsJson ? JSON.parse(logsJson) : [];
+        
+        if (logs.length === 0) {
+            alert('Нет логов для экспорта');
+            return;
+        }
+        
+        const data = {
+            exportDate: new Date().toISOString(),
+            totalLogs: logs.length,
+            logs: logs
+        };
+        
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `casino_logs_${Date.now()}.json`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        alert(`Экспортировано ${logs.length} логов`);
+        
+    } catch (error) {
+        console.error('❌ Ошибка экспорта логов:', error);
+        alert('Ошибка при экспорте логов');
+    }
+}
+
+// ЗАГРУЗКА ЛОГОВ ДЛЯ КОНКРЕТНОГО ИГРОКА
+async function loadPlayerLogs(playerId) {
+    try {
+        const logsJson = localStorage.getItem('jojoland_admin_logs');
+        const allLogs = logsJson ? JSON.parse(logsJson) : [];
+        
+        const playerLogs = allLogs.filter(log => log.userId === playerId);
+        
+        if (playerLogs.length > 0) {
+            // Создаем раздел для логов игрока
+            let logsSection = document.getElementById('player-logs-section');
+            if (!logsSection) {
+                logsSection = document.createElement('div');
+                logsSection.id = 'player-logs-section';
+                logsSection.className = 'player-logs';
+                logsSection.innerHTML = `
+                    <h4>📊 Системные логи игрока</h4>
+                    <div class="player-logs-list" id="player-logs-list"></div>
+                `;
+                document.querySelector('.player-details').appendChild(logsSection);
+            }
+            
+            // Отображаем логи
+            const logsList = document.getElementById('player-logs-list');
+            logsList.innerHTML = playerLogs.slice(0, 20).map(log => {
+                const date = new Date(log.timestamp);
+                const time = date.toLocaleTimeString('ru-RU', { 
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="player-log-item">
+                        <span class="player-log-time">${time}</span>
+                        <span class="player-log-message">${escapeHtml(log.message)}</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            // Удаляем раздел, если нет логов
+            const logsSection = document.getElementById('player-logs-section');
+            if (logsSection) {
+                logsSection.remove();
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки логов игрока:', error);
+    }
+}
+
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 function getGameName(gameCode) {
     const games = {
@@ -862,6 +938,10 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function showError(message) {
+    alert(message);
 }
 
 // НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
@@ -924,6 +1004,26 @@ function setupEventListeners() {
             }
             
             updateBetHistoryTable(filteredHistory);
+        });
+    });
+    
+    // Фильтры логов
+    document.querySelectorAll('.filter-btn[data-log-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const logsJson = localStorage.getItem('jojoland_admin_logs');
+            if (!logsJson) return;
+            
+            const filter = this.dataset.logFilter;
+            
+            // Обновляем активный фильтр
+            document.querySelectorAll('[data-log-filter]').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Загружаем и фильтруем логи
+            const logs = JSON.parse(logsJson);
+            displayLogs(logs, filter);
         });
     });
 }
