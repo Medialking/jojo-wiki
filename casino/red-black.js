@@ -21,7 +21,10 @@ let gameState = {
 };
 
 // Режим отладки (поставить false в продакшене)
-const DEBUG_MODE = true;
+const DEBUG_MODE = false; // Изменено на false!
+
+// Логи для админ-панели
+let adminLogs = [];
 
 // ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
@@ -63,6 +66,35 @@ function createParticles() {
         particle.style.animationDelay = `${Math.random() * 10}s`;
         
         particlesContainer.appendChild(particle);
+    }
+}
+
+// ДОБАВЛЕНИЕ ЛОГА ДЛЯ АДМИН-ПАНЕЛИ
+function addAdminLog(message, type = 'info') {
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+        timestamp,
+        userId,
+        nickname: userNickname,
+        message,
+        type,
+        betAmount: gameState.betAmount,
+        balance: gameState.balance,
+        selectedColor: gameState.selectedColor,
+        consecutiveWins: gameState.consecutiveWins
+    };
+    
+    adminLogs.unshift(logEntry);
+    
+    // Сохраняем в localStorage для доступа из админ-панели
+    if (typeof localStorage !== 'undefined') {
+        try {
+            const existingLogs = JSON.parse(localStorage.getItem('jojoland_admin_logs') || '[]');
+            const updatedLogs = [logEntry, ...existingLogs.slice(0, 99)]; // Храним последние 100 записей
+            localStorage.setItem('jojoland_admin_logs', JSON.stringify(updatedLogs));
+        } catch (e) {
+            // Игнорируем ошибки localStorage
+        }
     }
 }
 
@@ -151,13 +183,13 @@ async function loadUserData() {
         // Инициализируем паттерн игрока
         initializePlayerPattern(userId);
         
-        if (DEBUG_MODE) {
-            console.log('✅ Данные игры загружены');
-        }
+        // Логируем загрузку данных (только в админ-логи)
+        addAdminLog('✅ Данные игры загружены', 'info');
         
     } catch (error) {
         console.error('❌ Ошибка загрузки данных:', error);
         showError('Ошибка загрузки данных игры');
+        addAdminLog('❌ Ошибка загрузки данных игры', 'error');
     }
 }
 
@@ -295,9 +327,8 @@ function generateResult() {
     
     let winProbability = CASINO_SETTINGS.baseProbability;
     
-    if (DEBUG_MODE) {
-        console.log("🎰 Умная система активирована для игрока:", userNickname);
-    }
+    // Логируем в админ-панель (не в консоль!)
+    addAdminLog("🎰 Умная система активирована", "system");
     
     // 1. СТРОГИЙ ФАКТОР ПАТТЕРНА ИГРОКА
     const playerPattern = playerData.currentPattern;
@@ -305,35 +336,27 @@ function generateResult() {
     if (playerPattern !== 'random') {
         // Любой не-случайный паттерн сильно наказывается
         winProbability -= CASINO_SETTINGS.patternPenalty;
-        if (DEBUG_MODE) {
-            console.log("🎯 Обнаружен паттерн:", playerPattern, "- уменьшение шансов на", CASINO_SETTINGS.patternPenalty*100 + "%");
-        }
+        addAdminLog(`🎯 Обнаружен паттерн: ${playerPattern} (-${CASINO_SETTINGS.patternPenalty*100}%)`, "pattern");
     }
     
     // 2. ФАКТОР РАЗМЕРА СТАВКИ (ОСНОВНОЕ ИСПРАВЛЕНИЕ)
     if (gameState.betAmount < 50) {
         // МЕЛКИЕ СТАВКИ (<50) - СИЛЬНО УМЕНЬШАЕМ ШАНСЫ
         winProbability -= CASINO_SETTINGS.smallBetPenalty;
-        if (DEBUG_MODE) {
-            console.log("🎯 Мелкая ставка:", gameState.betAmount, "- уменьшение шансов на", CASINO_SETTINGS.smallBetPenalty*100 + "%");
-        }
+        addAdminLog(`🎯 Мелкая ставка: ${gameState.betAmount} (-${CASINO_SETTINGS.smallBetPenalty*100}%)`, "penalty");
         
         // Дополнительно: для мелких ставок добавляем случайную задержку
         if (Math.random() < 0.3) {
             // 30% шанс "неожиданного" результата
             const forcedResult = Math.random() < 0.5 ? 'red' : 'black';
-            if (DEBUG_MODE) {
-                console.log("🎰 Активация случайного результата для мелкой ставки");
-            }
+            addAdminLog("🎰 Активация случайного результата для мелкой ставки", "forced");
             return forcedResult !== gameState.selectedColor ? forcedResult : 
                    (forcedResult === 'red' ? 'black' : 'red');
         }
     } else if (gameState.betAmount > 200) {
         // Крупные ставки тоже реже выигрывают
         winProbability -= 0.10;
-        if (DEBUG_MODE) {
-            console.log(`🎯 Крупная ставка: ${gameState.betAmount} - уменьшение шансов`);
-        }
+        addAdminLog(`🎯 Крупная ставка: ${gameState.betAmount} (-10%)`, "penalty");
     }
     
     // 3. ФАКТОР БАЛАНСА ИГРОКА
@@ -341,9 +364,7 @@ function generateResult() {
     if (balanceFactor > 1) {
         // Чем больше баланс, тем меньше шансов
         winProbability -= Math.min(0.15, balanceFactor * 0.05);
-        if (DEBUG_MODE) {
-            console.log("🎯 Высокий баланс:", gameState.balance, "- уменьшение шансов");
-        }
+        addAdminLog(`🎯 Высокий баланс: ${gameState.balance}`, "balance");
     }
     
     // 4. ФАКТОР СЕССИИ
@@ -352,9 +373,7 @@ function generateResult() {
         // После 10 ставок в сессии постепенно уменьшаем шансы
         const sessionPenalty = Math.min(0.2, (sessionBets - 10) * 0.02);
         winProbability -= sessionPenalty;
-        if (DEBUG_MODE) {
-            console.log("🎯 Много ставок в сессии:", sessionBets, "- уменьшение шансов");
-        }
+        addAdminLog(`🎯 Много ставок в сессии: ${sessionBets} (-${Math.round(sessionPenalty*100)}%)`, "session");
     }
     
     // 5. ФАКТОР ВРЕМЕНИ
@@ -364,17 +383,13 @@ function generateResult() {
     // В пиковые часы (вечер) меньше шансов
     if (hour >= 18 || hour <= 2) {
         winProbability -= 0.05;
-        if (DEBUG_MODE) {
-            console.log("🎯 Пиковое время игры - уменьшение шансов");
-        }
+        addAdminLog("🎯 Пиковое время игры (-5%)", "time");
     }
     
     // 6. ГАРАНТИРОВАННЫЙ ПРОИГРЫШ ПОСЛЕ 2+ ВЫИГРЫШЕЙ
     if (gameState.consecutiveWins >= 2) {
         // После 2 выигрышей подряд - 85% шанс проигрыша
-        if (DEBUG_MODE) {
-            console.log("🎰 Активация гарантированного проигрыша (2+ выигрыша подряд)");
-        }
+        addAdminLog("🎰 Активация гарантированного проигрыша (2+ выигрыша подряд)", "guaranteed");
         return Math.random() < 0.85 ? 
                (gameState.selectedColor === 'red' ? 'black' : 'red') :
                gameState.selectedColor;
@@ -393,11 +408,10 @@ function generateResult() {
     const noise = (Math.random() - 0.5) * 0.05;
     winProbability += noise;
     
-    // Логируем для отладки (только в консоли, игрок не видит)
-    if (DEBUG_MODE) {
-        console.log(`🎲 Финальный шанс выигрыша: ${Math.round(winProbability * 100)}%`);
-        console.log(`📊 Баланс игрока: ${gameState.balance}, Ставка: ${gameState.betAmount}`);
-    }
+    // Логируем финальную вероятность (только в админ-логи)
+    const finalChance = Math.round(winProbability * 100);
+    addAdminLog(`🎲 Финальный шанс выигрыша: ${finalChance}%`, "probability");
+    addAdminLog(`📊 Баланс: ${gameState.balance}, Ставка: ${gameState.betAmount}`, "stats");
     
     // Генерируем результат с дополнительной "защитой"
     const random = Math.random();
@@ -406,6 +420,7 @@ function generateResult() {
     // ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: если шанс слишком высокий - корректируем
     if (winProbability > 0.45 && Math.random() < 0.7) {
         isWin = false; // 70% шанс переопределить "слишком удачный" исход
+        addAdminLog("🛡️ Активация защиты: снижение шанса", "protection");
     }
     
     return isWin ? gameState.selectedColor : 
@@ -459,9 +474,7 @@ async function migrateAvailablePointsToTotal() {
         
         gameState.balance = newTotal;
         
-        if (DEBUG_MODE) {
-            console.log(`✅ Миграция: available_points(${available}) → total_points(${newTotal})`);
-        }
+        addAdminLog(`✅ Миграция: ${available} → ${newTotal}`, "migration");
         
     } catch (error) {
         console.error('❌ Ошибка миграции:', error);
@@ -505,9 +518,7 @@ function canPlaceBet() {
 
 // ОБРАБОТКА СТАВКИ
 async function placeBet() {
-    if (DEBUG_MODE) {
-        console.log('🎲 Попытка сделать ставку');
-    }
+    addAdminLog('🎲 Попытка сделать ставку', 'bet');
     
     if (!canPlaceBet()) {
         return;
@@ -562,14 +573,19 @@ async function placeBet() {
         // Устанавливаем кулдаун
         setCooldown(5000);
         
-        if (DEBUG_MODE) {
-            console.log(`✅ Ставка завершена: ${isWin ? 'Выигрыш' : 'Проигрыш'} ${winAmount || 0} очков`);
-            console.log(`📊 Текущий паттерн: ${playerPatterns[userId]?.currentPattern || 'unknown'}`);
+        // Логируем результат ставки
+        const resultType = isWin ? 'Выигрыш' : 'Проигрыш';
+        addAdminLog(`✅ Ставка: ${resultType} ${winAmount || 0} очков`, isWin ? 'win' : 'loss');
+        
+        const playerData = playerPatterns[userId];
+        if (playerData?.currentPattern) {
+            addAdminLog(`📊 Паттерн: ${playerData.currentPattern}`, 'pattern');
         }
         
     } catch (error) {
         console.error('❌ Ошибка ставки:', error);
         showError('Ошибка при обработке ставки');
+        addAdminLog('❌ Ошибка при обработке ставки', 'error');
     } finally {
         // Снимаем блокировку
         gameState.isSpinning = false;
@@ -610,9 +626,7 @@ async function updatePointsBalance(change) {
         // Обновляем состояние игры
         gameState.balance = newTotal;
         
-        if (DEBUG_MODE) {
-            console.log(`💰 Баланс обновлен: ${change > 0 ? '+' : ''}${change}, всего: ${newTotal}`);
-        }
+        addAdminLog(`💰 Баланс: ${change > 0 ? '+' : ''}${change}, всего: ${newTotal}`, 'balance');
         
     } catch (error) {
         console.error('❌ Ошибка обновления баланса:', error);
