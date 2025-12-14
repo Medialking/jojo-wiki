@@ -112,7 +112,7 @@
             <a href="../profle/profile.html" class="shop-btn">
                 <i class="fas fa-user"></i> Мой профиль
             </a>
-            <button class="shop-btn" id="inventory-btn">
+            <button class="shop-btn" id="inventory-btn" onclick="openInventory()">
                 <i class="fas fa-box"></i> Инвентарь
             </button>
         </div>
@@ -207,8 +207,131 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
+
+
 <script src="shop-core.js"></script>
 <script src="shop-ui.js"></script>
+
+<!-- ДОБАВЬТЕ ЭТОТ СКРИПТ ПОСЛЕ ОСНОВНЫХ -->
+<script>
+// Функция открытия инвентаря
+function openInventory() {
+    // Проверяем авторизацию
+    const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
+    const userId = localStorage.getItem('jojoland_userId');
+    
+    console.log('🔐 Проверка авторизации для инвентаря:', { isLoggedIn, userId });
+    
+    if (!isLoggedIn || !userId) {
+        // Показываем сообщение об ошибке
+        showShopError('Сначала войдите в аккаунт');
+        
+        // Перенаправляем на страницу входа
+        setTimeout(() => {
+            window.location.href = '../index.html';
+        }, 2000);
+        return;
+    }
+    
+    console.log('✅ Переход в инвентарь');
+    // Переходим на страницу инвентаря
+    window.location.href = 'inventory.html';
+}
+
+// Функция показа ошибок для магазина (чтобы не конфликтовать с существующей)
+function showShopError(message) {
+    // Проверяем, есть ли уже уведомление
+    const existingError = document.querySelector('.shop-error-notification');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Создаем элемент для сообщения
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'shop-error-notification';
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 68, 68, 0.9);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        animation: slideInRight 0.3s ease;
+        font-family: 'Orbitron', sans-serif;
+    `;
+    
+    errorDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">⚠️</span>
+            <div>
+                <strong style="display: block; margin-bottom: 5px;">Внимание</strong>
+                <div style="font-size: 14px;">${message}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    // Автоматически скрыть через 3 секунды
+    setTimeout(() => {
+        errorDiv.style.opacity = '0';
+        errorDiv.style.transition = 'opacity 0.5s';
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 500);
+    }, 3000);
+}
+
+// Добавляем стили для анимации, если их нет
+if (!document.querySelector('#shop-error-styles')) {
+    const style = document.createElement('style');
+    style.id = 'shop-error-styles';
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .shop-error-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 68, 68, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .shop-error-notification strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .shop-error-notification div {
+            font-size: 14px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
 
 </body>
 </html>
