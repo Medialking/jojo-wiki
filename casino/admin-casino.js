@@ -3,65 +3,350 @@
 let allPlayers = [];
 let selectedPlayer = null;
 let currentFilter = 'all';
+let currentUser = null;
 
 // ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
-    // Проверяем авторизацию админа
-    if (!await checkAdminAuth()) {
+    // Инициализируем Firebase Auth
+    try {
+        // Проверяем авторизацию
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                // Пользователь авторизован
+                currentUser = user;
+                
+                // Проверяем, является ли админом
+                const isAdmin = await checkIfAdmin(user.uid);
+                
+                if (isAdmin) {
+                    // Загружаем данные
+                    await loadAllPlayers();
+                    setupEventListeners();
+                    
+                    // Показываем информацию об админе
+                    showAdminInfo(user);
+                } else {
+                    // Не админ - редирект
+                    showError('У вас нет прав доступа к админ-панели');
+                    setTimeout(() => {
+                        window.location.href = '../index.html';
+                    }, 3000);
+                }
+            } else {
+                // Пользователь не авторизован - показываем форму входа
+                showLoginForm();
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка инициализации:', error);
+        showError('Ошибка загрузки админ-панели');
+    }
+};
+
+// ПОКАЗ ФОРМЫ ВХОДА
+function showLoginForm() {
+    const container = document.querySelector('.container');
+    
+    container.innerHTML = `
+        <div class="header">
+            <h1>🔐 АДМИН-ВХОД</h1>
+            <p>Для доступа к панели управления требуется авторизация</p>
+        </div>
+        
+        <div class="login-form">
+            <div class="form-card">
+                <h2>Вход для администратора</h2>
+                
+                <div class="input-group">
+                    <label for="admin-email">Email админа:</label>
+                    <input type="email" id="admin-email" placeholder="admin@jojoland.com" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="admin-password">Пароль:</label>
+                    <input type="password" id="admin-password" placeholder="••••••••" autocomplete="off">
+                </div>
+                
+                <button class="login-btn" onclick="adminLogin()">🚪 Войти</button>
+                
+                <div class="login-info">
+                    <p>⚠️ Доступ только для администраторов системы</p>
+                    <p>Для получения доступа обратитесь к главному администратору</p>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            .login-form {
+                max-width: 400px;
+                margin: 50px auto;
+            }
+            
+            .form-card {
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 20px;
+                padding: 40px;
+                border: 3px solid #ff00ff;
+                text-align: center;
+            }
+            
+            .form-card h2 {
+                color: #00ff00;
+                margin-bottom: 30px;
+                font-size: 24px;
+            }
+            
+            .input-group {
+                margin-bottom: 20px;
+                text-align: left;
+            }
+            
+            .input-group label {
+                display: block;
+                color: #aaaaff;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+            
+            .input-group input {
+                width: 100%;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                color: white;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 16px;
+                outline: none;
+                transition: all 0.3s;
+            }
+            
+            .input-group input:focus {
+                border-color: #00ff00;
+                box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            }
+            
+            .login-btn {
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(90deg, #00cc66, #00ff88);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                margin-top: 20px;
+            }
+            
+            .login-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
+            }
+            
+            .login-info {
+                margin-top: 30px;
+                padding: 15px;
+                background: rgba(255, 153, 0, 0.1);
+                border-radius: 10px;
+                border: 1px solid rgba(255, 153, 0, 0.3);
+                color: #ffcc00;
+                font-size: 12px;
+                line-height: 1.5;
+            }
+            
+            .login-error {
+                margin-top: 15px;
+                padding: 10px;
+                background: rgba(255, 0, 0, 0.1);
+                border-radius: 10px;
+                border: 1px solid rgba(255, 0, 0, 0.3);
+                color: #ff4444;
+                font-size: 14px;
+                display: none;
+            }
+        </style>
+    `;
+}
+
+// ВХОД АДМИНА
+async function adminLogin() {
+    const email = document.getElementById('admin-email').value.trim();
+    const password = document.getElementById('admin-password').value;
+    const errorDiv = document.querySelector('.login-error') || createErrorDiv();
+    
+    if (!email || !password) {
+        showError('Заполните все поля');
         return;
     }
     
-    await loadAllPlayers();
-    setupEventListeners();
-};
+    try {
+        // Входим через Firebase Auth
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        console.log('✅ Админ вошел:', userCredential.user.email);
+        
+        // Проверяем права через Custom Claims или базу данных
+        const isAdmin = await checkIfAdmin(userCredential.user.uid);
+        
+        if (!isAdmin) {
+            await firebase.auth().signOut();
+            showError('Этот пользователь не является администратором');
+            return;
+        }
+        
+        // Успешный вход - страница перезагрузится через onAuthStateChanged
+        
+    } catch (error) {
+        console.error('❌ Ошибка входа:', error);
+        
+        let errorMessage = 'Ошибка авторизации';
+        switch(error.code) {
+            case 'auth/invalid-email':
+                errorMessage = 'Неверный формат email';
+                break;
+            case 'auth/user-disabled':
+                errorMessage = 'Аккаунт отключен';
+                break;
+            case 'auth/user-not-found':
+                errorMessage = 'Пользователь не найден';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Неверный пароль';
+                break;
+            case 'auth/too-many-requests':
+                errorMessage = 'Слишком много попыток. Попробуйте позже';
+                break;
+        }
+        
+        showError(errorMessage);
+    }
+}
 
-// ПРОВЕРКА АВТОРИЗАЦИИ АДМИНА
-async function checkAdminAuth() {
-    const userId = localStorage.getItem('jojoland_userId');
-    const userNickname = localStorage.getItem('jojoland_nickname');
-    
-    if (!userId || !userNickname) {
-        alert('Для доступа к админ-панели необходимо войти в аккаунт');
-        window.location.href = '../index.html';
-        return false;
+// СОЗДАНИЕ DIV ДЛЯ ОШИБОК
+function createErrorDiv() {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'login-error';
+    document.querySelector('.form-card').appendChild(errorDiv);
+    return errorDiv;
+}
+
+// ПОКАЗ ОШИБКИ ВХОДА
+function showError(message) {
+    let errorDiv = document.querySelector('.login-error');
+    if (!errorDiv) {
+        errorDiv = createErrorDiv();
     }
     
-    // Проверяем, является ли пользователь админом
-    // Здесь можно добавить проверку по списку админов
-    const isAdmin = await checkIfAdmin(userId);
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
     
-    if (!isAdmin) {
-        alert('У вас нет доступа к админ-панели');
-        window.location.href = '../index.html';
-        return false;
-    }
-    
-    return true;
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 5000);
 }
 
 // ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ПОЛЬЗОВАТЕЛЬ АДМИНОМ
 async function checkIfAdmin(userId) {
     try {
-        // Можно хранить список админов в Firebase
-        const adminSnapshot = await database.ref('admins/' + userId).once('value');
+        // Способ 1: Проверка Custom Claims (рекомендуется)
+        if (currentUser) {
+            // Получаем ID токен и проверяем claims
+            const idTokenResult = await currentUser.getIdTokenResult();
+            
+            if (idTokenResult.claims.admin) {
+                console.log('✅ Пользователь админ (Custom Claims)');
+                return true;
+            }
+        }
         
-        if (adminSnapshot.exists()) {
+        // Способ 2: Проверка в базе данных
+        const adminSnapshot = await database.ref(`admins/${userId}`).once('value');
+        if (adminSnapshot.exists() && adminSnapshot.val().active === true) {
+            console.log('✅ Пользователь админ (Database)');
             return true;
         }
         
-        // Или проверить по нику (для теста)
-        const nickname = localStorage.getItem('jojoland_nickname') || '';
-        const adminNicks = ['admin', 'administrator', 'moderator', 'testadmin'];
+        // Способ 3: Проверка по email (для начальной настройки)
+        const userEmail = currentUser?.email || '';
+        const adminEmails = await getAdminEmailsFromDB();
         
-        if (adminNicks.includes(nickname.toLowerCase())) {
+        if (adminEmails.includes(userEmail.toLowerCase())) {
+            console.log('✅ Пользователь админ (Email list)');
             return true;
         }
         
+        console.log('❌ Пользователь не админ');
         return false;
         
     } catch (error) {
-        console.error('Ошибка проверки админа:', error);
+        console.error('❌ Ошибка проверки админа:', error);
         return false;
+    }
+}
+
+// ПОЛУЧЕНИЕ СПИСКА EMAIL АДМИНОВ ИЗ БАЗЫ
+async function getAdminEmailsFromDB() {
+    try {
+        const snapshot = await database.ref('admin_emails').once('value');
+        const emails = snapshot.val() || [];
+        
+        // Преобразуем в массив и приводим к нижнему регистру
+        return Array.isArray(emails) 
+            ? emails.map(email => email.toLowerCase())
+            : Object.values(emails || {}).map(email => email.toLowerCase());
+    } catch (error) {
+        console.error('❌ Ошибка получения email админов:', error);
+        return [];
+    }
+}
+
+// ПОКАЗ ИНФОРМАЦИИ ОБ АДМИНЕ
+function showAdminInfo(user) {
+    const header = document.querySelector('.header');
+    
+    const adminInfo = document.createElement('div');
+    adminInfo.className = 'admin-info';
+    adminInfo.innerHTML = `
+        <div style="
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 136, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 20px;
+            border: 1px solid rgba(0, 136, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        ">
+            <span style="color: #00ff00;">👑 ${user.email}</span>
+            <button onclick="adminLogout()" style="
+                background: rgba(255, 0, 0, 0.3);
+                border: 1px solid rgba(255, 0, 0, 0.5);
+                border-radius: 5px;
+                color: white;
+                padding: 5px 10px;
+                cursor: pointer;
+                font-size: 12px;
+            ">Выйти</button>
+        </div>
+    `;
+    
+    header.appendChild(adminInfo);
+}
+
+// ВЫХОД АДМИНА
+async function adminLogout() {
+    try {
+        await firebase.auth().signOut();
+        console.log('✅ Админ вышел');
+        window.location.reload();
+    } catch (error) {
+        console.error('❌ Ошибка выхода:', error);
+        alert('Ошибка при выходе из системы');
     }
 }
 
@@ -469,7 +754,7 @@ async function banPlayer() {
             nickname: selectedPlayer.nickname,
             reason: reason,
             bannedAt: new Date().toISOString(),
-            bannedBy: localStorage.getItem('jojoland_nickname')
+            bannedBy: currentUser?.email || 'admin'
         });
         
         alert(`Игрок ${selectedPlayer.nickname} заблокирован`);
@@ -512,7 +797,7 @@ async function adjustBalance() {
         
         // Записываем лог
         await database.ref(`admin_logs/${Date.now()}`).set({
-            admin: localStorage.getItem('jojoland_nickname'),
+            admin: currentUser?.email || 'admin',
             player: selectedPlayer.nickname,
             playerId: selectedPlayer.id,
             action: 'balance_adjustment',
