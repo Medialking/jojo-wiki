@@ -279,16 +279,14 @@ async function placeBet() {
 
 // ГЕНЕРАЦИЯ РЕЗУЛЬТАТА
 function generateResult() {
-    // Вероятность: 49% красное, 49% черное, 2% ноль (случайность)
+    // Исправлено: теперь строго 50/50 для красного и черного
+    // Вероятность: 50% красное, 50% черное
     const random = Math.random();
     
-    if (random < 0.49) {
+    if (random < 0.5) {
         return 'red';
-    } else if (random < 0.98) {
-        return 'black';
     } else {
-        // Ноль - автоматический проигрыш
-        return Math.random() < 0.5 ? 'red' : 'black';
+        return 'black';
     }
 }
 
