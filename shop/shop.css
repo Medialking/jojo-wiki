@@ -1,6 +1,169 @@
 /* =========================================== */
 /* СТИЛИ ДЛЯ НОВОГОДНЕГО МАГАЗИНА */
 /* =========================================== */
+/* Стили для табов украшений */
+.decorations-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    padding: 12px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #4CAF50, #2196F3);
+    border-color: #4CAF50;
+    color: white;
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Стили для украшений с категориями */
+.decorations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.decoration-item {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.decoration-item:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.decoration-item[data-type="badges"] {
+    border-left: 5px solid #FFD700;
+}
+
+.decoration-item[data-type="frames"] {
+    border-left: 5px solid #2196F3;
+}
+
+.decoration-item[data-type="effects"] {
+    border-left: 5px solid #9C27B0;
+}
+
+.decoration-item[data-type="titles"] {
+    border-left: 5px solid #4CAF50;
+}
+
+.decoration-type {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.decoration-type.badges {
+    color: #FFD700;
+    border: 1px solid #FFD700;
+}
+
+.decoration-type.frames {
+    color: #2196F3;
+    border: 1px solid #2196F3;
+}
+
+.decoration-type.effects {
+    color: #9C27B0;
+    border: 1px solid #9C27B0;
+}
+
+.decoration-type.titles {
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.decoration-icon {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.decoration-name {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.decoration-description {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.decoration-price {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 15px;
+    font-family: 'Michroma', sans-serif;
+}
+
+.buy-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+}
+
+.buy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+/* Скрытие неактивных категорий */
+.decoration-item.hidden {
+    display: none;
+}
 
 /* ОСНОВНОЙ КОНТЕЙНЕР */
 .shop-container {
