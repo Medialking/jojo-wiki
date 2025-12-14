@@ -496,7 +496,7 @@ async function loadUserProfile() {
         const snapshot = await database.ref('users/' + userId).once('value');
         
         if (snapshot.exists()) {
-            const userData = snapshot.val(); // ← УБЕДИТЕСЬ, ЧТО userData ОПРЕДЕЛЕНА ЗДЕСЬ
+            const userData = snapshot.val(); // ← ЗДЕСЬ userData ОПРЕДЕЛЕНА
             console.log('✅ Данные пользователя загружены:', userData);
             
             // Определяем ранг пользователя
@@ -520,7 +520,7 @@ async function loadUserProfile() {
             }
 
             // Обновляем последний визит (только для своего профиля)
-            await updateLastVisit(userId, userData); // ← userData передается сюда
+            await updateLastVisit(userId, userData); // ← userData передается сюда (ЭТА СТРОКА 496)
         } else {
             console.log('❌ Пользователь не найден в базе данных');
             document.getElementById('user-nickname').textContent = nickname;
