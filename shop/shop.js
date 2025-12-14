@@ -960,7 +960,7 @@ function switchTab(tabName) {
     }
 }
 
-// НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
+// ОБНОВЛЕННАЯ ФУНКЦИЯ НАСТРОЙКИ ОБРАБОТЧИКОВ СОБЫТИЙ
 function setupEventListeners() {
     console.log('Настройка обработчиков событий...');
     
@@ -969,6 +969,35 @@ function setupEventListeners() {
         btn.addEventListener('click', function() {
             const tabName = this.dataset.tab;
             switchTab(tabName);
+            
+            // При переключении на "Мои заказы" загружаем данные
+            if (tabName === 'my-orders') {
+                loadMyOrders();
+            }
+        });
+    });
+    
+    // Переключение вкладок "Мои заказы"
+    document.querySelectorAll('.my-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Скрываем все вкладки
+            document.querySelectorAll('.my-orders-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Убираем активный класс со всех кнопок
+            document.querySelectorAll('.my-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Показываем выбранную вкладку
+            const tabElement = document.getElementById(`${tabName}-content`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+                this.classList.add('active');
+            }
         });
     });
     
@@ -986,90 +1015,127 @@ function setupEventListeners() {
     const refreshBtn = document.getElementById('refresh-exchange');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '⏳ Загрузка...';
+            
             await loadExchangeOrders();
             showNotification('Биржа обновлена', 'success');
+            
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '🔄 Обновить';
         });
     }
     
-    // Создание ордера
+    // Создание ордера - ОБНОВЛЕННЫЙ КОД
     const createOrderBtn = document.getElementById('create-order-btn');
     if (createOrderBtn) {
         createOrderBtn.addEventListener('click', () => {
-            showNotification('Функция создания ордера в разработке', 'info');
+            showCreateOrderModal('sell');
         });
     }
+    
+    // Кнопки типа ордера в модальном окне
+    document.querySelectorAll('.order-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.dataset.type;
+            showCreateOrderModal(type);
+        });
+    });
+    
+    // Фильтры биржи
+    const filters = ['search-gift', 'rarity-filter', 'order-type-filter', 'sort-filter'];
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', () => {
+                applyExchangeFilters();
+            });
+    if (filterId === 'search-gift') {
+        element.addEventListener('input', () => {
+            applyExchangeFilters();
+        });
+    }
+            });
+    });
+    
+    // Нажатие Escape для закрытия модальных окон
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
     
     console.log('Обработчики событий настроены');
 }
 
-// ПОКАЗАТЬ ИНВЕНТАРЬ
-function displayInventory() {
-    const container = document.getElementById('inventory-grid');
+// ФУНКЦИЯ ПРИМЕНЕНИЯ ФИЛЬТРОВ
+function applyExchangeFilters() {
+    const searchTerm = document.getElementById('search-gift').value.toLowerCase();
+    const rarityFilter = document.getElementById('rarity-filter').value;
+    const orderTypeFilter = document.getElementById('order-type-filter').value;
+    const sortFilter = document.getElementById('sort-filter').value;
+    
+    const filteredOrders = exchangeOrders.filter(order => {
+        const gift = giftsData[order.gift_id];
+        if (!gift) return false;
+        
+        // Поиск
+        if (searchTerm && !order.gift_name.toLowerCase().includes(searchTerm) && 
+            !gift.description.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+        
+        // Фильтр редкости
+        if (rarityFilter !== 'all' && gift.rarity !== rarityFilter) {
+            return false;
+        }
+        
+        // Фильтр типа ордера
+        if (orderTypeFilter !== 'all' && order.type !== orderTypeFilter) {
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Сортировка
+    filteredOrders.sort((a, b) => {
+        switch (sortFilter) {
+            case 'price_asc':
+                return a.price - b.price;
+            case 'price_desc':
+                return b.price - a.price;
+            case 'newest':
+                return new Date(b.created_at) - new Date(a.created_at);
+            case 'popular':
+                // Здесь можно добавить логику популярности
+                return b.quantity - a.quantity;
+            default:
+                return 0;
+        }
+    });
+    
+    // Отображаем отфильтрованные ордера
+    const container = document.getElementById('orders-list');
     if (!container) return;
     
-    if (userInventory.length === 0) {
+    if (filteredOrders.length === 0) {
         container.innerHTML = `
-            <div class="empty-inventory" style="grid-column: 1 / -1;">
-                <div class="empty-icon">📭</div>
-                <h3>Инвентарь пуст</h3>
-                <p>Купите свой первый подарок в магазине!</p>
-                <button class="action-btn" onclick="switchTab('shop')">🛒 В магазин</button>
+            <div class="empty-orders">
+                <div class="empty-icon">🔍</div>
+                <h3>Ордеры не найдены</h3>
+                <p>Попробуйте изменить параметры поиска</p>
             </div>
         `;
         return;
     }
     
-    container.innerHTML = userInventory.map((item, index) => {
-        const gift = giftsData[item.gift_id];
-        if (!gift) return '';
-        
-        return `
-            <div class="inventory-item ${gift.rarity}" data-item-id="${index}">
-                <div class="rarity-badge ${gift.rarity}">${getRarityName(gift.rarity)}</div>
-                
-                ${item.is_selling ? '<div class="sell-indicator">💰</div>' : ''}
-                
-                <div class="gift-image">
-                    ${gift.icon}
-                </div>
-                
-                <h4>${gift.name}</h4>
-                <div class="inventory-date">
-                    Куплено: ${new Date(item.purchased_at || Date.now()).toLocaleDateString('ru-RU')}
-                </div>
-                
-                <div class="inventory-actions">
-                    <button class="small-btn" onclick="showNotification('Функция продажи в разработке', 'info')">
-                        ℹ️ Подробнее
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = filteredOrders.map(order => createOrderRow(order)).join('');
 }
 
-// ОТОБРАЖЕНИЕ МОИХ ОРДЕРОВ
-function displayMyOrders() {
-    // Показываем заглушки для вкладок "Мои заказы"
-    const tabs = ['active-orders', 'completed-orders', 'cancelled-orders'];
-    
-    tabs.forEach(tab => {
-        const container = document.getElementById(`my-${tab}`);
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-orders">
-                    <div class="empty-icon">📝</div>
-                    <h3>${tab === 'active-orders' ? 'Нет активных ордеров' : 
-                         tab === 'completed-orders' ? 'Нет исполненных ордеров' : 'Нет отмененных ордеров'}</h3>
-                    <p>${tab === 'active-orders' ? 'Создайте свой первый ордер на бирже!' : 
-                         'Здесь будут отображаться ваши сделки'}</p>
-                </div>
-            `;
-        }
-    });
-}
-
-// ГЛАВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
+// ОБНОВЛЕННАЯ ГЛАВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
 async function initializeShop() {
     console.log('=== ИНИЦИАЛИЗАЦИЯ МАГАЗИНА ===');
     
@@ -1077,7 +1143,6 @@ async function initializeShop() {
         // Проверяем авторизацию
         const isAuthenticated = await checkAuth();
         if (!isAuthenticated) {
-            // Если не авторизован, все равно скрываем лоадер
             setTimeout(() => {
                 const loader = document.getElementById('loader');
                 const content = document.getElementById('content');
@@ -1117,8 +1182,8 @@ async function initializeShop() {
         // Отображаем инвентарь
         displayInventory();
         
-        // Отображаем мои ордера
-        displayMyOrders();
+        // Загружаем мои ордера
+        loadMyOrders();
         
         // Настраиваем обновления в реальном времени
         setupRealtimeUpdates();
@@ -1141,14 +1206,15 @@ async function initializeShop() {
             },
             reload: () => location.reload(),
             switchTab: (tab) => switchTab(tab),
-            buyGift: (id) => buyGift(id)
+            buyGift: (id) => buyGift(id),
+            createOrder: (type) => showCreateOrderModal(type),
+            cancelOrder: (id) => cancelOrder(id)
         };
         
     } catch (error) {
         console.error('Критическая ошибка инициализации:', error);
         showError('Ошибка загрузки магазина: ' + error.message);
         
-        // Все равно показываем контент при ошибке
         setTimeout(() => {
             const loader = document.getElementById('loader');
             const content = document.getElementById('content');
@@ -1242,4 +1308,872 @@ window.showShopState = function() {
     console.log('Подарки:', giftsData);
     console.log('Ордеры:', exchangeOrders);
     console.log('==========================');
+
+// ==================== ФУНКЦИИ СОЗДАНИЯ ОРДЕРОВ ====================
+
+// ПОКАЗАТЬ МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ОРДЕРА
+function showCreateOrderModal(type = 'sell') {
+    console.log('Открытие модального окна создания ордера:', type);
+    
+    const modal = document.getElementById('create-order-modal');
+    if (!modal) return;
+    
+    // Сброс формы
+    resetOrderForm();
+    
+    // Установка типа ордера
+    setOrderType(type);
+    
+    // Заполнение списка подарков
+    populateGiftSelector(type);
+    
+    // Показываем модальное окно
+    modal.style.display = 'flex';
+    
+    // Добавляем обработчики для формы
+    setupOrderFormListeners();
+}
+
+// СБРОС ФОРМЫ
+function resetOrderForm() {
+    const formElements = {
+        'order-price': '',
+        'order-quantity': '1',
+        'available-qty': '0',
+        'market-price': '0',
+        'min-price': '10',
+        'max-price': '100000',
+        'order-total': '0',
+        'commission-amount': '0'
+    };
+    
+    for (const [id, value] of Object.entries(formElements)) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+    
+    const priceInput = document.getElementById('order-price');
+    const quantityInput = document.getElementById('order-quantity');
+    if (priceInput) priceInput.value = '';
+    if (quantityInput) quantityInput.value = '1';
+    
+    // Снимаем выделение с подарков
+    document.querySelectorAll('.gift-selector-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+}
+
+// УСТАНОВКА ТИПА ОРДЕРА
+function setOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.type === type) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// ЗАПОЛНЕНИЕ ВЫБОРА ПОДАРКОВ
+function populateGiftSelector(type) {
+    const container = document.getElementById('order-gift-selector');
+    if (!container) return;
+    
+    let giftsToShow = [];
+    
+    if (type === 'sell') {
+        // Для продажи показываем только те подарки, которые есть в инвентаре
+        giftsToShow = userInventory
+            .filter(item => !item.is_selling)
+            .map(item => ({
+                ...item,
+                gift: giftsData[item.gift_id]
+            }))
+            .filter(item => item.gift);
+    } else {
+        // Для покупки показываем все подарки
+        giftsToShow = Object.values(giftsData).map(gift => ({
+            gift_id: gift.id,
+            gift: gift
+        }));
+    }
+    
+    if (giftsToShow.length === 0) {
+        container.innerHTML = `
+            <div class="empty-gifts">
+                <p>${type === 'sell' ? 'Нет подарков для продажи' : 'Нет доступных подарков'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = giftsToShow.map(item => {
+        const gift = item.gift;
+        const inventoryItem = type === 'sell' ? item : null;
+        const countInInventory = type === 'sell' ? 
+            userInventory.filter(i => i.gift_id === gift.id && !i.is_selling).length : 0;
+        
+        return `
+            <div class="gift-selector-item" 
+                 data-gift-id="${gift.id}"
+                 data-inventory-id="${inventoryItem ? inventoryItem.key || '' : ''}"
+                 data-max-qty="${type === 'sell' ? countInInventory : 999}">
+                <span class="gift-selector-icon">${gift.icon}</span>
+                <span class="gift-selector-name">${gift.name}</span>
+                <span class="gift-selector-rarity ${gift.rarity}">${getRarityName(gift.rarity)}</span>
+                ${type === 'sell' ? `<small>${countInInventory} шт.</small>` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    // Добавляем обработчики выбора подарка
+    container.querySelectorAll('.gift-selector-item').forEach(item => {
+        item.addEventListener('click', function() {
+            selectGiftForOrder(this);
+        });
+    });
+}
+
+// ВЫБОР ПОДАРКА ДЛЯ ОРДЕРА
+function selectGiftForOrder(element) {
+    // Снимаем выделение со всех
+    document.querySelectorAll('.gift-selector-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Выделяем выбранный
+    element.classList.add('selected');
+    
+    const giftId = element.dataset.giftId;
+    const gift = giftsData[giftId];
+    if (!gift) return;
+    
+    // Обновляем информацию о доступном количестве
+    const maxQty = parseInt(element.dataset.maxQty) || 1;
+    document.getElementById('available-qty').textContent = maxQty;
+    
+    // Устанавливаем максимальное количество
+    const quantityInput = document.getElementById('order-quantity');
+    if (quantityInput) {
+        quantityInput.max = maxQty;
+        if (parseInt(quantityInput.value) > maxQty) {
+            quantityInput.value = maxQty;
+        }
+    }
+    
+    // Рассчитываем рыночную цену
+    calculateMarketPrice(giftId);
+    
+    // Обновляем общую сумму
+    calculateOrderTotal();
+}
+
+// РАССЧЕТ РЫНОЧНОЙ ЦЕНЫ
+function calculateMarketPrice(giftId) {
+    const gift = giftsData[giftId];
+    if (!gift) return;
+    
+    let marketPrice = gift.price;
+    
+    // Ищем похожие ордера на бирже
+    const similarOrders = exchangeOrders.filter(order => 
+        order.gift_id === giftId && order.status === 'active'
+    );
+    
+    if (similarOrders.length > 0) {
+        // Берем среднюю цену
+        const avgPrice = similarOrders.reduce((sum, order) => sum + order.price, 0) / similarOrders.length;
+        marketPrice = Math.round(avgPrice);
+    }
+    
+    // Обновляем UI
+    const marketPriceEl = document.getElementById('market-price');
+    if (marketPriceEl) marketPriceEl.textContent = marketPrice;
+    
+    // Устанавливаем подсказку в поле цены
+    const priceInput = document.getElementById('order-price');
+    if (priceInput && !priceInput.value) {
+        priceInput.placeholder = `Рынок: ${marketPrice}`;
+    }
+}
+
+// НАСТРОЙКА ОБРАБОТЧИКОВ ДЛЯ ФОРМЫ
+function setupOrderFormListeners() {
+    // Кнопки изменения количества
+    const decreaseBtn = document.getElementById('decrease-qty');
+    const increaseBtn = document.getElementById('increase-qty');
+    const quantityInput = document.getElementById('order-quantity');
+    
+    if (decreaseBtn) {
+        decreaseBtn.addEventListener('click', () => {
+            if (quantityInput) {
+                let value = parseInt(quantityInput.value) || 1;
+                if (value > 1) {
+                    quantityInput.value = value - 1;
+                    calculateOrderTotal();
+                }
+            }
+        });
+    }
+    
+    if (increaseBtn) {
+        increaseBtn.addEventListener('click', () => {
+            if (quantityInput) {
+                let value = parseInt(quantityInput.value) || 1;
+                const max = parseInt(quantityInput.max) || 100;
+                if (value < max) {
+                    quantityInput.value = value + 1;
+                    calculateOrderTotal();
+                }
+            }
+        });
+    }
+    
+    // Изменение количества вручную
+    if (quantityInput) {
+        quantityInput.addEventListener('input', calculateOrderTotal);
+        quantityInput.addEventListener('change', function() {
+            let value = parseInt(this.value) || 1;
+            const max = parseInt(this.max) || 100;
+            const min = parseInt(this.min) || 1;
+            
+            if (value < min) this.value = min;
+            if (value > max) this.value = max;
+            
+            calculateOrderTotal();
+        });
+    }
+    
+    // Изменение цены
+    const priceInput = document.getElementById('order-price');
+    if (priceInput) {
+        priceInput.addEventListener('input', calculateOrderTotal);
+        priceInput.addEventListener('change', function() {
+            let value = parseInt(this.value) || 0;
+            const min = parseInt(document.getElementById('min-price').textContent) || 1;
+            const max = parseInt(document.getElementById('max-price').textContent) || 100000;
+            
+            if (value < min) this.value = min;
+            if (value > max) this.value = max;
+            
+            calculateOrderTotal();
+        });
+    }
+    
+    // Кнопки отмены
+    const cancelBtn = document.getElementById('cancel-order');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            document.getElementById('create-order-modal').style.display = 'none';
+        });
+    }
+    
+    // Кнопка отправки
+    const submitBtn = document.getElementById('submit-order');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', submitOrder);
+    }
+}
+
+// РАСЧЕТ ОБЩЕЙ СУММЫ
+function calculateOrderTotal() {
+    const price = parseInt(document.getElementById('order-price').value) || 0;
+    const quantity = parseInt(document.getElementById('order-quantity').value) || 1;
+    const type = document.querySelector('.order-type-btn.active')?.dataset.type || 'sell';
+    
+    const total = price * quantity;
+    const commission = type === 'sell' ? Math.ceil(total * 0.02) : 0;
+    
+    document.getElementById('order-total').textContent = `${total} 🎄`;
+    document.getElementById('commission-amount').textContent = commission;
+}
+
+// ОТПРАВКА ОРДЕРА
+async function submitOrder() {
+    console.log('Отправка ордера...');
+    
+    // Получаем данные из формы
+    const type = document.querySelector('.order-type-btn.active')?.dataset.type;
+    const selectedGift = document.querySelector('.gift-selector-item.selected');
+    
+    if (!selectedGift) {
+        showError('Выберите подарок');
+        return;
+    }
+    
+    const giftId = selectedGift.dataset.giftId;
+    const gift = giftsData[giftId];
+    if (!gift) {
+        showError('Подарок не найден');
+        return;
+    }
+    
+    const price = parseInt(document.getElementById('order-price').value) || 0;
+    const quantity = parseInt(document.getElementById('order-quantity').value) || 1;
+    
+    // Проверки
+    if (price < 1 || price > 100000) {
+        showError('Цена должна быть от 1 до 100000 очков');
+        return;
+    }
+    
+    if (quantity < 1 || quantity > 100) {
+        showError('Количество должно быть от 1 до 100');
+        return;
+    }
+    
+    // Проверка для продажи
+    if (type === 'sell') {
+        const inventoryId = selectedGift.dataset.inventoryId;
+        const availableQty = parseInt(selectedGift.dataset.maxQty) || 0;
+        
+        if (quantity > availableQty) {
+            showError(`У вас только ${availableQty} шт. этого подарка`);
+            return;
+        }
+        
+        if (!confirm(`Выставить ${quantity} шт. "${gift.name}" на продажу по ${price} очков за штуку?`)) {
+            return;
+        }
+    }
+    
+    // Проверка для покупки
+    if (type === 'buy') {
+        const totalCost = price * quantity;
+        if (userBalance < totalCost) {
+            showError(`Недостаточно средств. Нужно: ${totalCost}, у вас: ${userBalance}`);
+            return;
+        }
+        
+        if (!confirm(`Создать ордер на покупку ${quantity} шт. "${gift.name}" по ${price} очков за штуку?`)) {
+            return;
+        }
+        
+        // Резервируем средства
+        await database.ref(`holiday_points/${userId}/total_points`).set(firebase.database.ServerValue.increment(-totalCost));
+        userBalance -= totalCost;
+        updateBalance();
+    }
+    
+    try {
+        // Создаем ордер
+        const orderData = {
+            user_id: userId,
+            user_nickname: userNickname,
+            gift_id: giftId,
+            gift_name: gift.name,
+            gift_icon: gift.icon,
+            gift_rarity: gift.rarity,
+            type: type,
+            price: price,
+            quantity: quantity,
+            total: price * quantity,
+            status: 'active',
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 дней
+        };
+        
+        // Для продажи резервируем подарки
+        if (type === 'sell') {
+            orderData.reserved_items = await reserveItemsForSale(giftId, quantity);
+        }
+        
+        // Сохраняем в базу данных
+        const orderRef = database.ref('exchange_orders').push();
+        await orderRef.set(orderData);
+        
+        showNotification(`Ордер успешно создан!`, 'success');
+        
+        // Закрываем модальное окно
+        document.getElementById('create-order-modal').style.display = 'none';
+        
+        // Обновляем данные
+        await loadUserData();
+        
+    } catch (error) {
+        console.error('Ошибка создания ордера:', error);
+        showError('Ошибка создания ордера');
+        
+        // Возвращаем средства при ошибке покупки
+        if (type === 'buy') {
+            await database.ref(`holiday_points/${userId}/total_points`).set(firebase.database.ServerValue.increment(price * quantity));
+            userBalance += price * quantity;
+            updateBalance();
+        }
+    }
+}
+
+// РЕЗЕРВИРОВАНИЕ ПОДАРКОВ ДЛЯ ПРОДАЖИ
+async function reserveItemsForSale(giftId, quantity) {
+    const reserved = [];
+    
+    // Находим подарки в инвентаре
+    const inventorySnapshot = await database.ref(`gift_inventory/${userId}`).once('value');
+    if (!inventorySnapshot.exists()) {
+        throw new Error('Инвентарь пуст');
+    }
+    
+    const inventory = inventorySnapshot.val();
+    let reservedCount = 0;
+    
+    for (const [key, item] of Object.entries(inventory)) {
+        if (item.gift_id === giftId && !item.is_selling && reservedCount < quantity) {
+            // Резервируем подарок
+            await database.ref(`gift_inventory/${userId}/${key}/is_selling`).set(true);
+            reserved.push(key);
+            reservedCount++;
+        }
+    }
+    
+    if (reservedCount < quantity) {
+        throw new Error(`Недостаточно подарков для резервирования (нужно: ${quantity}, найдено: ${reservedCount})`);
+    }
+    
+    return reserved;
+}
+
+// ИСПОЛНЕНИЕ ОРДЕРА
+async function executeOrder(orderId) {
+    console.log('Исполнение ордера:', orderId);
+    
+    const order = exchangeOrders.find(o => o.id === orderId);
+    if (!order) {
+        showError('Ордер не найден');
+        return;
+    }
+    
+    // Нельзя исполнять свои ордера
+    if (order.user_id === userId) {
+        showError('Нельзя исполнять свои ордера');
+        return;
+    }
+    
+    // Проверка для покупки
+    if (order.type === 'sell') {
+        const totalCost = order.total;
+        
+        if (userBalance < totalCost) {
+            showError(`Недостаточно средств. Нужно: ${totalCost}, у вас: ${userBalance}`);
+            return;
+        }
+        
+        if (!confirm(`Купить ${order.quantity} шт. "${order.gift_name}" за ${order.total} очков?`)) {
+            return;
+        }
+    }
+    
+    // Проверка для продажи
+    if (order.type === 'buy') {
+        // Проверяем, есть ли у нас нужные подарки
+        const availableGifts = userInventory.filter(item => 
+            item.gift_id === order.gift_id && !item.is_selling
+        );
+        
+        if (availableGifts.length < order.quantity) {
+            showError(`У вас недостаточно подарков для продажи (нужно: ${order.quantity}, есть: ${availableGifts.length})`);
+            return;
+        }
+        
+        if (!confirm(`Продать ${order.quantity} шт. "${order.gift_name}" за ${order.total} очков?`)) {
+            return;
+        }
+    }
+    
+    try {
+        // Показываем окно подтверждения
+        showTradeConfirmation(order);
+        
+    } catch (error) {
+        console.error('Ошибка исполнения ордера:', error);
+        showError('Ошибка при исполнении ордера');
+    }
+}
+
+// ПОКАЗ ОКНА ПОДТВЕРЖДЕНИЯ СДЕЛКИ
+function showTradeConfirmation(order) {
+    const modal = document.getElementById('trade-modal');
+    if (!modal) return;
+    
+    const gift = giftsData[order.gift_id];
+    
+    // Заполняем данные
+    document.getElementById('trade-title').textContent = order.type === 'sell' ? 'Покупка подарка' : 'Продажа подарка';
+    document.getElementById('trade-type').textContent = order.type === 'sell' ? 'Покупка' : 'Продажа';
+    document.getElementById('trade-type').className = `trade-type ${order.type}`;
+    document.getElementById('trade-gift-name').textContent = order.gift_name;
+    document.getElementById('trade-partner').innerHTML = `Контрагент: <span>${order.user_nickname}</span>`;
+    document.getElementById('trade-price').textContent = `${order.price} 🎄`;
+    document.getElementById('trade-quantity').textContent = `${order.quantity} шт.`;
+    document.getElementById('trade-total').textContent = `${order.total} 🎄`;
+    
+    const commission = Math.ceil(order.total * 0.02);
+    const receiveAmount = order.total - commission;
+    
+    document.getElementById('trade-commission').textContent = `${commission} 🎄`;
+    document.getElementById('trade-receive').textContent = `${receiveAmount} 🎄`;
+    
+    const confirmMessage = document.getElementById('trade-confirm-message');
+    if (order.type === 'sell') {
+        confirmMessage.innerHTML = `<p>Вы покупаете подарок у <strong>${order.user_nickname}</strong>. После подтверждения подарок будет добавлен в ваш инвентарь.</p>`;
+    } else {
+        confirmMessage.innerHTML = `<p>Вы продаете подарок пользователю <strong>${order.user_nickname}</strong>. После подтверждения очки будут зачислены на ваш баланс.</p>`;
+    }
+    
+    // Настройка обработчиков
+    const confirmBtn = document.getElementById('confirm-trade');
+    const cancelBtn = document.getElementById('cancel-trade');
+    
+    confirmBtn.onclick = async () => {
+        try {
+            await processTrade(order);
+            modal.style.display = 'none';
+        } catch (error) {
+            console.error('Ошибка сделки:', error);
+        }
+    };
+    
+    cancelBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+    
+    // Показываем модальное окно
+    modal.style.display = 'flex';
+}
+
+// ОБРАБОТКА СДЕЛКИ
+async function processTrade(order) {
+    console.log('Обработка сделки:', order.id);
+    
+    const gift = giftsData[order.gift_id];
+    const commission = Math.ceil(order.total * 0.02);
+    const receiveAmount = order.total - commission;
+    
+    try {
+        // Обновляем статус ордера
+        await database.ref(`exchange_orders/${order.id}/status`).set('completed');
+        await database.ref(`exchange_orders/${order.id}/completed_at`).set(new Date().toISOString());
+        await database.ref(`exchange_orders/${order.id}/completed_by`).set(userId);
+        
+        // Логируем сделку
+        await database.ref('trade_history').push().set({
+            order_id: order.id,
+            buyer_id: order.type === 'sell' ? userId : order.user_id,
+            seller_id: order.type === 'sell' ? order.user_id : userId,
+            gift_id: order.gift_id,
+            gift_name: order.gift_name,
+            price: order.price,
+            quantity: order.quantity,
+            total: order.total,
+            commission: commission,
+            completed_at: new Date().toISOString()
+        });
+        
+        // Обработка для покупки (покупатель получает подарок)
+        if (order.type === 'sell') {
+            // Покупатель получает подарок
+            const giftData = {
+                gift_id: order.gift_id,
+                purchased_at: new Date().toISOString(),
+                purchase_price: order.price,
+                purchased_from: order.user_id,
+                is_selling: false
+            };
+            
+            const giftKey = `${order.gift_id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            await database.ref(`gift_inventory/${userId}/${giftKey}`).set(giftData);
+            
+            // Продавец получает деньги (минус комиссия)
+            await database.ref(`holiday_points/${order.user_id}/total_points`).set(
+                firebase.database.ServerValue.increment(receiveAmount)
+            );
+            
+            // Покупатель платит
+            await database.ref(`holiday_points/${userId}/total_points`).set(
+                firebase.database.ServerValue.increment(-order.total)
+            );
+            
+            // Увеличиваем счетчик владельцев для золотых подарков
+            if (gift.rarity === 'golden') {
+                await database.ref(`shop_gifts/${order.gift_id}/current_owners`).set(
+                    firebase.database.ServerValue.increment(1)
+                );
+            }
+            
+            // Освобождаем зарезервированные подарки
+            if (order.reserved_items) {
+                for (const itemKey of order.reserved_items) {
+                    await database.ref(`gift_inventory/${order.user_id}/${itemKey}`).remove();
+                }
+            }
+            
+            userBalance -= order.total;
+            
+        } else { // Обработка для продажи (покупатель ищет подарок)
+            // Продавец получает деньги (минус комиссия)
+            await database.ref(`holiday_points/${userId}/total_points`).set(
+                firebase.database.ServerValue.increment(receiveAmount)
+            );
+            
+            // Покупатель получает подарок
+            const giftData = {
+                gift_id: order.gift_id,
+                purchased_at: new Date().toISOString(),
+                purchase_price: order.price,
+                purchased_from: userId,
+                is_selling: false
+            };
+            
+            const giftKey = `${order.gift_id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            await database.ref(`gift_inventory/${order.user_id}/${giftKey}`).set(giftData);
+            
+            // Резервируем подарки продавца
+            const reservedItems = await reserveItemsForSale(order.gift_id, order.quantity);
+            
+            // Удаляем зарезервированные подарки
+            for (const itemKey of reservedItems) {
+                await database.ref(`gift_inventory/${userId}/${itemKey}`).remove();
+            }
+            
+            userBalance += receiveAmount;
+            
+            // Увеличиваем счетчик владельцев для золотых подарков
+            if (gift.rarity === 'golden') {
+                await database.ref(`shop_gifts/${order.gift_id}/current_owners`).set(
+                    firebase.database.ServerValue.increment(1)
+                );
+            }
+        }
+        
+        updateBalance();
+        showNotification('Сделка успешно завершена!', 'success');
+        
+        // Обновляем данные
+        await loadUserData();
+        await loadExchangeOrders();
+        
+    } catch (error) {
+        console.error('Ошибка обработки сделки:', error);
+        showError('Ошибка при обработке сделки');
+        throw error;
+    }
+}
+
+// ОБНОВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ СТРОКИ ОРДЕРА
+function createOrderRow(order) {
+    const gift = giftsData[order.gift_id];
+    if (!gift) return '';
+    
+    const isMyOrder = order.user_id === userId;
+    const canExecute = !isMyOrder && order.status === 'active';
+    
+    return `
+        <div class="order-row ${order.type}-order" data-order-id="${order.id}">
+            <div class="table-col" style="width: 150px;">
+                <div class="order-type ${order.type}-badge">
+                    ${order.type === 'sell' ? '💰 Продажа' : '🛒 Покупка'}
+                    ${isMyOrder ? '<span class="order-status status-active">Мой</span>' : ''}
+                </div>
+            </div>
+            
+            <div class="table-col" style="width: 200px;">
+                <div class="order-gift">
+                    <span class="order-gift-icon">${order.gift_icon || gift.icon}</span>
+                    <span>${order.gift_name || gift.name}</span>
+                </div>
+            </div>
+            
+            <div class="table-col" style="width: 120px;">
+                <div class="rarity-badge ${order.gift_rarity || gift.rarity}">
+                    ${getRarityName(order.gift_rarity || gift.rarity)}
+                </div>
+            </div>
+            
+            <div class="table-col" style="width: 150px;">
+                <div class="order-user">
+                    ${order.user_nickname || 'Неизвестный'}
+                </div>
+            </div>
+            
+            <div class="table-col" style="width: 150px;">
+                <div class="order-price">${order.price} 🎄</div>
+            </div>
+            
+            <div class="table-col" style="width: 120px;">
+                <div class="order-quantity">${order.quantity} шт.</div>
+            </div>
+            
+            <div class="table-col" style="width: 100px;">
+                ${canExecute ? 
+                    `<button class="execute-btn available" onclick="executeOrder('${order.id}')">
+                        ${order.type === 'sell' ? 'Купить' : 'Продать'}
+                    </button>` :
+                    `<button class="execute-btn" disabled>
+                        ${isMyOrder ? 'Мой' : 'Недоступно'}
+                    </button>`
+                }
+            </div>
+        </div>
+    `;
+}
+
+// ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ МОИХ ОРДЕРОВ
+async function loadMyOrders() {
+    try {
+        console.log('Загрузка моих ордеров...');
+        
+        const snapshot = await database.ref('exchange_orders').orderByChild('user_id').equalTo(userId).once('value');
+        const myOrders = snapshot.exists() ? Object.entries(snapshot.val()).map(([id, data]) => ({ id, ...data })) : [];
+        
+        const activeOrders = myOrders.filter(order => order.status === 'active');
+        const completedOrders = myOrders.filter(order => order.status === 'completed');
+        const cancelledOrders = myOrders.filter(order => order.status === 'cancelled');
+        
+        displayOrdersInTab('my-active-orders', activeOrders);
+        displayOrdersInTab('my-completed-orders', completedOrders);
+        displayOrdersInTab('my-cancelled-orders', cancelledOrders);
+        
+    } catch (error) {
+        console.error('Ошибка загрузки моих ордеров:', error);
+    }
+}
+
+// ОТОБРАЖЕНИЕ ОРДЕРОВ ВО ВКЛАДКЕ
+function displayOrdersInTab(containerId, orders) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    if (orders.length === 0) {
+        const tabName = containerId.replace('my-', '').replace('-orders', '');
+        const messages = {
+            'active': 'Нет активных ордеров',
+            'completed': 'Нет исполненных ордеров',
+            'cancelled': 'Нет отмененных ордеров'
+        };
+        
+        container.innerHTML = `
+            <div class="empty-orders">
+                <div class="empty-icon">📝</div>
+                <h3>${messages[tabName] || 'Нет данных'}</h3>
+                <p>${tabName === 'active' ? 'Создайте свой первый ордер на бирже!' : 'Здесь будут отображаться ваши сделки'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = orders.map(order => createMyOrderItem(order)).join('');
+}
+
+// СОЗДАНИЕ ЭЛЕМЕНТА МОЕГО ОРДЕРА
+function createMyOrderItem(order) {
+    const gift = giftsData[order.gift_id];
+    const createdDate = new Date(order.created_at).toLocaleDateString('ru-RU');
+    const expiresDate = order.expires_at ? new Date(order.expires_at).toLocaleDateString('ru-RU') : '';
+    const statusClass = `status-${order.status}`;
+    
+    return `
+        <div class="my-order-item" data-order-id="${order.id}">
+            <div class="my-order-header">
+                <div class="my-order-gift">
+                    <span class="my-order-gift-icon">${order.gift_icon || gift?.icon || '🎁'}</span>
+                    <div class="my-order-gift-info">
+                        <h4>${order.gift_name || gift?.name || 'Подарок'}</h4>
+                        <p>${order.type === 'sell' ? 'Продажа' : 'Покупка'} • Создан: ${createdDate}</p>
+                    </div>
+                </div>
+                <div class="order-status ${statusClass}">
+                    ${order.status === 'active' ? 'Активен' : 
+                      order.status === 'completed' ? 'Исполнен' : 'Отменен'}
+                </div>
+            </div>
+            
+            <div class="my-order-details">
+                <div class="my-order-detail">
+                    <div class="detail-label">Цена</div>
+                    <div class="detail-value">${order.price} 🎄</div>
+                </div>
+                <div class="my-order-detail">
+                    <div class="detail-label">Количество</div>
+                    <div class="detail-value">${order.quantity} шт.</div>
+                </div>
+                <div class="my-order-detail">
+                    <div class="detail-label">Сумма</div>
+                    <div class="detail-value">${order.total} 🎄</div>
+                </div>
+                ${order.expires_at ? `
+                <div class="my-order-detail">
+                    <div class="detail-label">Истекает</div>
+                    <div class="detail-value">${expiresDate}</div>
+                </div>` : ''}
+            </div>
+            
+            ${order.status === 'active' ? `
+            <div class="my-order-actions">
+                <button class="cancel-order-btn" onclick="cancelOrder('${order.id}')">❌ Отменить</button>
+                <button class="view-order-btn" onclick="viewOrderDetails('${order.id}')">👁️ Подробнее</button>
+            </div>` : ''}
+        </div>
+    `;
+}
+
+// ОТМЕНА ОРДЕРА
+async function cancelOrder(orderId) {
+    if (!confirm('Вы уверены, что хотите отменить этот ордер?')) {
+        return;
+    }
+    
+    try {
+        const order = exchangeOrders.find(o => o.id === orderId);
+        if (!order || order.user_id !== userId) {
+            showError('Ордер не найден или у вас нет прав');
+            return;
+        }
+        
+        // Обновляем статус ордера
+        await database.ref(`exchange_orders/${orderId}/status`).set('cancelled');
+        await database.ref(`exchange_orders/${orderId}/cancelled_at`).set(new Date().toISOString());
+        
+        // Возвращаем зарезервированные подарки (для продажи)
+        if (order.type === 'sell' && order.reserved_items) {
+            for (const itemKey of order.reserved_items) {
+                await database.ref(`gift_inventory/${userId}/${itemKey}/is_selling`).set(false);
+            }
+        }
+        
+        // Возвращаем средства (для покупки)
+        if (order.type === 'buy') {
+            await database.ref(`holiday_points/${userId}/total_points`).set(
+                firebase.database.ServerValue.increment(order.total)
+            );
+            userBalance += order.total;
+            updateBalance();
+        }
+        
+        showNotification('Ордер успешно отменен', 'success');
+        
+        // Обновляем данные
+        await loadUserData();
+        await loadMyOrders();
+        
+    } catch (error) {
+        console.error('Ошибка отмены ордера:', error);
+        showError('Ошибка при отмене ордера');
+    }
+}
+
+// ПРОСМОТР ДЕТАЛЕЙ ОРДЕРА
+function viewOrderDetails(orderId) {
+    const order = exchangeOrders.find(o => o.id === orderId) ||
+                 [...document.querySelectorAll('.my-order-item')].map(item => ({
+                     id: item.dataset.orderId,
+                     // Добавьте здесь данные ордера из атрибутов
+                 })).find(o => o.id === orderId);
+    
+    if (!order) {
+        showError('Ордер не найден');
+        return;
+    }
+    
+    showNotification(`Детали ордера #${orderId.substr(0, 8)}`, 'info');
+    // Здесь можно добавить модальное окно с детальной информацией
+    }
 };
