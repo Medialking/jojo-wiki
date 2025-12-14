@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Предпросмотр профиля | JojoLand</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="preview.css">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка предпросмотра...</p>
+</div>
+
+<div class="background-effects" id="particles"></div>
+
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="shop.html" class="profile-btn">
+                <span class="profile-icon">←</span>
+                <span class="profile-text">Назад в магазин</span>
+            </a>
+            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>👁️ Предпросмотр профиля</h1>
+        <p class="subtitle">Посмотрите, как будет выглядеть ваш профиль с выбранными украшениями</p>
+    </header>
+
+    <div class="preview-container">
+        <!-- НАСТРОЙКИ ПРЕДПРОСМОТРА -->
+        <div class="preview-controls">
+            <div class="control-section">
+                <h3><i class="fas fa-sliders-h"></i> Настройки темы</h3>
+                <div class="theme-selector">
+                    <select id="theme-select">
+                        <option value="default">Стандартная тема</option>
+                        <!-- Темы будут добавляться через JS -->
+                    </select>
+                    <button class="control-btn" id="random-theme">
+                        <i class="fas fa-random"></i> Случайная
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3><i class="fas fa-gem"></i> Украшения</h3>
+                <div class="decorations-controls">
+                    <div class="decoration-toggle">
+                        <label>
+                            <input type="checkbox" id="toggle-badges" checked>
+                            <span>Бейджи</span>
+                        </label>
+                    </div>
+                    <div class="decoration-toggle">
+                        <label>
+                            <input type="checkbox" id="toggle-effects" checked>
+                            <span>Эффекты</span>
+                        </label>
+                    </div>
+                    <div class="decoration-toggle">
+                        <label>
+                            <input type="checkbox" id="toggle-animations" checked>
+                            <span>Анимации</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3><i class="fas fa-mobile-alt"></i> Просмотр на</h3>
+                <div class="device-selector">
+                    <button class="device-btn active" data-device="desktop">
+                        <i class="fas fa-desktop"></i> Десктоп
+                    </button>
+                    <button class="device-btn" data-device="tablet">
+                        <i class="fas fa-tablet-alt"></i> Планшет
+                    </button>
+                    <button class="device-btn" data-device="mobile">
+                        <i class="fas fa-mobile-alt"></i> Телефон
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРЕДПРОСМОТР ПРОФИЛЯ -->
+        <div class="preview-area">
+            <div class="device-frame" id="device-frame">
+                <div class="device-header">
+                    <div class="device-buttons">
+                        <span class="device-dot red"></span>
+                        <span class="device-dot yellow"></span>
+                        <span class="device-dot green"></span>
+                    </div>
+                    <div class="device-url">profile.jojoland.com</div>
+                </div>
+                
+                <div class="preview-content" id="preview-content">
+                    <!-- Здесь будет отображаться предпросмотр профиля -->
+                    <div class="preview-profile">
+                        <!-- Профиль будет рендериться через JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-actions">
+                <button class="preview-action-btn" id="save-preview">
+                    <i class="fas fa-save"></i> Сохранить как мою тему
+                </button>
+                <button class="preview-action-btn secondary" id="share-preview">
+                    <i class="fas fa-share-alt"></i> Поделиться
+                </button>
+                <button class="preview-action-btn secondary" id="reset-preview">
+                    <i class="fas fa-undo"></i> Сбросить
+                </button>
+            </div>
+        </div>
+
+        <!-- ИНФОРМАЦИЯ О ТЕМЕ -->
+        <div class="preview-info">
+            <div class="info-card">
+                <h3><i class="fas fa-info-circle"></i> Информация о теме</h3>
+                <div class="info-content" id="theme-info">
+                    <p>Выберите тему для предпросмотра</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3><i class="fas fa-shopping-cart"></i> Приобрести тему</h3>
+                <div class="purchase-info" id="purchase-info">
+                    <p>Для покупки темы перейдите в магазин</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script src="preview.js"></script>
+
+</body>
+</html>
