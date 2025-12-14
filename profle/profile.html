@@ -38,102 +38,49 @@
     <!-- Контейнер для профиля (скрывается если не авторизован) -->
     <div id="profile-content" style="display: none;">
         <div class="profile-container">
-            <div class="profile-main-section">
-                <!-- Левая часть: Аватар и основная информация -->
-                <div class="profile-left-section">
-                    <div class="profile-header" id="profile-header">
-                        <div class="profile-avatar" id="user-avatar" title="Нажмите, чтобы сменить фото">
-                            👤
-                            <div class="avatar-edit-overlay">📷</div>
-                        </div>
-                        <div class="profile-info">
-                            <h2 class="profile-name" id="user-nickname">Загрузка...</h2>
-                            <div class="profile-id" id="user-id"></div>
-                            <div class="profile-badges" id="user-badges"></div>
-                        </div>
-                    </div>
-
-                    <!-- Мобильные кнопки действий -->
-                    <div class="mobile-actions" id="mobile-actions">
-                        <a href="../index.html" class="mobile-action-btn">🏠 Главная</a>
-                        <a href="players.html" class="mobile-action-btn">👥 Игроки</a>
-                        <button class="mobile-action-btn logout-btn" id="mobile-logout-btn">🚪 Выйти</button>
-                    </div>
-
-                    <!-- Компактная сетка статистики -->
-                    <div class="compact-stats-grid">
-                        <div class="compact-stat-card">
-                            <div class="compact-stat-icon">📅</div>
-                            <div class="compact-stat-content">
-                                <div class="compact-stat-title">Регистрация</div>
-                                <div class="compact-stat-value" id="register-date">--.--.----</div>
-                            </div>
-                        </div>
-                        
-                        <div class="compact-stat-card">
-                            <div class="compact-stat-icon">⏱️</div>
-                            <div class="compact-stat-content">
-                                <div class="compact-stat-title">Последний визит</div>
-                                <div class="compact-stat-value" id="last-visit">--:--</div>
-                            </div>
-                        </div>
-                        
-                        <div class="compact-stat-card">
-                            <div class="compact-stat-icon">🎮</div>
-                            <div class="compact-stat-content">
-                                <div class="compact-stat-title">Активность</div>
-                                <div class="compact-stat-value" id="activity-level">Новичок</div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="profile-header" id="profile-header">
+                <div class="profile-avatar" id="user-avatar" title="Нажмите, чтобы сменить фото">
+                    👤
+                    <div class="avatar-edit-overlay">📷</div>
                 </div>
-
-                <!-- Правая часть: О себе (десктопная версия) -->
-                <div class="profile-right-section">
-                    <div class="about-me-card desktop-about-me">
-                        <div class="about-me-header">
-                            <h3 class="section-title mini-title">📝 О себе</h3>
-                            <button class="edit-about-btn" id="edit-about-me-desktop-btn" title="Редактировать">
-                                ✏️
-                            </button>
-                        </div>
-                        <div id="about-me-display-desktop">
-                            <p id="about-me-text-desktop">Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!</p>
-                        </div>
-                        <div id="about-me-edit-desktop" style="display: none;">
-                            <textarea id="about-me-textarea-desktop" 
-                                      rows="4" 
-                                      maxlength="300" 
-                                      placeholder="Расскажите о себе (до 300 символов)..." 
-                                      class="about-me-textarea"></textarea>
-                            <div class="about-me-buttons">
-                                <button class="action-btn save-btn" id="save-about-me-desktop-btn">💾 Сохранить</button>
-                                <button class="action-btn cancel-btn" id="cancel-about-me-desktop-btn">❌ Отмена</button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="profile-info">
+                    <h2 class="profile-name" id="user-nickname">Загрузка...</h2>
+                    <div class="profile-id" id="user-id"></div>
+                    <div class="profile-badges" id="user-badges"></div>
                 </div>
             </div>
 
-            <!-- О себе (мобильная версия - под статистикой) -->
-            <div class="mobile-about-me-section">
-                <h3 class="section-title">📝 О себе</h3>
-                <div class="about-me-card mobile-about-me">
-                    <div id="about-me-display-mobile">
-                        <p id="about-me-text-mobile">Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!</p>
+            <!-- Мобильные кнопки действий -->
+            <div class="mobile-actions" id="mobile-actions">
+                <a href="../index.html" class="mobile-action-btn">🏠 Главная</a>
+                <a href="players.html" class="mobile-action-btn">👥 Игроки</a>
+                <button class="mobile-action-btn logout-btn" id="mobile-logout-btn">🚪 Выйти</button>
+            </div>
+
+            <!-- Компактная сетка статистики -->
+            <div class="compact-stats-grid">
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">📅</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Регистрация</div>
+                        <div class="compact-stat-value" id="register-date">--.--.----</div>
                     </div>
-                    <div id="about-me-edit-mobile" style="display: none;">
-                        <textarea id="about-me-textarea-mobile" 
-                                  rows="5" 
-                                  maxlength="300" 
-                                  placeholder="Расскажите о себе (до 300 символов)..." 
-                                  class="about-me-textarea"></textarea>
-                        <div class="about-me-buttons">
-                            <button class="action-btn save-btn" id="save-about-me-mobile-btn">💾 Сохранить</button>
-                            <button class="action-btn cancel-btn" id="cancel-about-me-mobile-btn">❌ Отмена</button>
-                        </div>
+                </div>
+                
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">⏱️</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Последний визит</div>
+                        <div class="compact-stat-value" id="last-visit">--:--</div>
                     </div>
-                    <button class="action-btn" id="edit-about-me-mobile-btn" style="margin-top: 15px; width: 100%;">✏️ Редактировать</button>
+                </div>
+                
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">🎮</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Активность</div>
+                        <div class="compact-stat-value" id="activity-level">Новичок</div>
+                    </div>
                 </div>
             </div>
 
@@ -679,176 +626,6 @@ async function updateLastVisit(userId, userData) {
     }
 }
 
-// ==================== ОБНОВЛЕННАЯ ЛОГИКА "О СЕБЕ" ====================
-function displayAboutMe(text, currentUserId) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewUserId = urlParams.get('view');
-    const isMyProfile = !viewUserId || viewUserId === currentUserId;
-    
-    const profileText = text && text.trim() !== '' ? text : 
-        (isMyProfile ? 'Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!' :
-        'Игрок не оставил информацию о себе.');
-    
-    // Обновляем обе версии (десктоп и мобильную)
-    const desktopText = document.getElementById('about-me-text-desktop');
-    const mobileText = document.getElementById('about-me-text-mobile');
-    const desktopEditBtn = document.getElementById('edit-about-me-desktop-btn');
-    const mobileEditBtn = document.getElementById('edit-about-me-mobile-btn');
-    
-    if (desktopText) desktopText.textContent = profileText;
-    if (mobileText) mobileText.textContent = profileText;
-    
-    // Скрываем/показываем кнопки редактирования
-    if (viewUserId && viewUserId !== currentUserId) {
-        // Это чужой профиль
-        if (desktopEditBtn) desktopEditBtn.style.display = 'none';
-        if (mobileEditBtn) mobileEditBtn.style.display = 'none';
-    } else {
-        // Это свой профиль
-        if (desktopEditBtn) desktopEditBtn.style.display = 'flex';
-        if (mobileEditBtn) mobileEditBtn.style.display = 'block';
-    }
-}
-
-// ==================== НАСТРОЙКА РЕДАКТИРОВАНИЯ "О СЕБЕ" ====================
-function setupAboutMeEditing() {
-    const userId = localStorage.getItem('jojoland_userId');
-    if (!userId) return;
-
-    // Десктопная версия
-    const desktopEditBtn = document.getElementById('edit-about-me-desktop-btn');
-    const desktopSaveBtn = document.getElementById('save-about-me-desktop-btn');
-    const desktopCancelBtn = document.getElementById('cancel-about-me-desktop-btn');
-    const desktopDisplay = document.getElementById('about-me-display-desktop');
-    const desktopEditArea = document.getElementById('about-me-edit-desktop');
-    const desktopTextarea = document.getElementById('about-me-textarea-desktop');
-    const desktopText = document.getElementById('about-me-text-desktop');
-
-    // Мобильная версия
-    const mobileEditBtn = document.getElementById('edit-about-me-mobile-btn');
-    const mobileSaveBtn = document.getElementById('save-about-me-mobile-btn');
-    const mobileCancelBtn = document.getElementById('cancel-about-me-mobile-btn');
-    const mobileDisplay = document.getElementById('about-me-display-mobile');
-    const mobileEditArea = document.getElementById('about-me-edit-mobile');
-    const mobileTextarea = document.getElementById('about-me-textarea-mobile');
-    const mobileText = document.getElementById('about-me-text-mobile');
-
-    // Функция для обновления текста
-    function updateAboutMeDisplay(text, isMyProfile) {
-        const profileText = text && text.trim() !== '' ? text : 
-            (isMyProfile ? 'Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!' :
-            'Игрок не оставил информацию о себе.');
-        
-        if (desktopText) desktopText.textContent = profileText;
-        if (mobileText) mobileText.textContent = profileText;
-        
-        return profileText;
-    }
-
-    // Функция для переключения режима редактирования
-    function toggleEditMode(isEditing) {
-        if (window.innerWidth > 768) {
-            // Десктоп
-            desktopDisplay.style.display = isEditing ? 'none' : 'block';
-            desktopEditArea.style.display = isEditing ? 'block' : 'none';
-            desktopEditBtn.style.display = isEditing ? 'none' : 'flex';
-        } else {
-            // Мобильный
-            mobileDisplay.style.display = isEditing ? 'none' : 'block';
-            mobileEditArea.style.display = isEditing ? 'block' : 'none';
-            mobileEditBtn.style.display = isEditing ? 'none' : 'block';
-        }
-    }
-
-    // Функция для начала редактирования
-    function startEditing(currentText) {
-        const cleanText = currentText !== 'Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!' && 
-                         currentText !== 'Игрок не оставил информацию о себе.' ? currentText : '';
-        
-        if (window.innerWidth > 768) {
-            desktopTextarea.value = cleanText;
-            toggleEditMode(true);
-            setTimeout(() => desktopTextarea.focus(), 100);
-        } else {
-            mobileTextarea.value = cleanText;
-            toggleEditMode(true);
-            setTimeout(() => mobileTextarea.focus(), 100);
-        }
-    }
-
-    // Функция для сохранения
-    async function saveAboutMe() {
-        const newText = window.innerWidth > 768 ? 
-            desktopTextarea.value.trim().substring(0, 300) : 
-            mobileTextarea.value.trim().substring(0, 300);
-        
-        const saveBtn = window.innerWidth > 768 ? desktopSaveBtn : mobileSaveBtn;
-        const originalText = saveBtn.innerHTML;
-        
-        saveBtn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;margin: 0 auto;"></div>';
-        saveBtn.disabled = true;
-
-        try {
-            await database.ref('users/' + userId).update({
-                aboutMe: newText
-            });
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const viewUserId = urlParams.get('view');
-            const isMyProfile = !viewUserId || viewUserId === userId;
-            
-            updateAboutMeDisplay(newText, isMyProfile);
-            toggleEditMode(false);
-            showError('Информация о себе сохранена!');
-
-        } catch (error) {
-            console.error('Ошибка сохранения "О себе":', error);
-            showError('Не удалось сохранить информацию. Попробуйте позже.');
-        } finally {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-        }
-    }
-
-    // Обработчики для десктопной версии
-    if (desktopEditBtn) {
-        desktopEditBtn.addEventListener('click', () => startEditing(desktopText.textContent));
-    }
-    
-    if (desktopSaveBtn) {
-        desktopSaveBtn.addEventListener('click', saveAboutMe);
-    }
-    
-    if (desktopCancelBtn) {
-        desktopCancelBtn.addEventListener('click', () => toggleEditMode(false));
-    }
-
-    // Обработчики для мобильной версии
-    if (mobileEditBtn) {
-        mobileEditBtn.addEventListener('click', () => startEditing(mobileText.textContent));
-    }
-    
-    if (mobileSaveBtn) {
-        mobileSaveBtn.addEventListener('click', saveAboutMe);
-    }
-    
-    if (mobileCancelBtn) {
-        mobileCancelBtn.addEventListener('click', () => toggleEditMode(false));
-    }
-
-    // Обновление отображения "О себе" при загрузке
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewUserId = urlParams.get('view');
-    const isMyProfile = !viewUserId || viewUserId === userId;
-    
-    // Скрываем/показываем кнопки редактирования
-    if (viewUserId && viewUserId !== userId) {
-        // Это чужой профиль
-        if (desktopEditBtn) desktopEditBtn.style.display = 'none';
-        if (mobileEditBtn) mobileEditBtn.style.display = 'none';
-    }
-}
-
 // ==================== ОТОБРАЖЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ====================
 function displayUserData(userData, userId, nickname, holidayPoints, rank) {
     // Основная информация
@@ -870,9 +647,6 @@ function displayUserData(userData, userId, nickname, holidayPoints, rank) {
     if (visits > 30) activityLevel = 'Ветеран';
     if (visits > 50) activityLevel = 'Легенда';
     document.getElementById('activity-level').textContent = activityLevel;
-    
-    // Обновление секции "О себе"
-    displayAboutMe(userData.aboutMe, userId);
     
     // Бейджи и достижения
     displayBadges(userData, visits, holidayPoints, rank);
@@ -1121,9 +895,6 @@ window.onload = async function() {
     
     // Настраиваем загрузку аватара
     setupAvatarUpload();
-    
-    // Настраиваем редактирование "О себе"
-    setupAboutMeEditing();
     
     // Анимация загрузки
     document.getElementById("loader").style.opacity = "0";
