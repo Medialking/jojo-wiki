@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин подарков | JojoLand</title>
+    <title>Магазин & Биржа | JojoLand</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="shop.css">
+    
+    <!-- Библиотека для 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -33,8 +36,8 @@
             </div>
         </div>
         
-        <h1>🎁 Магазин подарков</h1>
-        <p class="subtitle">Покупайте уникальные подарки за новогодние очки!</p>
+        <h1>🎁 Магазин & Биржа подарков</h1>
+        <p class="subtitle">Покупайте уникальные подарки и торгуйте на бирже!</p>
     </header>
 
     <div class="shop-container">
@@ -54,48 +57,49 @@
             
             <div class="tabs">
                 <button class="tab-btn active" data-tab="shop">🛒 Магазин</button>
-                <button class="tab-btn" data-tab="auction">⚜️ Аукцион</button>
+                <button class="tab-btn" data-tab="exchange">📈 Биржа</button>
                 <button class="tab-btn" data-tab="inventory">🎒 Инвентарь</button>
+                <button class="tab-btn" data-tab="my-orders">📋 Мои заказы</button>
             </div>
         </div>
 
         <!-- МАГАЗИН -->
         <div class="tab-content active" id="shop-tab">
-            <!-- ЗОЛОТЫЕ ПОДАРКИ (Ограниченные) -->
+            <!-- ЗОЛОТЫЕ ПОДАРКИ (3D АНИМАЦИИ) -->
             <div class="gift-section" id="golden-gifts">
                 <div class="section-header">
-                    <h2>👑 Золотые подарки</h2>
-                    <p class="section-desc">Эксклюзивные ограниченные подарки. Каждый можно купить только 1 раз!</p>
+                    <h2>🌟 Золотые 3D-подарки</h2>
+                    <p class="section-desc">Эксклюзивные 3D-подарки с анимацией. Ограниченный тираж!</p>
                     <div class="section-stats">
                         <span class="stat-item">🎯 Ограничено</span>
                         <span class="stat-item">💰 5,000 - 10,000 очков</span>
-                        <span class="stat-item">⚡ Уникальные</span>
+                        <span class="stat-item">🎬 3D Анимация</span>
                     </div>
                 </div>
                 
                 <div class="gifts-grid" id="golden-gifts-grid">
-                    <!-- Золотые подарки загружаются через JS -->
+                    <!-- 3D подарки загружаются через JS -->
                     <div class="loading-gifts">
                         <div class="loading-spinner"></div>
-                        <p>Загрузка золотых подарков...</p>
+                        <p>Загрузка 3D-подарков...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- МИФИЧЕСКИЕ ПОДАРКИ -->
+            <!-- МИФИЧЕСКИЕ ПОДАРКИ (АНИМИРОВАННЫЕ) -->
             <div class="gift-section" id="mythical-gifts">
                 <div class="section-header">
-                    <h2>✨ Мифические подарки</h2>
+                    <h2>✨ Анимированные подарки</h2>
                     <p class="section-desc">Редкие анимированные подарки с уникальными эффектами</p>
                     <div class="section-stats">
-                        <span class="stat-item">🎨 Анимированные</span>
+                        <span class="stat-item">🎬 Анимированные</span>
                         <span class="stat-item">💰 500 - 2,500 очков</span>
                         <span class="stat-item">⭐ 5 видов</span>
                     </div>
                 </div>
                 
                 <div class="gifts-grid" id="mythical-gifts-grid">
-                    <!-- Мифические подарки загружаются через JS -->
+                    <!-- Анимированные подарки загружаются через JS -->
                 </div>
             </div>
 
@@ -134,22 +138,64 @@
             </div>
         </div>
 
-        <!-- АУКЦИОН -->
-        <div class="tab-content" id="auction-tab">
-            <div class="auction-container">
-                <div class="auction-header">
-                    <div class="auction-info">
-                        <h2>⚜️ Аукцион подарков</h2>
-                        <p>Покупайте и продавайте подарки у других игроков</p>
+        <!-- БИРЖА (заменили аукцион) -->
+        <div class="tab-content" id="exchange-tab">
+            <div class="exchange-container">
+                <div class="exchange-header">
+                    <div class="exchange-info">
+                        <h2>📈 Биржа подарков</h2>
+                        <p>Покупайте и продавайте подарки по рыночным ценам</p>
                     </div>
-                    <button class="action-btn" id="sell-gift-btn">📤 Выставить на продажу</button>
+                    <div class="exchange-controls">
+                        <button class="action-btn" id="create-order-btn">📤 Создать ордер</button>
+                        <button class="action-btn secondary" id="refresh-exchange">🔄 Обновить</button>
+                    </div>
                 </div>
                 
-                <div class="filters">
+                <!-- СТАТИСТИКА БИРЖИ -->
+                <div class="exchange-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Активных ордеров</div>
+                            <div class="stat-value" id="active-orders">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Объем торгов</div>
+                            <div class="stat-value" id="trade-volume">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Сделок сегодня</div>
+                            <div class="stat-value" id="today-trades">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <div class="stat-title">Изменение цены</div>
+                            <div class="stat-value" id="price-change">+0%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ФИЛЬТРЫ И ПОИСК -->
+                <div class="exchange-filters">
                     <div class="filter-group">
-                        <label>Редкость:</label>
+                        <input type="text" id="search-gift" placeholder="🔍 Поиск подарка..." class="search-input">
+                    </div>
+                    
+                    <div class="filter-group">
                         <select id="rarity-filter">
-                            <option value="all">Все</option>
+                            <option value="all">Все редкости</option>
                             <option value="common">Обычные</option>
                             <option value="rare">Редкие</option>
                             <option value="mythical">Мифические</option>
@@ -158,49 +204,49 @@
                     </div>
                     
                     <div class="filter-group">
-                        <label>Сортировка:</label>
-                        <select id="sort-filter">
-                            <option value="newest">Сначала новые</option>
-                            <option value="cheapest">Сначала дешевые</option>
-                            <option value="expensive">Сначала дорогие</option>
-                            <option value="ending">Заканчивающиеся</option>
+                        <select id="order-type-filter">
+                            <option value="all">Все ордера</option>
+                            <option value="sell">На продажу</option>
+                            <option value="buy">На покупку</option>
                         </select>
                     </div>
                     
-                    <button class="refresh-btn" id="refresh-auction">🔄 Обновить</button>
-                </div>
-                
-                <div class="auction-list" id="auction-list">
-                    <!-- Аукционные лоты загружаются через JS -->
-                    <div class="loading-auction">
-                        <div class="loading-spinner"></div>
-                        <p>Загрузка аукциона...</p>
+                    <div class="filter-group">
+                        <select id="sort-filter">
+                            <option value="price_asc">Цена: по возрастанию</option>
+                            <option value="price_desc">Цена: по убыванию</option>
+                            <option value="newest">Сначала новые</option>
+                            <option value="popular">Сначала популярные</option>
+                        </select>
                     </div>
                 </div>
                 
-                <div class="auction-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-content">
-                            <div class="stat-title">Всего лотов</div>
-                            <div class="stat-value" id="total-lots">0</div>
-                        </div>
+                <!-- СПИСОК ОРДЕРОВ -->
+                <div class="orders-table">
+                    <div class="table-header">
+                        <div class="table-col" style="width: 150px;">Тип</div>
+                        <div class="table-col" style="width: 200px;">Подарок</div>
+                        <div class="table-col" style="width: 120px;">Редкость</div>
+                        <div class="table-col" style="width: 150px;">Продавец/Покупатель</div>
+                        <div class="table-col" style="width: 150px;">Цена</div>
+                        <div class="table-col" style="width: 120px;">Количество</div>
+                        <div class="table-col" style="width: 100px;">Действие</div>
                     </div>
                     
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-content">
-                            <div class="stat-title">Средняя цена</div>
-                            <div class="stat-value" id="avg-price">0</div>
+                    <div class="orders-list" id="orders-list">
+                        <!-- Ордера загружаются через JS -->
+                        <div class="loading-orders">
+                            <div class="loading-spinner"></div>
+                            <p>Загрузка ордеров...</p>
                         </div>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">⚡</div>
-                        <div class="stat-content">
-                            <div class="stat-title">Активных</div>
-                            <div class="stat-value" id="active-lots">0</div>
-                        </div>
+                </div>
+                
+                <!-- ГРАФИК ЦЕН -->
+                <div class="price-chart">
+                    <h3>📊 Динамика цен на золотые подарки</h3>
+                    <div class="chart-container">
+                        <canvas id="price-chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -220,12 +266,12 @@
                         <span class="badge-text">Всего: <strong id="total-gifts">0</strong></span>
                     </div>
                     <div class="stat-badge">
-                        <span class="badge-icon">👑</span>
-                        <span class="badge-text">Золотые: <strong id="golden-count">0</strong></span>
+                        <span class="badge-icon">🌟</span>
+                        <span class="badge-text">3D Золотые: <strong id="golden-count">0</strong></span>
                     </div>
                     <div class="stat-badge">
                         <span class="badge-icon">✨</span>
-                        <span class="badge-text">Мифические: <strong id="mythical-count">0</strong></span>
+                        <span class="badge-text">Анимированные: <strong id="mythical-count">0</strong></span>
                     </div>
                     <div class="stat-badge">
                         <span class="badge-icon">🎨</span>
@@ -234,6 +280,10 @@
                     <div class="stat-badge">
                         <span class="badge-icon">🎁</span>
                         <span class="badge-text">Обычные: <strong id="common-count">0</strong></span>
+                    </div>
+                    <div class="stat-badge">
+                        <span class="badge-icon">💰</span>
+                        <span class="badge-text">На продаже: <strong id="selling-count">0</strong></span>
                     </div>
                 </div>
                 
@@ -248,102 +298,236 @@
                 </div>
             </div>
         </div>
+
+        <!-- МОИ ЗАКАЗЫ -->
+        <div class="tab-content" id="my-orders-tab">
+            <div class="orders-container">
+                <div class="orders-header">
+                    <h2>📋 Мои торговые ордера</h2>
+                    <p>Управляйте своими заявками на покупку и продажу</p>
+                </div>
+                
+                <!-- ВКЛАДКИ МОИХ ОРДЕРОВ -->
+                <div class="my-orders-tabs">
+                    <button class="my-tab-btn active" data-tab="active-orders">🔄 Активные</button>
+                    <button class="my-tab-btn" data-tab="completed-orders">✅ Исполненные</button>
+                    <button class="my-tab-btn" data-tab="cancelled-orders">❌ Отмененные</button>
+                </div>
+                
+                <div class="my-orders-content active" id="active-orders-content">
+                    <div class="my-orders-list" id="my-active-orders">
+                        <!-- Активные ордера -->
+                        <div class="empty-orders">
+                            <div class="empty-icon">📝</div>
+                            <h3>Нет активных ордеров</h3>
+                            <p>Создайте свой первый ордер на бирже!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="my-orders-content" id="completed-orders-content">
+                    <div class="my-orders-list" id="my-completed-orders">
+                        <!-- Исполненные ордера -->
+                        <div class="empty-orders">
+                            <div class="empty-icon">✅</div>
+                            <h3>Нет исполненных ордеров</h3>
+                            <p>Здесь будут отображаться завершенные сделки</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="my-orders-content" id="cancelled-orders-content">
+                    <div class="my-orders-list" id="my-cancelled-orders">
+                        <!-- Отмененные ордера -->
+                        <div class="empty-orders">
+                            <div class="empty-icon">❌</div>
+                            <h3>Нет отмененных ордеров</h3>
+                            <p>Здесь будут отображаться отмененные ордера</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО ПРОСМОТРА ПОДАРКА -->
-<div id="gift-modal" class="modal-overlay">
-    <div class="modal-content gift-modal">
-        <div class="gift-modal-header">
-            <h2 id="gift-modal-title">🎁 Подарок</h2>
+<!-- МОДАЛЬНОЕ ОКНО 3D ПОДАРКА -->
+<div id="3d-modal" class="modal-overlay">
+    <div class="modal-content modal-3d">
+        <div class="modal-3d-header">
+            <h2 id="3d-gift-name">3D Подарок</h2>
             <button class="close-modal">&times;</button>
         </div>
         
-        <div class="gift-modal-body">
-            <div class="gift-preview" id="gift-preview">
-                <!-- Превью подарка -->
+        <div class="modal-3d-body">
+            <div class="3d-container" id="3d-container">
+                <!-- 3D сцена загружается через JS -->
+                <div class="loading-3d">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка 3D модели...</p>
+                </div>
             </div>
             
-            <div class="gift-details">
-                <h3 id="gift-name">Название подарка</h3>
-                <div class="gift-rarity" id="gift-rarity">Обычный</div>
-                <p class="gift-description" id="gift-description">Описание подарка</p>
+            <div class="3d-info">
+                <div class="gift-details">
+                    <h3 id="3d-gift-title">Название подарка</h3>
+                    <div class="gift-rarity golden">🌟 3D Золотой</div>
+                    <p class="gift-description" id="3d-gift-description">Описание 3D подарка</p>
+                    
+                    <div class="3d-controls">
+                        <button class="3d-control-btn" id="rotate-btn">🔄 Вращать</button>
+                        <button class="3d-control-btn" id="zoom-in-btn">➕ Увеличить</button>
+                        <button class="3d-control-btn" id="zoom-out-btn">➖ Уменьшить</button>
+                        <button class="3d-control-btn" id="reset-btn">🔄 Сброс</button>
+                    </div>
+                </div>
                 
                 <div class="gift-stats">
                     <div class="gift-stat">
-                        <span class="stat-label">Цена:</span>
-                        <span class="stat-value" id="gift-price">0</span>
+                        <span class="stat-label">Цена в магазине:</span>
+                        <span class="stat-value" id="3d-gift-price">0</span>
                     </div>
                     <div class="gift-stat">
-                        <span class="stat-label">Владелец:</span>
-                        <span class="stat-value" id="gift-owner">Вы</span>
+                        <span class="stat-label">На бирже от:</span>
+                        <span class="stat-value" id="3d-exchange-price">0</span>
                     </div>
                     <div class="gift-stat">
-                        <span class="stat-label">Получен:</span>
-                        <span class="stat-value" id="gift-date">Сегодня</span>
+                        <span class="stat-label">Осталось:</span>
+                        <span class="stat-value" id="3d-stock">0</span>
                     </div>
                 </div>
                 
-                <div class="gift-actions" id="gift-actions">
-                    <!-- Кнопки действий (купить/продать/подарить) -->
+                <div class="gift-actions" id="3d-gift-actions">
+                    <!-- Кнопки действий -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО ПРОДАЖИ -->
-<div id="sell-modal" class="modal-overlay">
-    <div class="modal-content sell-modal">
-        <div class="sell-modal-header">
-            <h2>📤 Выставить подарок на продажу</h2>
+<!-- МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ОРДЕРА -->
+<div id="create-order-modal" class="modal-overlay">
+    <div class="modal-content create-order-modal">
+        <div class="create-order-header">
+            <h2>📤 Создание торгового ордера</h2>
             <button class="close-modal">&times;</button>
         </div>
         
-        <div class="sell-modal-body">
-            <div class="sell-form">
+        <div class="create-order-body">
+            <div class="order-type-selector">
+                <button class="order-type-btn active" data-type="sell">💰 Продать</button>
+                <button class="order-type-btn" data-type="buy">🛒 Купить</button>
+            </div>
+            
+            <div class="order-form">
                 <div class="form-group">
                     <label>Выберите подарок:</label>
-                    <select id="sell-gift-select">
-                        <option value="">Выберите подарок...</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Цена продажи:</label>
-                    <div class="price-input">
-                        <input type="number" id="sell-price" min="10" max="100000" placeholder="Введите цену">
-                        <span class="price-label">🎄 очков</span>
+                    <div class="gift-selector" id="order-gift-selector">
+                        <!-- Выбор подарка -->
                     </div>
-                    <small>Минимальная цена: 10 очков</small>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Цена за единицу:</label>
+                        <div class="price-input">
+                            <input type="number" id="order-price" min="1" max="100000" placeholder="Цена">
+                            <span class="price-label">🎄 очков</span>
+                        </div>
+                        <div class="price-suggestions">
+                            <small>Рыночная цена: <span id="market-price">0</span> очков</small>
+                            <small>Мин. цена: <span id="min-price">10</span> очков</small>
+                            <small>Макс. цена: <span id="max-price">100000</span> очков</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Количество:</label>
+                        <div class="quantity-input">
+                            <button class="quantity-btn" id="decrease-qty">-</button>
+                            <input type="number" id="order-quantity" min="1" max="100" value="1">
+                            <button class="quantity-btn" id="increase-qty">+</button>
+                        </div>
+                        <small>Доступно: <span id="available-qty">0</span> шт.</small>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>Время аукциона:</label>
-                    <select id="auction-duration">
-                        <option value="24">24 часа</option>
-                        <option value="48">48 часов</option>
-                        <option value="72" selected>72 часа</option>
-                        <option value="168">7 дней</option>
-                    </select>
+                    <label>Сумма сделки:</label>
+                    <div class="total-amount" id="order-total">0 🎄</div>
+                    <small>Комиссия биржи: <span id="commission-amount">0</span> очков (2%)</small>
                 </div>
                 
-                <div class="sell-info">
+                <div class="order-info">
+                    <div class="info-item">
+                        <span class="info-icon">⚠️</span>
+                        <span>Ордер будет виден всем игрокам на бирже</span>
+                    </div>
                     <div class="info-item">
                         <span class="info-icon">💰</span>
-                        <span>Комиссия системы: <strong>5%</strong></span>
+                        <span>При продаже комиссия удерживается сразу</span>
                     </div>
                     <div class="info-item">
                         <span class="info-icon">⏰</span>
-                        <span>Аукцион автоматически закроется по истечении времени</span>
+                        <span>Ордер действует 7 дней, затем автоматически отменяется</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="sell-modal-footer">
-            <button class="action-btn secondary" id="cancel-sell">Отмена</button>
-            <button class="action-btn" id="confirm-sell">📤 Выставить на продажу</button>
+        <div class="create-order-footer">
+            <button class="action-btn secondary" id="cancel-order">Отмена</button>
+            <button class="action-btn" id="submit-order">📤 Выставить ордер</button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ТОРГОВЛИ -->
+<div id="trade-modal" class="modal-overlay">
+    <div class="modal-content trade-modal">
+        <div class="trade-header">
+            <h2 id="trade-title">Исполнение ордера</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <div class="trade-body">
+            <div class="trade-info">
+                <div class="trade-type" id="trade-type">Продажа</div>
+                <div class="trade-gift" id="trade-gift-name">Подарок</div>
+                <div class="trade-partner" id="trade-partner">Контрагент: <span>-</span></div>
+            </div>
+            
+            <div class="trade-details">
+                <div class="detail-item">
+                    <span class="detail-label">Цена:</span>
+                    <span class="detail-value" id="trade-price">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Количество:</span>
+                    <span class="detail-value" id="trade-quantity">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Итого:</span>
+                    <span class="detail-value total" id="trade-total">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Комиссия (2%):</span>
+                    <span class="detail-value commission" id="trade-commission">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">К получению:</span>
+                    <span class="detail-value receive" id="trade-receive">0</span>
+                </div>
+            </div>
+            
+            <div class="trade-confirm" id="trade-confirm-message">
+                <!-- Сообщение подтверждения -->
+            </div>
+        </div>
+        
+        <div class="trade-footer">
+            <button class="action-btn secondary" id="cancel-trade">Отмена</button>
+            <button class="action-btn" id="confirm-trade">✅ Подтвердить сделку</button>
         </div>
     </div>
 </div>
@@ -351,6 +535,9 @@
 <!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<!-- Chart.js для графиков -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="shop.js"></script>
 
