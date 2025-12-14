@@ -169,9 +169,14 @@ function displayDecorations() {
     
     // Фильтруем украшения по типу
     let filteredDecorations = shopItems.decorations || [];
-    if (currentDecorationType !== 'all') {
+    console.log('🎯 Все украшения:', filteredDecorations);
+    console.log('🎯 Выбранный тип:', currentDecorationType);
+    
+    if (currentDecorationType !== 'badges') { // Исправлено с 'all' на 'badges'
         filteredDecorations = filteredDecorations.filter(item => item.type === currentDecorationType);
     }
+    
+    console.log('🎯 Отфильтрованные украшения:', filteredDecorations);
     
     if (filteredDecorations.length === 0) {
         decorationsGrid.innerHTML = `
