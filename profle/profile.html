@@ -491,17 +491,12 @@ async function loadUserProfile() {
         }, 3000);
         return;
     }
-
-    // Загружаем кастомную тему если есть
-    if (userData.profile_theme && userData.profile_theme !== 'default') {
-        await applyCustomTheme(userData.profile_theme, userId);
-    }
     
     try {
         const snapshot = await database.ref('users/' + userId).once('value');
         
         if (snapshot.exists()) {
-            const userData = snapshot.val();
+            const userData = snapshot.val(); // ← УБЕДИТЕСЬ, ЧТО userData ОПРЕДЕЛЕНА ЗДЕСЬ
             console.log('✅ Данные пользователя загружены:', userData);
             
             // Определяем ранг пользователя
@@ -525,7 +520,7 @@ async function loadUserProfile() {
             }
 
             // Обновляем последний визит (только для своего профиля)
-            await updateLastVisit(userId, userData);
+            await updateLastVisit(userId, userData); // ← userData передается сюда
         } else {
             console.log('❌ Пользователь не найден в базе данных');
             document.getElementById('user-nickname').textContent = nickname;
