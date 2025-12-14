@@ -201,43 +201,66 @@ notificationStyles.textContent = `
 `;
 document.head.appendChild(notificationStyles);
 
-// ЗАГРУЗКА СТРАНИЦЫ
-window.onload = async function() {
-    createParticles();
-    
-    document.getElementById("loader").style.opacity = "0";
-    setTimeout(async () => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
-        
-        if (await checkAuth()) {
-            await loadUserData();
-            await initializeGifts();
-            await loadExchangeOrders();
-            setupEventListeners();
-            setupRealtimeUpdates();
-            initializePriceChart();
-        }
-    }, 400);
-};
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 
-// ПРОВЕРКА АВТОРИЗАЦИИ
-async function checkAuth() {
-    userId = localStorage.getItem('jojoland_userId');
-    userNickname = localStorage.getItem('jojoland_nickname');
-    
-    if (!userId || !userNickname) {
-        showError('Для доступа к магазину необходимо войти в аккаунт');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 3000);
-        return false;
-    }
-    
-    return true;
+// ПОЛУЧЕНИЕ НАЗВАНИЯ РЕДКОСТИ
+function getRarityName(rarity) {
+    const names = {
+        'common': 'Обычный',
+        'rare': 'Редкий',
+        'mythical': 'Мифический',
+        'golden': 'Золотой'
+    };
+    return names[rarity] || rarity;
 }
 
-// ИНИЦИАЛИЗАЦИЯ ПОДАРКОВ С 3D И АНИМАЦИЯМИ
+// НАСТРОЙКА ОБНОВЛЕНИЙ В РЕАЛЬНОМ ВРЕМЕНИ
+function setupRealtimeUpdates() {
+    // Обновление баланса
+    database.ref('holiday_points/' + userId).on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            userBalance = data.total_points || data.totalPoints || 0;
+            updateBalance();
+        }
+    });
+    
+    // Обновление инвентаря
+    database.ref('gift_inventory/' + userId).on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            const inventory = snapshot.val();
+            userInventory = Object.values(inventory);
+        } else {
+            userInventory = [];
+        }
+        updateInventoryStats();
+    });
+    
+    // Обновление ордеров биржи
+    database.ref('exchange_orders').on('value', async (snapshot) => {
+        if (snapshot.exists()) {
+            const orders = snapshot.val();
+            exchangeOrders = Object.entries(orders)
+                .map(([id, order]) => ({ id, ...order }))
+                .filter(order => order.status === 'active');
+            
+            displayExchangeOrders();
+            updateExchangeStats();
+        } else {
+            exchangeOrders = [];
+        }
+    });
+    
+    // Обновление подарков
+    database.ref('shop_gifts').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            giftsData = snapshot.val();
+            displayAllGifts();
+        }
+    });
+}
+
+// ИНИЦИАЛИЗАЦИЯ ПОДАРКОВ
 async function initializeGifts() {
     try {
         const snapshot = await database.ref('shop_gifts').once('value');
@@ -256,7 +279,7 @@ async function initializeGifts() {
     }
 }
 
-// СОЗДАНИЕ НАЧАЛЬНЫХ ПОДАРКОВ С 3D И АНИМАЦИЯМИ
+// СОЗДАНИЕ НАЧАЛЬНЫХ ПОДАРКОВ
 async function createInitialGifts() {
     const gifts = {
         // 3D Золотые подарки (3 штуки)
@@ -365,7 +388,7 @@ async function createInitialGifts() {
             effects: ['unroll', 'text-glow']
         },
         
-        // Редкие подарки (10 штук)
+        // Редкие подарки (10 штук) - упрощенный вариант
         rare_1: {
             id: 'rare_1',
             name: 'Серебряный Кубок',
@@ -384,9 +407,80 @@ async function createInitialGifts() {
             icon: '🔮',
             created_at: new Date().toISOString()
         },
-        // ... (остальные редкие подарки)
+        rare_3: {
+            id: 'rare_3',
+            name: 'Статуэтка Дракона',
+            description: 'Детализированная статуэтка мифического существа',
+            price: 300,
+            rarity: 'rare',
+            icon: '🐲',
+            created_at: new Date().toISOString()
+        },
+        rare_4: {
+            id: 'rare_4',
+            name: 'Золотой Ключ',
+            description: 'Таинственный ключ от секретной двери',
+            price: 400,
+            rarity: 'rare',
+            icon: '🗝️',
+            created_at: new Date().toISOString()
+        },
+        rare_5: {
+            id: 'rare_5',
+            name: 'Карта Сокровищ',
+            description: 'Древняя карта, ведущая к кладу',
+            price: 500,
+            rarity: 'rare',
+            icon: '🗺️',
+            created_at: new Date().toISOString()
+        },
+        rare_6: {
+            id: 'rare_6',
+            name: 'Эликсир Жизни',
+            description: 'Волшебное зелье с необычными свойствами',
+            price: 600,
+            rarity: 'rare',
+            icon: '🧪',
+            created_at: new Date().toISOString()
+        },
+        rare_7: {
+            id: 'rare_7',
+            name: 'Королевская Печать',
+            description: 'Официальная печать королевства',
+            price: 700,
+            rarity: 'rare',
+            icon: '🖋️',
+            created_at: new Date().toISOString()
+        },
+        rare_8: {
+            id: 'rare_8',
+            name: 'Амулет Защиты',
+            description: 'Магический амулет, защищающий владельца',
+            price: 800,
+            rarity: 'rare',
+            icon: '🛡️',
+            created_at: new Date().toISOString()
+        },
+        rare_9: {
+            id: 'rare_9',
+            name: 'Часы с Кукушкой',
+            description: 'Антикварные часы с механической кукушкой',
+            price: 900,
+            rarity: 'rare',
+            icon: '⏰',
+            created_at: new Date().toISOString()
+        },
+        rare_10: {
+            id: 'rare_10',
+            name: 'Сундук с Сокровищами',
+            description: 'Деревянный сундук, полный драгоценностей',
+            price: 1000,
+            rarity: 'rare',
+            icon: '🗃️',
+            created_at: new Date().toISOString()
+        },
         
-        // Обычные подарки (15 штук)
+        // Обычные подарки (15 штук) - упрощенный вариант
         common_1: {
             id: 'common_1',
             name: 'Красная Коробка',
@@ -396,7 +490,132 @@ async function createInitialGifts() {
             icon: '🎁',
             created_at: new Date().toISOString()
         },
-        // ... (остальные обычные подарки)
+        common_2: {
+            id: 'common_2',
+            name: 'Зеленая Коробка',
+            description: 'Простая зеленая коробка с бантом',
+            price: 20,
+            rarity: 'common',
+            icon: '🎁',
+            created_at: new Date().toISOString()
+        },
+        common_3: {
+            id: 'common_3',
+            name: 'Синяя Коробка',
+            description: 'Простая синяя коробка с узором',
+            price: 30,
+            rarity: 'common',
+            icon: '🎁',
+            created_at: new Date().toISOString()
+        },
+        common_4: {
+            id: 'common_4',
+            name: 'Шоколадный Подарок',
+            description: 'Коробка вкусного шоколада',
+            price: 40,
+            rarity: 'common',
+            icon: '🍫',
+            created_at: new Date().toISOString()
+        },
+        common_5: {
+            id: 'common_5',
+            name: 'Цветы в Корзине',
+            description: 'Красивый букет полевых цветов',
+            price: 50,
+            rarity: 'common',
+            icon: '💐',
+            created_at: new Date().toISOString()
+        },
+        common_6: {
+            id: 'common_6',
+            name: 'Плюшевый Медведь',
+            description: 'Мягкая игрушка для уюта',
+            price: 60,
+            rarity: 'common',
+            icon: '🧸',
+            created_at: new Date().toISOString()
+        },
+        common_7: {
+            id: 'common_7',
+            name: 'Книга Сказок',
+            description: 'Сборник волшебных историй',
+            price: 70,
+            rarity: 'common',
+            icon: '📖',
+            created_at: new Date().toISOString()
+        },
+        common_8: {
+            id: 'common_8',
+            name: 'Набор Красок',
+            description: 'Яркие краски для творчества',
+            price: 80,
+            rarity: 'common',
+            icon: '🎨',
+            created_at: new Date().toISOString()
+        },
+        common_9: {
+            id: 'common_9',
+            name: 'Музыкальная Шкатулка',
+            description: 'Шкатулка, играющая мелодию',
+            price: 90,
+            rarity: 'common',
+            icon: '🎵',
+            created_at: new Date().toISOString()
+        },
+        common_10: {
+            id: 'common_10',
+            name: 'Фотоальбом',
+            description: 'Альбом для памятных фотографий',
+            price: 100,
+            rarity: 'common',
+            icon: '📸',
+            created_at: new Date().toISOString()
+        },
+        common_11: {
+            id: 'common_11',
+            name: 'Теплый Плед',
+            description: 'Мягкий плед для холодных вечеров',
+            price: 150,
+            rarity: 'common',
+            icon: '🧣',
+            created_at: new Date().toISOString()
+        },
+        common_12: {
+            id: 'common_12',
+            name: 'Настольная Игра',
+            description: 'Увлекательная игра для компании',
+            price: 200,
+            rarity: 'common',
+            icon: '🎲',
+            created_at: new Date().toISOString()
+        },
+        common_13: {
+            id: 'common_13',
+            name: 'Кофеварка',
+            description: 'Ароматный утренний кофе',
+            price: 250,
+            rarity: 'common',
+            icon: '☕',
+            created_at: new Date().toISOString()
+        },
+        common_14: {
+            id: 'common_14',
+            name: 'Набор для Рисования',
+            description: 'Все необходимое для художника',
+            price: 300,
+            rarity: 'common',
+            icon: '✏️',
+            created_at: new Date().toISOString()
+        },
+        common_15: {
+            id: 'common_15',
+            name: 'Электронная Книга',
+            description: 'Устройство для чтения книг',
+            price: 500,
+            rarity: 'common',
+            icon: '📱',
+            created_at: new Date().toISOString()
+        }
     };
     
     await database.ref('shop_gifts').set(gifts);
