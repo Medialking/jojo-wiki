@@ -1,308 +1,55 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройка админов | JojoLand</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: linear-gradient(135deg, #0a0a2a, #1a1a3a);
-            color: white;
-            font-family: 'Arial', sans-serif;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            border: 2px solid #00ff00;
-        }
-        
-        h1 { color: #00ff00; margin-bottom: 10px; }
-        p { color: #aaaaff; }
-        
-        .setup-form {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            padding: 30px;
-            border: 3px solid #ff00ff;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            color: #aaaaff;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: white;
-            font-size: 16px;
-            outline: none;
-        }
-        
-        input:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-        }
-        
-        .btn {
-            padding: 15px 30px;
-            background: linear-gradient(90deg, #00cc66, #00ff88);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 5px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(90deg, #6200ff, #ff00ff);
-        }
-        
-        .results {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .log-entry {
-            padding: 10px;
-            margin-bottom: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-        }
-        
-        .success { color: #00ff00; }
-        .error { color: #ff4444; }
-        .info { color: #0088ff; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>⚙️ Настройка админов</h1>
-            <p>Создание и управление администраторами системы</p>
-        </div>
-        
-        <div class="setup-form">
-            <h2>Создать нового админа</h2>
+// ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ПОЛЬЗОВАТЕЛЬ АДМИНОМ
+async function checkIfAdmin(userId) {
+    try {
+        // Способ 1: Проверка в базе данных
+        const adminSnapshot = await database.ref(`admins/${userId}`).once('value');
+        if (adminSnapshot.exists()) {
+            const adminData = adminSnapshot.val();
             
-            <div class="input-group">
-                <label for="admin-email">Email админа:</label>
-                <input type="email" id="admin-email" placeholder="admin@jojoland.com" autocomplete="off">
-            </div>
-            
-            <div class="input-group">
-                <label for="admin-password">Пароль (минимум 6 символов):</label>
-                <input type="password" id="admin-password" placeholder="••••••••" autocomplete="off">
-            </div>
-            
-            <div class="input-group">
-                <label for="admin-display-name">Имя для отображения:</label>
-                <input type="text" id="admin-display-name" placeholder="Главный администратор" autocomplete="off">
-            </div>
-            
-            <button class="btn" onclick="createAdmin()">👑 Создать админа</button>
-            <button class="btn btn-secondary" onclick="listAdmins()">📋 Список админов</button>
-            <button class="btn btn-secondary" onclick="testLogin()">🔐 Тест входа</button>
-            
-            <div class="results" id="results">
-                <!-- Результаты будут здесь -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Подключаем Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-            authDomain: "jojoland-chat.firebasestorage.app",
-            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
-            projectId: "jojoland-chat",
-            storageBucket: "jojoland-chat.firebasestorage.app",
-            messagingSenderId: "602788305122",
-            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        const auth = firebase.auth();
-        const database = firebase.database();
-        
-        // Функция логирования
-        function log(message, type = 'info') {
-            const results = document.getElementById('results');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            results.appendChild(entry);
-            results.scrollTop = results.scrollHeight;
-        }
-        
-        // Создание админа
-        async function createAdmin() {
-            const email = document.getElementById('admin-email').value.trim();
-            const password = document.getElementById('admin-password').value;
-            const displayName = document.getElementById('admin-display-name').value.trim();
-            
-            if (!email || !password || password.length < 6) {
-                log('Заполните все поля (пароль минимум 6 символов)', 'error');
-                return;
+            if (adminData.active === false) {
+                console.log('❌ Админ деактивирован');
+                return false;
             }
             
-            try {
-                // Создаем пользователя в Firebase Auth
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
+            console.log(`✅ Пользователь админ: ${adminData.email} (Уровень: ${adminData.level})`);
+            
+            // Сохраняем данные админа
+            window.adminData = adminData;
+            
+            return true;
+        }
+        
+        // Способ 2: Проверка по email
+        if (currentUser?.email) {
+            const emailSnapshot = await database.ref('admin_emails').once('value');
+            const adminEmails = emailSnapshot.val() || {};
+            
+            const userEmail = currentUser.email.toLowerCase();
+            const isEmailInList = Object.values(adminEmails).some(email => 
+                email.toLowerCase() === userEmail
+            );
+            
+            if (isEmailInList) {
+                console.log('✅ Пользователь админ (по email списку)');
                 
-                // Обновляем профиль
-                await user.updateProfile({
-                    displayName: displayName || 'Администратор'
-                });
-                
-                // Устанавливаем Custom Claim (админ)
-                await setAdminClaim(user.uid);
-                
-                // Сохраняем в базу данных
-                await database.ref(`admins/${user.uid}`).set({
-                    email: email,
-                    displayName: displayName || 'Администратор',
+                // Создаем запись в базе, если ее нет
+                await database.ref(`admins/${userId}`).set({
+                    email: currentUser.email,
+                    displayName: currentUser.displayName || 'Администратор',
+                    level: 'admin',
                     createdAt: new Date().toISOString(),
-                    active: true,
-                    level: 'admin'
+                    active: true
                 });
                 
-                // Добавляем в список email админов
-                await database.ref('admin_emails').push(email.toLowerCase());
-                
-                log(`✅ Админ создан: ${email} (UID: ${user.uid})`, 'success');
-                
-                // Очищаем поля
-                document.getElementById('admin-email').value = '';
-                document.getElementById('admin-password').value = '';
-                document.getElementById('admin-display-name').value = '';
-                
-            } catch (error) {
-                console.error('Ошибка создания админа:', error);
-                log(`❌ Ошибка: ${error.message}`, 'error');
+                return true;
             }
         }
         
-        // Установка Custom Claim
-        async function setAdminClaim(uid) {
-            // Для установки Custom Claims нужен Cloud Functions
-            // Пока сохраняем в базу данных
-            log('ℹ️ Для установки Custom Claims нужен Cloud Functions', 'info');
-        }
+        console.log('❌ Пользователь не админ');
+        return false;
         
-        // Список админов
-        async function listAdmins() {
-            try {
-                const snapshot = await database.ref('admins').once('value');
-                const admins = snapshot.val();
-                
-                log('📋 Список администраторов:', 'info');
-                
-                if (!admins) {
-                    log('Админы не найдены', 'info');
-                    return;
-                }
-                
-                for (const [uid, adminData] of Object.entries(admins)) {
-                    if (adminData.active) {
-                        log(`• ${adminData.email} (${adminData.displayName})`, 'success');
-                    }
-                }
-                
-            } catch (error) {
-                log(`❌ Ошибка получения списка: ${error.message}`, 'error');
-            }
-        }
-        
-        // Тест входа
-        async function testLogin() {
-            const email = document.getElementById('admin-email').value.trim();
-            const password = document.getElementById('admin-password').value;
-            
-            if (!email || !password) {
-                log('Введите email и пароль для теста', 'error');
-                return;
-            }
-            
-            try {
-                log(`🔐 Тест входа для ${email}...`, 'info');
-                
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                
-                // Проверяем Custom Claims
-                const idTokenResult = await user.getIdTokenResult();
-                
-                if (idTokenResult.claims.admin) {
-                    log(`✅ Вход успешен! Пользователь является админом (Custom Claims)`, 'success');
-                } else {
-                    // Проверяем в базе данных
-                    const adminSnapshot = await database.ref(`admins/${user.uid}`).once('value');
-                    if (adminSnapshot.exists() && adminSnapshot.val().active) {
-                        log(`✅ Вход успешен! Пользователь является админом (Database)`, 'success');
-                    } else {
-                        log(`⚠️ Вход успешен, но пользователь не админ`, 'error');
-                    }
-                }
-                
-                // Выходим
-                await auth.signOut();
-                log('🚪 Выполнен выход', 'info');
-                
-            } catch (error) {
-                log(`❌ Ошибка входа: ${error.message}`, 'error');
-            }
-        }
-        
-        // Авторизация для настройки (нужен супер-админ)
-        async function authSuperAdmin() {
-            // Эта функция для первичной настройки
-            // Можно добавить вход по специальному коду
-        }
-    </script>
-</body>
-</html>
+    } catch (error) {
+        console.error('❌ Ошибка проверки админа:', error);
+        return false;
+    }
+}
