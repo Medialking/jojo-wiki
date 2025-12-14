@@ -840,6 +840,162 @@
     box-shadow: 0 8px 20px rgba(255, 68, 68, 0.5) !important;
 }
 
+/* ==================== СЕКЦИЯ ПОДАРКОВ В ПРОФИЛЕ ==================== */
+
+.gifts-section {
+    margin: 40px 0;
+}
+
+.gifts-section .section-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid;
+}
+
+.gifts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.profile-gift-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(5px);
+}
+
+.profile-gift-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.profile-gift-card.common { border-color: rgba(0, 204, 102, 0.3); }
+.profile-gift-card.rare { border-color: rgba(0, 180, 216, 0.3); }
+.profile-gift-card.mythical { 
+    border-color: rgba(148, 0, 211, 0.3);
+    animation: glow 2s infinite alternate;
+}
+.profile-gift-card.golden { 
+    border-color: rgba(255, 215, 0, 0.3);
+    animation: goldenGlow 2s infinite alternate;
+}
+
+@keyframes goldenGlow {
+    0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+    100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+}
+
+.profile-gift-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-gift-name {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.profile-gift-rarity {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.profile-gift-rarity.common {
+    background: rgba(0, 204, 102, 0.2);
+    color: #00ff99;
+    border: 1px solid rgba(0, 204, 102, 0.4);
+}
+
+.profile-gift-rarity.rare {
+    background: rgba(0, 180, 216, 0.2);
+    color: #00d4ff;
+    border: 1px solid rgba(0, 180, 216, 0.4);
+}
+
+.profile-gift-rarity.mythical {
+    background: rgba(148, 0, 211, 0.2);
+    color: #d400ff;
+    border: 1px solid rgba(148, 0, 211, 0.4);
+}
+
+.profile-gift-rarity.golden {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.profile-gift-date {
+    color: #aaaaff;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.selling-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #ff9900;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.view-gifts-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #6200ff, #ff00ff);
+    border-radius: 10px;
+    color: white;
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.view-gifts-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(98, 0, 255, 0.5);
+}
+
+.empty-gifts {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8888ff;
+    grid-column: 1 / -1;
+}
+
+.empty-gifts-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
 /* ==================== АДАПТИВНОСТЬ ==================== */
 
 /* Планшеты и небольшие экраны (768px и меньше) */
@@ -883,6 +1039,24 @@
         font-size: 18px;
         margin: 25px 0 15px;
     }
+    
+    .gifts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+    
+    .profile-gift-card {
+        padding: 12px;
+    }
+    
+    .profile-gift-icon {
+        font-size: 32px;
+        height: 40px;
+    }
+    
+    .profile-gift-name {
+        font-size: 12px;
+    }
 }
 
 /* Мобильные телефоны (480px и меньше) */
@@ -920,6 +1094,10 @@
         padding: 8px 12px;
         font-size: 12px;
     }
+    
+    .gifts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* Большие экраны (1200px и больше) */
@@ -940,6 +1118,10 @@
     .desktop-action-btn {
         padding: 15px;
         font-size: 16px;
+    }
+    
+    .gifts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
 }
 
@@ -976,5 +1158,9 @@
     
     .mobile-action-btn {
         width: 100%;
+    }
+    
+    .gifts-grid {
+        grid-template-columns: 1fr;
     }
 }
