@@ -606,22 +606,28 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
-            authDomain: "jojoland-chat.firebasestorage.app",
-            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
-            projectId: "jojoland-chat",
-            storageBucket: "jojoland-chat.firebasestorage.app",
-            messagingSenderId: "602788305122",
-            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
-        };
+    <!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script> <!-- Добавлено -->
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const database = firebase.database();
-    </script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+        authDomain: "jojoland-chat.firebasestorage.app",
+        databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+        projectId: "jojoland-chat",
+        storageBucket: "jojoland-chat.firebasestorage.app",
+        messagingSenderId: "602788305122",
+        appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+    // Firebase Auth доступен через firebase.auth()
+</script>
 
     <script src="admin-casino.js"></script>
 </body>
