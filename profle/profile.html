@@ -491,6 +491,11 @@ async function loadUserProfile() {
         }, 3000);
         return;
     }
+
+    // Загружаем кастомную тему если есть
+    if (userData.profile_theme && userData.profile_theme !== 'default') {
+        await applyCustomTheme(userData.profile_theme, userId);
+    }
     
     try {
         const snapshot = await database.ref('users/' + userId).once('value');
@@ -536,6 +541,35 @@ async function loadUserProfile() {
     } catch (error) {
         console.error('❌ Ошибка загрузки профиля:', error);
         showError('Ошибка загрузки профиля: ' + error.message);
+    }
+}
+
+async function applyCustomTheme(themeId, userId) {
+    try {
+        // Загружаем конфигурацию темы из инвентаря
+        const inventorySnapshot = await database.ref('user_inventory/' + userId).once('value');
+        if (inventorySnapshot.exists()) {
+            const inventory = inventorySnapshot.val();
+            const themeItem = inventory.find(item => item.id === themeId);
+            
+            if (themeItem && themeItem.configuration) {
+                const config = themeItem.configuration;
+                const profileHeader = document.getElementById('profile-header');
+                
+                // Применяем цвета
+                if (config.colors) {
+                    profileHeader.style.background = config.colors.gradient || 
+                        `linear-gradient(135deg, ${config.colors.primary}, ${config.colors.secondary})`;
+                    profileHeader.style.borderColor = config.colors.primary;
+                    profileHeader.style.color = config.colors.text;
+                }
+                
+                // Добавляем класс кастомной темы
+                profileHeader.classList.add('custom-theme');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка применения темы:', error);
     }
 }
 
