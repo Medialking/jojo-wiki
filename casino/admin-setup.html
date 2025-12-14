@@ -1,55 +1,704 @@
-// ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ПОЛЬЗОВАТЕЛЬ АДМИНОМ
-async function checkIfAdmin(userId) {
-    try {
-        // Способ 1: Проверка в базе данных
-        const adminSnapshot = await database.ref(`admins/${userId}`).once('value');
-        if (adminSnapshot.exists()) {
-            const adminData = adminSnapshot.val();
-            
-            if (adminData.active === false) {
-                console.log('❌ Админ деактивирован');
-                return false;
-            }
-            
-            console.log(`✅ Пользователь админ: ${adminData.email} (Уровень: ${adminData.level})`);
-            
-            // Сохраняем данные админа
-            window.adminData = adminData;
-            
-            return true;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка админов | JojoLand</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a2a, #1a1a3a);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
         }
         
-        // Способ 2: Проверка по email
-        if (currentUser?.email) {
-            const emailSnapshot = await database.ref('admin_emails').once('value');
-            const adminEmails = emailSnapshot.val() || {};
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid #00ff00;
+        }
+        
+        h1 { color: #00ff00; margin-bottom: 10px; }
+        p { color: #aaaaff; }
+        
+        .setup-form {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            border: 3px solid #ff00ff;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #aaaaff;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: #00ff00;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #00ff00;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #aaaaff;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        input:focus, select:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #00cc66, #00ff88);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(90deg, #6200ff, #ff00ff);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(90deg, #ff4444, #ff8888);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(90deg, #ff9900, #ffcc00);
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .success { color: #00ff00; }
+        .error { color: #ff4444; }
+        .info { color: #0088ff; }
+        .warning { color: #ffcc00; }
+        
+        .admin-list {
+            margin-top: 20px;
+        }
+        
+        .admin-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-info {
+            flex: 1;
+        }
+        
+        .admin-email {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .admin-name {
+            color: #aaaaff;
+            font-size: 14px;
+        }
+        
+        .admin-status {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-left: 10px;
+        }
+        
+        .status-active {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+        
+        .status-inactive {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Настройка админов JojoLand</h1>
+            <p>Управление администраторами системы</p>
+        </div>
+        
+        <div class="setup-form">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('create')">👑 Создать админа</button>
+                <button class="tab" onclick="switchTab('manage')">📋 Управление админами</button>
+                <button class="tab" onclick="switchTab('test')">🔐 Тест входа</button>
+            </div>
             
-            const userEmail = currentUser.email.toLowerCase();
-            const isEmailInList = Object.values(adminEmails).some(email => 
-                email.toLowerCase() === userEmail
-            );
-            
-            if (isEmailInList) {
-                console.log('✅ Пользователь админ (по email списку)');
+            <!-- Вкладка создания админа -->
+            <div id="tab-create" class="tab-content active">
+                <h2>Создать нового админа</h2>
+                <p style="color: #ffcc00; margin-bottom: 20px;">
+                    ⚠️ Если админ уже существует, он будет добавлен в систему управления
+                </p>
                 
-                // Создаем запись в базе, если ее нет
-                await database.ref(`admins/${userId}`).set({
-                    email: currentUser.email,
-                    displayName: currentUser.displayName || 'Администратор',
-                    level: 'admin',
-                    createdAt: new Date().toISOString(),
+                <div class="input-group">
+                    <label for="admin-email">Email админа:</label>
+                    <input type="email" id="admin-email" placeholder="admin@jojoland.com" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="admin-password">Пароль (минимум 6 символов):</label>
+                    <input type="password" id="admin-password" placeholder="••••••••" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="admin-display-name">Имя для отображения:</label>
+                    <input type="text" id="admin-display-name" placeholder="Главный администратор" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="admin-level">Уровень доступа:</label>
+                    <select id="admin-level">
+                        <option value="super_admin">👑 Супер-админ (полный доступ)</option>
+                        <option value="admin">🔧 Администратор</option>
+                        <option value="moderator">👁️ Модератор (только просмотр)</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="createAdmin()">👑 Создать/Назначить админа</button>
+                <button class="btn btn-secondary" onclick="resetForm()">🔄 Очистить форму</button>
+            </div>
+            
+            <!-- Вкладка управления админами -->
+            <div id="tab-manage" class="tab-content">
+                <h2>Управление администраторами</h2>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn btn-secondary" onclick="loadAdmins()">🔄 Обновить список</button>
+                    <button class="btn btn-warning" onclick="exportAdmins()">📥 Экспорт списка</button>
+                </div>
+                
+                <div class="admin-list" id="admin-list">
+                    <div style="text-align: center; padding: 40px; color: #8888ff;">
+                        Загружаем список админов...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладка тестирования -->
+            <div id="tab-test" class="tab-content">
+                <h2>Тестирование входа</h2>
+                
+                <div class="input-group">
+                    <label for="test-email">Email для теста:</label>
+                    <input type="email" id="test-email" placeholder="admin@jojoland.com" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="test-password">Пароль:</label>
+                    <input type="password" id="test-password" placeholder="••••••••" autocomplete="off">
+                </div>
+                
+                <button class="btn" onclick="testLogin()">🔐 Тестировать вход</button>
+                <button class="btn btn-secondary" onclick="testAdminPanel()">🎰 Тест админ-панели</button>
+            </div>
+            
+            <div class="results" id="results">
+                <!-- Результаты будут здесь -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebasestorage.app",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        let currentTab = 'create';
+        
+        // Инициализация
+        window.onload = function() {
+            loadAdmins();
+        };
+        
+        // Переключение вкладок
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Обновляем активные вкладки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+        
+        // Функция логирования
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(entry);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        // Создание админа (с обработкой существующего email)
+        async function createAdmin() {
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value;
+            const displayName = document.getElementById('admin-display-name').value.trim();
+            const level = document.getElementById('admin-level').value;
+            
+            if (!email || !password || password.length < 6) {
+                log('Заполните все поля (пароль минимум 6 символов)', 'error');
+                return;
+            }
+            
+            try {
+                log(`🔄 Обработка запроса для ${email}...`, 'info');
+                
+                let user;
+                
+                try {
+                    // Пытаемся создать нового пользователя
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    user = userCredential.user;
+                    log(`✅ Создан новый пользователь: ${email}`, 'success');
+                    
+                } catch (createError) {
+                    if (createError.code === 'auth/email-already-in-use') {
+                        // Пользователь уже существует - авторизуемся
+                        log(`ℹ️ Пользователь ${email} уже существует, авторизуемся...`, 'info');
+                        
+                        const signInCredential = await auth.signInWithEmailAndPassword(email, password);
+                        user = signInCredential.user;
+                        log(`✅ Авторизован существующий пользователь: ${email}`, 'success');
+                    } else {
+                        // Другая ошибка
+                        throw createError;
+                    }
+                }
+                
+                // Обновляем профиль
+                if (displayName) {
+                    await user.updateProfile({
+                        displayName: displayName
+                    });
+                    log(`📝 Обновлено имя: ${displayName}`, 'success');
+                }
+                
+                // Сохраняем/обновляем в базе данных
+                const adminData = {
+                    email: email,
+                    displayName: displayName || 'Администратор',
+                    level: level,
+                    updatedAt: new Date().toISOString(),
                     active: true
-                });
+                };
                 
-                return true;
+                await database.ref(`admins/${user.uid}`).set(adminData);
+                log(`💾 Данные сохранены в базу (Уровень: ${getLevelName(level)})`, 'success');
+                
+                // Добавляем email в список админов (без дубликатов)
+                await addAdminEmail(email);
+                
+                log(`🎉 Админ ${email} успешно настроен!`, 'success');
+                
+                // Обновляем список админов
+                await loadAdmins();
+                
+            } catch (error) {
+                console.error('Ошибка создания админа:', error);
+                log(`❌ Ошибка: ${getErrorMessage(error)}`, 'error');
             }
         }
         
-        console.log('❌ Пользователь не админ');
-        return false;
+        // Добавление email в список (без дубликатов)
+        async function addAdminEmail(email) {
+            try {
+                const emailLower = email.toLowerCase();
+                const snapshot = await database.ref('admin_emails').once('value');
+                const emails = snapshot.val() || {};
+                
+                // Проверяем, есть ли уже такой email
+                const emailExists = Object.values(emails).some(existingEmail => 
+                    existingEmail.toLowerCase() === emailLower
+                );
+                
+                if (!emailExists) {
+                    await database.ref('admin_emails').push(emailLower);
+                    log(`📧 Email добавлен в список админов`, 'info');
+                } else {
+                    log(`📧 Email уже есть в списке админов`, 'info');
+                }
+            } catch (error) {
+                console.error('Ошибка добавления email:', error);
+            }
+        }
         
-    } catch (error) {
-        console.error('❌ Ошибка проверки админа:', error);
-        return false;
-    }
-}
+        // Загрузка списка админов
+        async function loadAdmins() {
+            try {
+                const adminList = document.getElementById('admin-list');
+                adminList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8888ff;">Загрузка...</div>';
+                
+                const snapshot = await database.ref('admins').once('value');
+                const admins = snapshot.val();
+                
+                if (!admins || Object.keys(admins).length === 0) {
+                    adminList.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #ffcc00;">
+                            📭 Админы не найдены. Создайте первого администратора.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                for (const [uid, adminData] of Object.entries(admins)) {
+                    const statusClass = adminData.active ? 'status-active' : 'status-inactive';
+                    const statusText = adminData.active ? 'Активен' : 'Неактивен';
+                    
+                    html += `
+                        <div class="admin-item">
+                            <div class="admin-info">
+                                <div class="admin-email">${adminData.email}</div>
+                                <div class="admin-name">${adminData.displayName || 'Без имени'} 
+                                    <span class="admin-status ${statusClass}">${statusText}</span>
+                                </div>
+                                <div style="font-size: 12px; color: #8888ff; margin-top: 5px;">
+                                    Уровень: ${getLevelName(adminData.level)} | UID: ${uid.substring(0, 8)}...
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-warning btn-sm" onclick="toggleAdminStatus('${uid}', ${adminData.active})" 
+                                        style="padding: 8px 15px; font-size: 12px;">
+                                    ${adminData.active ? '🚫 Деактивировать' : '✅ Активировать'}
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteAdmin('${uid}', '${adminData.email}')" 
+                                        style="padding: 8px 15px; font-size: 12px; margin-top: 5px;">
+                                    🗑️ Удалить
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                adminList.innerHTML = html;
+                log(`✅ Загружено ${Object.keys(admins).length} админов`, 'success');
+                
+            } catch (error) {
+                log(`❌ Ошибка загрузки списка: ${error.message}`, 'error');
+            }
+        }
+        
+        // Переключение статуса админа
+        async function toggleAdminStatus(uid, currentStatus) {
+            if (!confirm(`Вы уверены, что хотите ${currentStatus ? 'деактивировать' : 'активировать'} этого админа?`)) {
+                return;
+            }
+            
+            try {
+                await database.ref(`admins/${uid}/active`).set(!currentStatus);
+                log(`✅ Статус админа изменен: ${currentStatus ? 'Деактивирован' : 'Активирован'}`, 'success');
+                await loadAdmins();
+            } catch (error) {
+                log(`❌ Ошибка изменения статуса: ${error.message}`, 'error');
+            }
+        }
+        
+        // Удаление админа
+        async function deleteAdmin(uid, email) {
+            if (!confirm(`Вы уверены, что хотите удалить админа ${email}?\nЭто удалит его из списка управления, но не из Firebase Authentication.`)) {
+                return;
+            }
+            
+            try {
+                await database.ref(`admins/${uid}`).remove();
+                log(`✅ Админ ${email} удален из системы управления`, 'success');
+                await loadAdmins();
+            } catch (error) {
+                log(`❌ Ошибка удаления: ${error.message}`, 'error');
+            }
+        }
+        
+        // Экспорт списка админов
+        async function exportAdmins() {
+            try {
+                const snapshot = await database.ref('admins').once('value');
+                const admins = snapshot.val();
+                
+                if (!admins) {
+                    log('Нет данных для экспорта', 'warning');
+                    return;
+                }
+                
+                const data = Object.entries(admins).map(([uid, admin]) => ({
+                    uid: uid,
+                    email: admin.email,
+                    displayName: admin.displayName,
+                    level: admin.level,
+                    active: admin.active,
+                    updatedAt: admin.updatedAt
+                }));
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `jojoland_admins_${Date.now()}.json`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                log(`📥 Экспортировано ${data.length} записей`, 'success');
+                
+            } catch (error) {
+                log(`❌ Ошибка экспорта: ${error.message}`, 'error');
+            }
+        }
+        
+        // Тест входа
+        async function testLogin() {
+            const email = document.getElementById('test-email').value.trim();
+            const password = document.getElementById('test-password').value;
+            
+            if (!email || !password) {
+                log('Введите email и пароль для теста', 'error');
+                return;
+            }
+            
+            try {
+                log(`🔐 Тестируем вход для ${email}...`, 'info');
+                
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                log(`✅ Авторизация успешна! Пользователь: ${user.email}`, 'success');
+                
+                // Проверяем, является ли админом
+                const adminSnapshot = await database.ref(`admins/${user.uid}`).once('value');
+                if (adminSnapshot.exists()) {
+                    const adminData = adminSnapshot.val();
+                    log(`🎯 Пользователь является админом: ${adminData.displayName} (Уровень: ${getLevelName(adminData.level)})`, 'success');
+                    
+                    if (adminData.active) {
+                        log(`✅ Статус: Активен`, 'success');
+                    } else {
+                        log(`⚠️ Статус: Неактивен (доступ ограничен)`, 'warning');
+                    }
+                } else {
+                    log(`❌ Пользователь не найден в списке админов`, 'error');
+                }
+                
+                // Выходим
+                await auth.signOut();
+                log('🚪 Выполнен выход из тестового аккаунта', 'info');
+                
+            } catch (error) {
+                log(`❌ Ошибка входа: ${getErrorMessage(error)}`, 'error');
+            }
+        }
+        
+        // Тест админ-панели
+        async function testAdminPanel() {
+            const email = document.getElementById('test-email').value.trim();
+            const password = document.getElementById('test-password').value;
+            
+            if (!email || !password) {
+                log('Введите email и пароль для теста панели', 'error');
+                return;
+            }
+            
+            try {
+                log(`🎰 Тестируем доступ к админ-панели...`, 'info');
+                
+                // Пробуем войти
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Проверяем права
+                const adminSnapshot = await database.ref(`admins/${user.uid}`).once('value');
+                
+                if (adminSnapshot.exists()) {
+                    const adminData = adminSnapshot.val();
+                    
+                    if (adminData.active) {
+                        log(`✅ Тест пройден! Админ ${email} может войти в админ-панель`, 'success');
+                        log(`📊 Уровень доступа: ${getLevelName(adminData.level)}`, 'info');
+                        
+                        // Открываем админ-панель в новой вкладке
+                        setTimeout(() => {
+                            window.open('admin-casino.html', '_blank');
+                        }, 1000);
+                        
+                    } else {
+                        log(`❌ Админ деактивирован. Доступ к панели запрещен.`, 'error');
+                    }
+                } else {
+                    log(`❌ Пользователь не является админом. Доступ запрещен.`, 'error');
+                }
+                
+                // Выходим
+                await auth.signOut();
+                
+            } catch (error) {
+                log(`❌ Ошибка теста: ${getErrorMessage(error)}`, 'error');
+            }
+        }
+        
+        // Вспомогательные функции
+        function getLevelName(level) {
+            const levels = {
+                'super_admin': '👑 Супер-админ',
+                'admin': '🔧 Администратор',
+                'moderator': '👁️ Модератор'
+            };
+            return levels[level] || level;
+        }
+        
+        function getErrorMessage(error) {
+            const errorMessages = {
+                'auth/email-already-in-use': 'Email уже используется другим аккаунтом',
+                'auth/invalid-email': 'Неверный формат email',
+                'auth/operation-not-allowed': 'Операция не разрешена',
+                'auth/weak-password': 'Слабый пароль (минимум 6 символов)',
+                'auth/user-disabled': 'Аккаунт отключен',
+                'auth/user-not-found': 'Пользователь не найден',
+                'auth/wrong-password': 'Неверный пароль',
+                'auth/too-many-requests': 'Слишком много попыток. Попробуйте позже'
+            };
+            
+            return errorMessages[error.code] || error.message;
+        }
+        
+        function resetForm() {
+            document.getElementById('admin-email').value = '';
+            document.getElementById('admin-password').value = '';
+            document.getElementById('admin-display-name').value = '';
+            document.getElementById('admin-level').value = 'super_admin';
+            log('🔄 Форма очищена', 'info');
+        }
+        
+        // Добавляем CSS для маленьких кнопок
+        const style = document.createElement('style');
+        style.textContent = `
+            .btn-sm {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+                margin: 2px !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
