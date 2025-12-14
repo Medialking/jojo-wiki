@@ -80,16 +80,15 @@
 /* БАЗОВЫЙ СТИЛЬ ПРОФИЛЯ */
 .profile-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
     border: 2px solid;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    min-height: 140px;
 }
 
 .profile-header::before {
@@ -236,15 +235,14 @@
 
 /* АВАТАР И ЗАГРУЗКА */
 .profile-avatar {
-    width: 80px;
-    height: 80px;
-    min-width: 80px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
-    margin-right: 20px;
+    font-size: 48px;
+    margin-right: 25px;
     position: relative;
     z-index: 2;
     transition: all 0.3s ease;
@@ -272,7 +270,7 @@
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s;
-    font-size: 20px;
+    font-size: 24px;
     color: white;
     border-radius: 50%;
 }
@@ -299,20 +297,18 @@
     flex: 1;
     position: relative;
     z-index: 2;
-    padding-left: 20px;
 }
 
 .profile-name {
-    font-size: 24px;
-    margin: 0 0 8px;
+    font-size: 28px;
+    margin: 0 0 5px;
     font-weight: bold;
     letter-spacing: 1px;
     transition: all 0.3s ease;
-    line-height: 1.2;
 }
 
 .profile-id {
-    font-size: 13px;
+    font-size: 14px;
     margin-bottom: 15px;
     opacity: 0.8;
     color: #aaaaff;
@@ -320,9 +316,8 @@
 
 .profile-badges {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-top: 10px;
 }
 
 /* БЕЙДЖИ С ЦВЕТАМИ ПО РАНГУ */
@@ -351,18 +346,47 @@
 }
 
 .badge {
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 11px;
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     transition: all 0.3s;
     white-space: nowrap;
 }
 
 .badge:hover {
     transform: translateY(-2px);
+}
+
+/* ЗАГОЛОВКИ РАЗДЕЛОВ */
+.section-title {
+    font-size: 22px;
+    margin: 40px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid;
+    transition: all 0.3s;
+}
+
+.admin .section-title {
+    color: #ff6b6b;
+    border-bottom-color: rgba(220, 53, 69, 0.3);
+}
+
+.moderator .section-title {
+    color: #ffb347;
+    border-bottom-color: rgba(255, 152, 0, 0.3);
+}
+
+.vip .section-title {
+    color: #48cae4;
+    border-bottom-color: rgba(0, 180, 216, 0.3);
+}
+
+.player .section-title {
+    color: #ffcc00;
+    border-bottom-color: rgba(255, 204, 0, 0.3);
 }
 
 /* СТАТИСТИКА */
@@ -412,35 +436,6 @@
     font-size: 24px;
     font-weight: bold;
     font-family: 'Michroma', sans-serif;
-}
-
-/* ЗАГОЛОВКИ РАЗДЕЛОВ */
-.section-title {
-    font-size: 22px;
-    margin: 40px 0 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid;
-    transition: all 0.3s;
-}
-
-.admin .section-title {
-    color: #ff6b6b;
-    border-bottom-color: rgba(220, 53, 69, 0.3);
-}
-
-.moderator .section-title {
-    color: #ffb347;
-    border-bottom-color: rgba(255, 152, 0, 0.3);
-}
-
-.vip .section-title {
-    color: #48cae4;
-    border-bottom-color: rgba(0, 180, 216, 0.3);
-}
-
-.player .section-title {
-    color: #ffcc00;
-    border-bottom-color: rgba(255, 204, 0, 0.3);
 }
 
 /* ДОСТИЖЕНИЯ */
@@ -508,77 +503,6 @@
     color: #aaaaff;
     font-size: 12px;
 }
-
-/* НОВОГОДНИЕ ОЧКИ */
-.holiday-points-card {
-    border-radius: 15px;
-    padding: 25px;
-    border: 2px solid;
-    margin-bottom: 30px;
-    text-align: center;
-    backdrop-filter: blur(5px);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s;
-}
-
-.holiday-points-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-}
-
-/* ЦВЕТА КАРТОЧКИ ОЧКОВ ПО РАНГУ */
-.admin .holiday-points-card {
-    background: linear-gradient(135deg, 
-        rgba(220, 53, 69, 0.15), 
-        rgba(178, 34, 34, 0.25));
-    border-color: #dc3545;
-}
-
-.moderator .holiday-points-card {
-    background: linear-gradient(135deg, 
-        rgba(255, 152, 0, 0.15), 
-        rgba(255, 111, 0, 0.25));
-    border-color: #ff9800;
-}
-
-.vip .holiday-points-card {
-    background: linear-gradient(135deg, 
-        rgba(0, 180, 216, 0.15), 
-        rgba(0, 119, 182, 0.25));
-    border-color: #00b4d8;
-}
-
-.player .holiday-points-card {
-    background: linear-gradient(135deg, 
-        rgba(255, 0, 0, 0.1), 
-        rgba(255, 153, 0, 0.1));
-    border-color: #ff9900;
-}
-
-.points-display {
-    font-size: 48px;
-    font-weight: bold;
-    margin: 10px 0;
-    text-shadow: 0 0 10px currentColor;
-    transition: all 0.3s;
-}
-
-.admin .points-display { color: #ff6b6b; }
-.moderator .points-display { color: #ffb347; }
-.vip .points-display { color: #48cae4; }
-.player .points-display { color: #ffcc00; }
-
-.points-label {
-    font-size: 14px;
-    opacity: 0.8;
-    margin-bottom: 15px;
-}
-
-.admin .points-label { color: #ff8a8a; }
-.moderator .points-label { color: #ffd166; }
-.vip .points-label { color: #90e0ef; }
-.player .points-label { color: #ffcc99; }
 
 /* КНОПКИ ДЕЙСТВИЙ */
 .action-buttons {
@@ -719,276 +643,6 @@
 
 .profile-header.vip .profile-avatar {
     animation: glow 2s infinite alternate 1s;
-}
-
-/* СТИЛЬ КАРТОЧКИ "О СЕБЕ" */
-.about-me-card {
-    padding: 25px; /* Немного больше отступов */
-    /* Использование базового стиля stat-card */
-}
-
-#about-me-text {
-    white-space: pre-wrap; /* Сохранение переносов строк и пробелов */
-    font-size: 15px;
-    color: #ccc;
-    line-height: 1.6;
-}
-
-#about-me-edit textarea {
-    /* Стили уже встроены в HTML, но можно добавить фокус */
-    transition: border-color 0.3s;
-}
-
-#about-me-edit textarea:focus {
-    outline: none;
-    border-color: #ffcc00 !important; /* Цвет из стандартной темы */
-}
-
-/* ==================== ОБНОВЛЕННАЯ СТРУКТУРА ПРОФИЛЯ ==================== */
-
-/* Основная секция профиля */
-.profile-main-section {
-    display: flex;
-    gap: 25px;
-    margin-bottom: 30px;
-}
-
-.profile-left-section {
-    flex: 1;
-}
-
-.profile-right-section {
-    flex: 1;
-    max-width: 350px;
-}
-
-/* Заголовок профиля - обновленный */
-.profile-header {
-    display: flex;
-    align-items: flex-start;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 2px solid;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    min-height: 140px;
-}
-
-.profile-info {
-    flex: 1;
-    position: relative;
-    z-index: 2;
-    padding-left: 20px;
-}
-
-.profile-name {
-    font-size: 24px;
-    margin: 0 0 8px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    line-height: 1.2;
-}
-
-.profile-id {
-    font-size: 13px;
-    margin-bottom: 15px;
-    opacity: 0.8;
-    color: #aaaaff;
-}
-
-.profile-badges {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
-.badge {
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-/* Карточка "О себе" в правой колонке */
-.about-me-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
-    transition: all 0.3s;
-    height: 100%;
-}
-
-.desktop-about-me {
-    display: flex;
-    flex-direction: column;
-    min-height: 300px;
-}
-
-.mobile-about-me-section {
-    display: none;
-}
-
-.about-me-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.mini-title {
-    font-size: 18px;
-    margin: 0;
-    padding: 0;
-    border: none;
-    color: #ffcc00;
-}
-
-.edit-about-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: white;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
-}
-
-.edit-about-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
-}
-
-#about-me-text-desktop,
-#about-me-text-mobile {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-size: 14px;
-    color: #ccc;
-    line-height: 1.5;
-    margin: 0;
-    flex: 1;
-}
-
-.about-me-textarea {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    font-family: inherit;
-    resize: vertical;
-    font-size: 14px;
-    min-height: 120px;
-    margin-bottom: 15px;
-}
-
-.about-me-textarea:focus {
-    outline: none;
-    border-color: #ffcc00;
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
-}
-
-.about-me-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.save-btn {
-    flex: 1;
-    background: linear-gradient(135deg, #00cc66, #00994d);
-    border: 1px solid rgba(0, 204, 102, 0.5);
-}
-
-.cancel-btn {
-    flex: 1;
-    background: linear-gradient(135deg, #ff4444, #cc0000);
-    border: 1px solid rgba(255, 68, 68, 0.5);
-}
-
-/* Аватар для новой структуры */
-.profile-avatar {
-    width: 80px;
-    height: 80px;
-    min-width: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    position: relative;
-    z-index: 2;
-    transition: all 0.3s ease;
-    overflow: hidden;
-    cursor: pointer;
-    border: 3px solid;
-}
-
-/* Цвета аватара по рангам */
-.profile-header.admin .profile-avatar {
-    border-color: #dc3545;
-    box-shadow: 0 0 20px rgba(220, 53, 69, 0.5),
-                inset 0 0 15px rgba(255, 107, 107, 0.3);
-    background: linear-gradient(135deg, #dc3545, #b22222);
-    color: white;
-}
-
-.profile-header.moderator .profile-avatar {
-    border-color: #ff9800;
-    box-shadow: 0 0 20px rgba(255, 152, 0, 0.5),
-                inset 0 0 15px rgba(255, 179, 71, 0.3);
-    background: linear-gradient(135deg, #ff9800, #ff8c00);
-    color: white;
-}
-
-.profile-header.vip .profile-avatar {
-    border-color: #00b4d8;
-    box-shadow: 0 0 20px rgba(0, 180, 216, 0.5),
-                inset 0 0 15px rgba(72, 202, 228, 0.3);
-    background: linear-gradient(135deg, #00b4d8, #0096c7);
-    color: white;
-}
-
-.profile-header.player .profile-avatar {
-    border-color: #ffcc00;
-    box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffcc00;
-}
-
-/* Цвета карточки "О себе" по рангам */
-.admin .about-me-card {
-    border-left: 4px solid #dc3545;
-}
-
-.moderator .about-me-card {
-    border-left: 4px solid #ff9800;
-}
-
-.vip .about-me-card {
-    border-left: 4px solid #00b4d8;
-}
-
-.player .about-me-card {
-    border-left: 4px solid #00cc66;
 }
 
 /* ==================== КОМПАКТНЫЕ СТИЛИ ==================== */
@@ -1188,92 +842,32 @@
 
 /* ==================== АДАПТИВНОСТЬ ==================== */
 
-/* Большие экраны (1024px и больше) */
-@media (min-width: 1024px) {
-    .profile-main-section {
-        gap: 30px;
-    }
-    
-    .profile-right-section {
-        max-width: 400px;
-    }
-    
-    .profile-name {
-        font-size: 26px;
-    }
-    
-    .desktop-about-me {
-        min-height: 320px;
-    }
-}
-
-/* Планшеты и небольшие экраны (768px - 1023px) */
-@media (max-width: 1023px) and (min-width: 769px) {
-    .profile-main-section {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .profile-right-section {
-        max-width: 100%;
-    }
-    
-    .desktop-about-me {
-        min-height: 200px;
-    }
-}
-
-/* Планшеты (768px и меньше) */
+/* Планшеты и небольшие экраны (768px и меньше) */
 @media (max-width: 768px) {
-    .profile-main-section {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .profile-right-section {
-        display: none;
-    }
-    
-    .mobile-about-me-section {
-        display: block;
-        margin-bottom: 25px;
-    }
-    
-    .profile-header {
-        flex-direction: row;
-        text-align: left;
-        padding: 15px;
-        min-height: 120px;
-    }
-    
-    .profile-avatar {
-        width: 70px;
-        height: 70px;
-        min-width: 70px;
-        font-size: 30px;
-        margin-right: 15px;
-        margin-bottom: 0;
-    }
-    
-    .profile-name {
-        font-size: 20px;
-    }
-    
-    .profile-id {
-        font-size: 12px;
-    }
-    
-    .badge {
-        font-size: 10px;
-        padding: 3px 6px;
-    }
-    
     .desktop-actions {
         display: none;
     }
     
     .mobile-actions {
         display: flex;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .profile-avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+        width: 80px;
+        height: 80px;
+        font-size: 36px;
+    }
+    
+    .profile-name {
+        font-size: 24px;
     }
     
     .compact-stats-grid {
@@ -1284,46 +878,33 @@
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         max-height: 250px;
     }
+    
+    .section-title {
+        font-size: 18px;
+        margin: 25px 0 15px;
+    }
 }
 
 /* Мобильные телефоны (480px и меньше) */
 @media (max-width: 480px) {
-    .profile-header {
-        padding: 12px;
-        min-height: 100px;
-    }
-    
     .profile-avatar {
         width: 60px;
         height: 60px;
-        min-width: 60px;
-        font-size: 26px;
-        margin-right: 12px;
+        font-size: 28px;
     }
     
     .profile-name {
-        font-size: 18px;
-        margin-bottom: 5px;
-    }
-    
-    .profile-id {
-        font-size: 11px;
-        margin-bottom: 10px;
-    }
-    
-    .badge {
-        font-size: 9px;
-        padding: 2px 4px;
+        font-size: 20px;
     }
     
     .compact-stat-card {
-        padding: 10px;
+        padding: 12px;
     }
     
     .compact-stat-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
     }
     
     .compact-stat-value {
@@ -1341,21 +922,31 @@
     }
 }
 
+/* Большие экраны (1200px и больше) */
+@media (min-width: 1200px) {
+    .profile-container {
+        max-width: 1000px;
+    }
+    
+    .compact-achievements {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        max-height: 350px;
+    }
+    
+    .desktop-actions {
+        gap: 20px;
+    }
+    
+    .desktop-action-btn {
+        padding: 15px;
+        font-size: 16px;
+    }
+}
+
 /* Очень маленькие экраны (360px и меньше) */
 @media (max-width: 360px) {
     .profile-header {
-        flex-direction: column;
-        text-align: center;
         padding: 15px;
-    }
-    
-    .profile-avatar {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    
-    .profile-info {
-        padding-left: 0;
     }
     
     .compact-stats-grid {
@@ -1363,14 +954,14 @@
     }
     
     .compact-stat-card {
-        padding: 8px;
+        padding: 10px;
         gap: 8px;
     }
     
     .compact-stat-icon {
-        width: 28px;
-        height: 28px;
-        font-size: 14px;
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
     }
     
     .compact-achievements {
