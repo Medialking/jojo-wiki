@@ -1,0 +1,933 @@
+/* =========================================== */
+/* СТИЛИ ДЛЯ МАГАЗИНА ПОДАРКОВ */
+/* =========================================== */
+
+.shop-container {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* ШАПКА МАГАЗИНА */
+.shop-header {
+    margin-bottom: 40px;
+}
+
+.balance-card {
+    background: linear-gradient(135deg, rgba(139, 0, 139, 0.15), rgba(255, 20, 147, 0.15));
+    border-radius: 20px;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border: 2px solid #ff00ff;
+    box-shadow: 0 10px 30px rgba(255, 0, 255, 0.2);
+}
+
+.balance-info {
+    text-align: left;
+}
+
+.balance-title {
+    color: #aaaaff;
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.balance-amount {
+    color: #00ff00;
+    font-size: 42px;
+    font-weight: bold;
+    font-family: 'Michroma', monospace;
+    text-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    margin-bottom: 5px;
+}
+
+.balance-label {
+    color: #ffcc99;
+    font-size: 14px;
+}
+
+.balance-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.balance-actions .action-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+}
+
+/* ВКЛАДКИ */
+.tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px 20px;
+    background: none;
+    border: none;
+    color: #aaaaff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tab-btn.active {
+    background: linear-gradient(90deg, #6200ff, #ff00ff);
+    color: white;
+    box-shadow: 0 5px 15px rgba(98, 0, 255, 0.3);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* СЕКЦИИ С ПОДАРКАМИ */
+.gift-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 25px;
+    padding: 40px 30px;
+    margin-bottom: 40px;
+    border: 2px solid;
+    position: relative;
+    overflow: hidden;
+}
+
+#golden-gifts {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 255, 0, 0.05));
+    border-color: #ffd700;
+}
+
+#mythical-gifts {
+    background: linear-gradient(135deg, rgba(148, 0, 211, 0.1), rgba(75, 0, 130, 0.05));
+    border-color: #9400d3;
+}
+
+#rare-gifts {
+    background: linear-gradient(135deg, rgba(0, 180, 216, 0.1), rgba(0, 119, 182, 0.05));
+    border-color: #00b4d8;
+}
+
+#common-gifts {
+    background: linear-gradient(135deg, rgba(0, 204, 102, 0.1), rgba(0, 153, 76, 0.05));
+    border-color: #00cc66;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-header h2 {
+    font-size: 32px;
+    margin: 0 0 15px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+#golden-gifts h2 { color: #ffd700; }
+#mythical-gifts h2 { color: #9400d3; }
+#rare-gifts h2 { color: #00b4d8; }
+#common-gifts h2 { color: #00cc66; }
+
+.section-desc {
+    color: #ccccff;
+    font-size: 16px;
+    max-width: 800px;
+    margin: 0 auto 20px;
+    line-height: 1.6;
+}
+
+.section-stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #ffcc99;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* СЕТКА ПОДАРКОВ */
+.gifts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.gift-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.gift-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.gift-card.common {
+    border-color: rgba(0, 204, 102, 0.3);
+}
+
+.gift-card.rare {
+    border-color: rgba(0, 180, 216, 0.3);
+}
+
+.gift-card.mythical {
+    border-color: rgba(148, 0, 211, 0.3);
+    animation: glow 2s infinite alternate;
+}
+
+.gift-card.golden {
+    border-color: rgba(255, 215, 0, 0.3);
+    animation: goldenGlow 2s infinite alternate;
+}
+
+@keyframes goldenGlow {
+    0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+    100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); }
+}
+
+.gift-ribbon {
+    position: absolute;
+    top: 10px;
+    right: -30px;
+    background: #ff4444;
+    color: white;
+    padding: 5px 30px;
+    transform: rotate(45deg);
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.gift-image {
+    font-size: 64px;
+    margin-bottom: 20px;
+    position: relative;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gift-animation {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.gift-name {
+    color: white;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.gift-description {
+    color: #aaaaff;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    height: 60px;
+    overflow: hidden;
+}
+
+.gift-price {
+    color: #00ff00;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Michroma', monospace;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.gift-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.buy-btn, .owned-btn, .sold-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.buy-btn {
+    background: linear-gradient(90deg, #00cc66, #00ff88);
+    color: white;
+}
+
+.buy-btn:hover {
+    background: linear-gradient(90deg, #00ff88, #00cc66);
+    transform: scale(1.05);
+}
+
+.owned-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #aaaaff;
+    cursor: not-allowed;
+}
+
+.sold-btn {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff8888;
+    cursor: not-allowed;
+}
+
+/* СТИЛИ ДЛЯ РАЗНЫХ РЕДКОСТЕЙ */
+.rarity-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.rarity-badge.common {
+    background: rgba(0, 204, 102, 0.2);
+    color: #00ff99;
+    border: 1px solid rgba(0, 204, 102, 0.4);
+}
+
+.rarity-badge.rare {
+    background: rgba(0, 180, 216, 0.2);
+    color: #00d4ff;
+    border: 1px solid rgba(0, 180, 216, 0.4);
+}
+
+.rarity-badge.mythical {
+    background: rgba(148, 0, 211, 0.2);
+    color: #d400ff;
+    border: 1px solid rgba(148, 0, 211, 0.4);
+}
+
+.rarity-badge.golden {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+/* АУКЦИОН */
+.auction-container {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 25px;
+    padding: 40px 30px;
+    border: 2px solid #ff9900;
+}
+
+.auction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.auction-info h2 {
+    color: #ff9900;
+    margin: 0 0 10px;
+    font-size: 28px;
+}
+
+.auction-info p {
+    color: #ffcc99;
+    margin: 0;
+}
+
+.filters {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    color: #aaaaff;
+    font-size: 14px;
+}
+
+.filter-group select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 15px;
+    color: white;
+    min-width: 150px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.refresh-btn {
+    background: linear-gradient(90deg, #0088ff, #00ccff);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+    transform: scale(1.05);
+}
+
+.auction-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+    min-height: 200px;
+}
+
+.auction-lot {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.auction-lot:hover {
+    transform: translateY(-5px);
+    border-color: #ff9900;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+}
+
+.lot-seller {
+    color: #aaaaff;
+    font-size: 14px;
+}
+
+.lot-timer {
+    color: #ff4444;
+    font-family: 'Michroma', monospace;
+    font-weight: bold;
+}
+
+.lot-preview {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.lot-preview .gift-image {
+    font-size: 48px;
+    height: 60px;
+}
+
+.lot-details h4 {
+    color: white;
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.lot-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.current-price {
+    color: #00ff00;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: 'Michroma', monospace;
+}
+
+.start-price {
+    color: #aaaaff;
+    font-size: 14px;
+    text-decoration: line-through;
+}
+
+.bid-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #ff9900, #ffcc00);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.bid-btn:hover {
+    background: linear-gradient(90deg, #ffcc00, #ff9900);
+}
+
+.auction-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+}
+
+/* ИНВЕНТАРЬ */
+.inventory-container {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 25px;
+    padding: 40px 30px;
+    border: 2px solid #6200ff;
+}
+
+.inventory-header h2 {
+    color: #6200ff;
+    margin: 0 0 10px;
+    text-align: center;
+}
+
+.inventory-header p {
+    color: #aaaaff;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.inventory-stats {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-icon {
+    font-size: 18px;
+}
+
+.badge-text {
+    color: #aaaaff;
+    font-size: 14px;
+}
+
+.badge-text strong {
+    color: white;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    min-height: 300px;
+}
+
+.inventory-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.inventory-item:hover {
+    transform: scale(1.05);
+    border-color: #6200ff;
+}
+
+.inventory-item .gift-image {
+    font-size: 48px;
+    height: 60px;
+    margin-bottom: 15px;
+}
+
+.inventory-item h4 {
+    color: white;
+    margin: 0 0 5px;
+    font-size: 16px;
+}
+
+.inventory-date {
+    color: #aaaaff;
+    font-size: 12px;
+}
+
+.sell-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff9900;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.empty-inventory {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #8888ff;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-inventory h3 {
+    color: #aaaaff;
+    margin: 0 0 10px;
+}
+
+.empty-inventory p {
+    color: #8888ff;
+    margin-bottom: 20px;
+}
+
+/* МОДАЛЬНЫЕ ОКНА */
+.gift-modal, .sell-modal {
+    max-width: 800px;
+    background: rgba(30, 30, 50, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.gift-modal-header, .sell-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gift-modal-header h2, .sell-modal-header h2 {
+    color: #ffcc00;
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.close-modal:hover {
+    color: #ff4444;
+    transform: scale(1.2);
+}
+
+.gift-modal-body {
+    display: flex;
+    padding: 30px;
+    gap: 30px;
+}
+
+.gift-preview {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.gift-preview .gift-image {
+    font-size: 96px;
+    height: 120px;
+}
+
+.gift-details {
+    flex: 2;
+}
+
+.gift-details h3 {
+    color: white;
+    font-size: 28px;
+    margin: 0 0 10px;
+}
+
+.gift-rarity {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.gift-description {
+    color: #ccccff;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.gift-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.gift-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    color: #aaaaff;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    display: block;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: 'Michroma', monospace;
+}
+
+.gift-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.gift-actions .action-btn {
+    flex: 1;
+    padding: 15px;
+    font-size: 16px;
+}
+
+/* ФОРМА ПРОДАЖИ */
+.sell-form {
+    padding: 20px 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    color: #aaaaff;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+}
+
+.price-input {
+    position: relative;
+}
+
+.price-input .price-label {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaaaff;
+    font-size: 14px;
+}
+
+.sell-info {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #ccccff;
+    font-size: 14px;
+}
+
+.sell-modal-footer {
+    display: flex;
+    gap: 15px;
+    padding: 20px 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* АДАПТИВНОСТЬ */
+@media (max-width: 992px) {
+    .gifts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+    
+    .gift-modal-body {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .shop-container {
+        padding: 0 15px;
+    }
+    
+    .balance-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .balance-actions {
+        justify-content: center;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .auction-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .gift-section {
+        padding: 30px 20px;
+    }
+    
+    .gifts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .inventory-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header h2 {
+        font-size: 24px;
+    }
+    
+    .gift-card {
+        padding: 15px;
+    }
+    
+    .gift-name {
+        font-size: 16px;
+    }
+    
+    .gift-image {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+    
+    .auction-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .gift-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .gift-actions {
+        flex-direction: column;
+    }
+}
