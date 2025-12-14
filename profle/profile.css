@@ -80,15 +80,16 @@
 /* БАЗОВЫЙ СТИЛЬ ПРОФИЛЯ */
 .profile-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 30px;
+    padding: 20px;
+    margin-bottom: 20px;
     border: 2px solid;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-height: 140px;
 }
 
 .profile-header::before {
@@ -235,14 +236,15 @@
 
 /* АВАТАР И ЗАГРУЗКА */
 .profile-avatar {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48px;
-    margin-right: 25px;
+    font-size: 36px;
+    margin-right: 20px;
     position: relative;
     z-index: 2;
     transition: all 0.3s ease;
@@ -270,7 +272,7 @@
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s;
-    font-size: 24px;
+    font-size: 20px;
     color: white;
     border-radius: 50%;
 }
@@ -297,26 +299,30 @@
     flex: 1;
     position: relative;
     z-index: 2;
+    padding-left: 20px;
 }
 
 .profile-name {
-    font-size: 28px;
-    margin: 0 0 5px;
+    font-size: 24px;
+    margin: 0 0 8px;
     font-weight: bold;
     letter-spacing: 1px;
     transition: all 0.3s ease;
+    line-height: 1.2;
 }
 
 .profile-id {
-    font-size: 14px;
+    font-size: 13px;
     margin-bottom: 15px;
     opacity: 0.8;
+    color: #aaaaff;
 }
 
 .profile-badges {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
+    margin-top: 10px;
 }
 
 /* БЕЙДЖИ С ЦВЕТАМИ ПО РАНГУ */
@@ -345,13 +351,14 @@
 }
 
 .badge {
-    border-radius: 10px;
-    padding: 5px 10px;
-    font-size: 12px;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     transition: all 0.3s;
+    white-space: nowrap;
 }
 
 .badge:hover {
@@ -737,7 +744,254 @@
     border-color: #ffcc00 !important; /* Цвет из стандартной темы */
 }
 
-/* ==================== ОБНОВЛЕННЫЕ СТИЛИ ==================== */
+/* ==================== ОБНОВЛЕННАЯ СТРУКТУРА ПРОФИЛЯ ==================== */
+
+/* Основная секция профиля */
+.profile-main-section {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.profile-left-section {
+    flex: 1;
+}
+
+.profile-right-section {
+    flex: 1;
+    max-width: 350px;
+}
+
+/* Заголовок профиля - обновленный */
+.profile-header {
+    display: flex;
+    align-items: flex-start;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-height: 140px;
+}
+
+.profile-info {
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    padding-left: 20px;
+}
+
+.profile-name {
+    font-size: 24px;
+    margin: 0 0 8px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    line-height: 1.2;
+}
+
+.profile-id {
+    font-size: 13px;
+    margin-bottom: 15px;
+    opacity: 0.8;
+    color: #aaaaff;
+}
+
+.profile-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.badge {
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+/* Карточка "О себе" в правой колонке */
+.about-me-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s;
+    height: 100%;
+}
+
+.desktop-about-me {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+}
+
+.mobile-about-me-section {
+    display: none;
+}
+
+.about-me-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mini-title {
+    font-size: 18px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: #ffcc00;
+}
+
+.edit-about-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.edit-about-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+#about-me-text-desktop,
+#about-me-text-mobile {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 14px;
+    color: #ccc;
+    line-height: 1.5;
+    margin: 0;
+    flex: 1;
+}
+
+.about-me-textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    resize: vertical;
+    font-size: 14px;
+    min-height: 120px;
+    margin-bottom: 15px;
+}
+
+.about-me-textarea:focus {
+    outline: none;
+    border-color: #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
+}
+
+.about-me-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.save-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #00cc66, #00994d);
+    border: 1px solid rgba(0, 204, 102, 0.5);
+}
+
+.cancel-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    border: 1px solid rgba(255, 68, 68, 0.5);
+}
+
+/* Аватар для новой структуры */
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid;
+}
+
+/* Цвета аватара по рангам */
+.profile-header.admin .profile-avatar {
+    border-color: #dc3545;
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.5),
+                inset 0 0 15px rgba(255, 107, 107, 0.3);
+    background: linear-gradient(135deg, #dc3545, #b22222);
+    color: white;
+}
+
+.profile-header.moderator .profile-avatar {
+    border-color: #ff9800;
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.5),
+                inset 0 0 15px rgba(255, 179, 71, 0.3);
+    background: linear-gradient(135deg, #ff9800, #ff8c00);
+    color: white;
+}
+
+.profile-header.vip .profile-avatar {
+    border-color: #00b4d8;
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.5),
+                inset 0 0 15px rgba(72, 202, 228, 0.3);
+    background: linear-gradient(135deg, #00b4d8, #0096c7);
+    color: white;
+}
+
+.profile-header.player .profile-avatar {
+    border-color: #ffcc00;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffcc00;
+}
+
+/* Цвета карточки "О себе" по рангам */
+.admin .about-me-card {
+    border-left: 4px solid #dc3545;
+}
+
+.moderator .about-me-card {
+    border-left: 4px solid #ff9800;
+}
+
+.vip .about-me-card {
+    border-left: 4px solid #00b4d8;
+}
+
+.player .about-me-card {
+    border-left: 4px solid #00cc66;
+}
+
+/* ==================== КОМПАКТНЫЕ СТИЛИ ==================== */
 
 /* Компактная сетка статистики */
 .compact-stats-grid {
@@ -934,32 +1188,92 @@
 
 /* ==================== АДАПТИВНОСТЬ ==================== */
 
-/* Планшеты и небольшие экраны (768px и меньше) */
+/* Большие экраны (1024px и больше) */
+@media (min-width: 1024px) {
+    .profile-main-section {
+        gap: 30px;
+    }
+    
+    .profile-right-section {
+        max-width: 400px;
+    }
+    
+    .profile-name {
+        font-size: 26px;
+    }
+    
+    .desktop-about-me {
+        min-height: 320px;
+    }
+}
+
+/* Планшеты и небольшие экраны (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 769px) {
+    .profile-main-section {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .profile-right-section {
+        max-width: 100%;
+    }
+    
+    .desktop-about-me {
+        min-height: 200px;
+    }
+}
+
+/* Планшеты (768px и меньше) */
 @media (max-width: 768px) {
+    .profile-main-section {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .profile-right-section {
+        display: none;
+    }
+    
+    .mobile-about-me-section {
+        display: block;
+        margin-bottom: 25px;
+    }
+    
+    .profile-header {
+        flex-direction: row;
+        text-align: left;
+        padding: 15px;
+        min-height: 120px;
+    }
+    
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        min-width: 70px;
+        font-size: 30px;
+        margin-right: 15px;
+        margin-bottom: 0;
+    }
+    
+    .profile-name {
+        font-size: 20px;
+    }
+    
+    .profile-id {
+        font-size: 12px;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+    
     .desktop-actions {
         display: none;
     }
     
     .mobile-actions {
         display: flex;
-    }
-    
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .profile-avatar {
-        margin-right: 0;
-        margin-bottom: 15px;
-        width: 80px;
-        height: 80px;
-        font-size: 36px;
-    }
-    
-    .profile-name {
-        font-size: 24px;
     }
     
     .compact-stats-grid {
@@ -970,33 +1284,46 @@
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         max-height: 250px;
     }
-    
-    .section-title {
-        font-size: 18px;
-        margin: 25px 0 15px;
-    }
 }
 
 /* Мобильные телефоны (480px и меньше) */
 @media (max-width: 480px) {
+    .profile-header {
+        padding: 12px;
+        min-height: 100px;
+    }
+    
     .profile-avatar {
         width: 60px;
         height: 60px;
-        font-size: 28px;
+        min-width: 60px;
+        font-size: 26px;
+        margin-right: 12px;
     }
     
     .profile-name {
-        font-size: 20px;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .profile-id {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    
+    .badge {
+        font-size: 9px;
+        padding: 2px 4px;
     }
     
     .compact-stat-card {
-        padding: 12px;
+        padding: 10px;
     }
     
     .compact-stat-icon {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
     }
     
     .compact-stat-value {
@@ -1014,31 +1341,21 @@
     }
 }
 
-/* Большие экраны (1200px и больше) */
-@media (min-width: 1200px) {
-    .profile-container {
-        max-width: 1000px;
-    }
-    
-    .compact-achievements {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        max-height: 350px;
-    }
-    
-    .desktop-actions {
-        gap: 20px;
-    }
-    
-    .desktop-action-btn {
-        padding: 15px;
-        font-size: 16px;
-    }
-}
-
 /* Очень маленькие экраны (360px и меньше) */
 @media (max-width: 360px) {
     .profile-header {
+        flex-direction: column;
+        text-align: center;
         padding: 15px;
+    }
+    
+    .profile-avatar {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .profile-info {
+        padding-left: 0;
     }
     
     .compact-stats-grid {
@@ -1046,14 +1363,14 @@
     }
     
     .compact-stat-card {
-        padding: 10px;
+        padding: 8px;
         gap: 8px;
     }
     
     .compact-stat-icon {
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
     }
     
     .compact-achievements {
@@ -1068,60 +1385,5 @@
     
     .mobile-action-btn {
         width: 100%;
-    }
-}
-
-/* Адаптивность профиля */
-@media (max-width: 768px) {
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .profile-avatar {
-        margin-right: 0;
-        margin-bottom: 15px;
-        width: 80px;
-        height: 80px;
-        font-size: 36px;
-    }
-    
-    .profile-name {
-        font-size: 24px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .achievements-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-    
-    .profile-header::after {
-        font-size: 30px;
-        top: 5px;
-        right: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .profile-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
-    }
-    
-    .profile-name {
-        font-size: 20px;
-    }
-    
-    .section-title {
-        font-size: 18px;
-    }
-    
-    .profile-header::after {
-        font-size: 24px;
     }
 }
