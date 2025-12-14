@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎁 Новогодний магазин | JojoLand</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>Магазин | JojoLand</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="shop.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -21,317 +21,103 @@
 <div id="content">
     <header>
         <div class="header-top">
-            <a href="../index.html" class="profile-btn">
+            <a href="index.html" class="profile-btn">
                 <span class="profile-icon">🏠</span>
                 <span class="profile-text">На главную</span>
             </a>
-            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+            <div class="user-balance-display">
+                <span class="balance-icon">🎄</span>
+                <span id="user-balance">0</span>
+                <span class="balance-label">очков</span>
+            </div>
         </div>
         
-        <h1>🎁 Новогодний магазин</h1>
-        <p class="subtitle">Потратьте новогодние очки на уникальные украшения!</p>
+        <h1>🛍️ Магазин JojoLand</h1>
+        <p class="subtitle">Трать очки на уникальные украшения профиля!</p>
     </header>
 
     <div class="shop-container">
-        <!-- БАЛАНС ПОЛЬЗОВАТЕЛЯ -->
-        <div class="balance-section">
-            <div class="balance-card">
-                <div class="balance-icon">💰</div>
-                <div class="balance-info">
-                    <div class="balance-label">Ваш баланс</div>
-                    <div class="balance-amount" id="user-balance">0</div>
-                    <div class="balance-subtext">новогодних очков</div>
-                </div>
-                <div class="balance-actions">
-                    <a href="../points.html" class="balance-btn">💎 Получить очки</a>
+        
+        <aside class="shop-sidebar">
+            <div class="filter-section">
+                <h3>Категории</h3>
+                <div class="category-tabs">
+                    <button class="cat-btn active" data-cat="all">Все</button>
+                    <button class="cat-btn" data-cat="theme">🎨 Темы</button>
+                    <button class="cat-btn" data-cat="frame">🖼️ Рамки</button>
+                    <button class="cat-btn" data-cat="effect">✨ Эффекты</button>
+                    <button class="cat-btn" data-cat="badge">📛 Бейджи</button>
                 </div>
             </div>
-            <div class="balance-tip">
-                <i class="fas fa-lightbulb"></i> Очки можно получить в ежедневных подарках и активностях
-            </div>
-        </div>
 
-        <!-- РАЗДЕЛ 1: ТЕМЫ ПРОФИЛЯ -->
-        <section class="shop-section" id="profile-themes">
-            <div class="section-header">
-                <h2><i class="fas fa-palette"></i> Тема профиля</h2>
-                <p>Измените внешний вид вашего профиля на уникальный</p>
+            <div class="filter-section">
+                <h3>Сортировка</h3>
+                <select id="sort-select">
+                    <option value="newest">🆕 Сначала новые</option>
+                    <option value="price_asc">💰 Дешевле</option>
+                    <option value="price_desc">💎 Дороже</option>
+                    <option value="rarity">🌟 По редкости</option>
+                </select>
             </div>
             
-            <div class="categories">
-                <button class="category-btn active" data-category="gradients">🎨 Готовые градиенты</button>
-                <button class="category-btn" data-category="custom">✨ Кастомный дизайн</button>
-                <button class="category-btn" data-category="special">⭐ Эксклюзивные</button>
+            <div class="user-inventory-btn-container">
+                <button id="show-inventory-btn" class="action-btn inventory-btn">🎒 Мои покупки</button>
             </div>
+        </aside>
 
-            <div class="products-grid" id="themes-grid">
-                <!-- Темы будут загружаться через JS -->
-                <div class="loading-products">
-                    <div class="spinner"></div>
-                    <p>Загрузка товаров...</p>
+        <main class="shop-main">
+            <div id="shop-grid" class="shop-grid">
                 </div>
-            </div>
-        </section>
+        </main>
 
-        <!-- РАЗДЕЛ 2: УКРАШЕНИЯ ПРОФИЛЯ -->
-        <section class="shop-section" id="profile-decorations">
-            <div class="section-header">
-                <h2><i class="fas fa-sparkles"></i> Украшения профиля</h2>
-                <p>Добавьте уникальные элементы к своему профилю</p>
-            </div>
+    </div>
+</div>
 
-            <div class="decorations-tabs">
-                <button class="tab-btn active" data-type="badges">🏅 Бейджи</button>
-                <button class="tab-btn" data-type="frames">🖼️ Рамки аватара</button>
-                <button class="tab-btn" data-type="effects">✨ Эффекты</button>
-                <button class="tab-btn" data-type="titles">👑 Титулы</button>
-            </div>
-
-            <div class="decorations-grid" id="decorations-grid">
-                <!-- Украшения будут загружаться через JS -->
-            </div>
-        </section>
-
-        <!-- РАЗДЕЛ 3: АНИМИРОВАННЫЕ ЭЛЕМЕНТЫ -->
-        <section class="shop-section" id="animated-items">
-            <div class="section-header">
-                <h2><i class="fas fa-star"></i> Анимированные элементы</h2>
-                <p>Динамичные украшения для вашего профиля</p>
-            </div>
-
-            <div class="animated-grid" id="animated-grid">
-                <!-- Анимированные элементы -->
-            </div>
-        </section>
-
-        <!-- КНОПКИ ДЕЙСТВИЙ -->
-        <div class="shop-actions">
-            <a href="preview.html" class="shop-btn preview-btn">
-                <i class="fas fa-eye"></i> Предпросмотр профиля
-            </a>
-            <a href="../profle/profile.html" class="shop-btn">
-                <i class="fas fa-user"></i> Мой профиль
-            </a>
-            <button class="shop-btn" id="inventory-btn" onclick="openInventory()">
-                <i class="fas fa-box"></i> Инвентарь
-            </button>
+<div id="preview-modal" class="modal-overlay">
+    <div class="modal-content preview-modal-content">
+        <span class="close-modal">&times;</span>
+        
+        <div class="preview-header">
+            <h2>Примерка</h2>
+            <div class="preview-rarity-badge" id="preview-rarity">Legendary</div>
         </div>
 
-        <!-- МОИ ПОКУПКИ -->
-        <div class="my-purchases" id="my-purchases">
-            <h3><i class="fas fa-shopping-bag"></i> Мои покупки</h3>
-            <div class="purchases-list" id="purchases-list">
-                <!-- Купленные товары -->
-                <div class="empty-purchases">
-                    <i class="fas fa-gift"></i>
-                    <p>У вас пока нет покупок</p>
-                    <small>Выберите товары выше и приобретите их</small>
+        <div class="preview-body">
+            <div class="mock-profile-container" id="preview-container">
+                <div class="profile-header" id="mock-header">
+                    <div class="profile-avatar" id="mock-avatar">
+                        <img src="" alt="Avatar" id="mock-avatar-img">
+                        <div class="avatar-frame-layer" id="mock-frame"></div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 class="profile-name" id="mock-name">Ваш Ник</h2>
+                        <div class="profile-badges">
+                            <div class="badge rank-badge">👑 Admin</div>
+                            <div class="badge" id="mock-badge" style="display:none"></div>
+                        </div>
+                    </div>
+                    <div class="bg-effect-layer" id="mock-bg-effect"></div>
                 </div>
             </div>
+
+            <div class="item-details">
+                <h3 id="preview-item-name">Item Name</h3>
+                <p id="preview-item-desc">Description goes here.</p>
+                <div class="preview-price">
+                    <span id="preview-price-val">500</span> 🎄
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-footer">
+            <button id="btn-buy" class="shop-btn buy-btn">Купить</button>
+            <button id="btn-equip" class="shop-btn equip-btn" style="display:none;">Надеть</button>
         </div>
     </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО ПОКУПКИ -->
-<div id="purchase-modal" class="modal-overlay">
-    <div class="modal-content purchase-modal">
-        <div class="modal-header">
-            <h2 id="modal-title">Подтверждение покупки</h2>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body" id="modal-body">
-            <!-- Контент модалки -->
-        </div>
-        <div class="modal-footer">
-            <button class="modal-btn cancel-btn">Отмена</button>
-            <button class="modal-btn confirm-btn" id="confirm-purchase">Купить</button>
-        </div>
-    </div>
-</div>
-
-<!-- МОДАЛЬНОЕ ОКНО КАСТОМНОГО ДИЗАЙНА -->
-<div id="custom-design-modal" class="modal-overlay">
-    <div class="modal-content custom-modal">
-        <div class="modal-header">
-            <h2><i class="fas fa-magic"></i> Кастомный дизайн</h2>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="color-picker-section">
-                <h3>Выберите цвета</h3>
-                <div class="color-pickers">
-                    <div class="color-picker">
-                        <label>Основной цвет:</label>
-                        <input type="color" id="primary-color" value="#6200ff">
-                    </div>
-                    <div class="color-picker">
-                        <label>Вторичный цвет:</label>
-                        <input type="color" id="secondary-color" value="#ff00ff">
-                    </div>
-                    <div class="color-picker">
-                        <label>Цвет текста:</label>
-                        <input type="color" id="text-color" value="#ffffff">
-                    </div>
-                </div>
-                <div class="gradient-preview" id="gradient-preview"></div>
-            </div>
-            
-            <div class="pattern-section">
-                <h3>Выберите узор</h3>
-                <div class="patterns">
-                    <div class="pattern" data-pattern="none">Без узора</div>
-                    <div class="pattern" data-pattern="stars">⭐ Звезды</div>
-                    <div class="pattern" data-pattern="snowflakes">❄️ Снежинки</div>
-                    <div class="pattern" data-pattern="confetti">🎉 Конфетти</div>
-                </div>
-            </div>
-            
-            <div class="price-display">
-                <div class="price-label">Стоимость:</div>
-                <div class="price-amount" id="custom-price">500 очков</div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-btn cancel-btn">Отмена</button>
-            <button class="modal-btn preview-btn" id="preview-custom">
-                <i class="fas fa-eye"></i> Предпросмотр
-            </button>
-            <button class="modal-btn confirm-btn" id="buy-custom">
-                <i class="fas fa-shopping-cart"></i> Купить за 500 очков
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-
-
-<script src="shop-core.js"></script>
-<script src="shop-ui.js"></script>
-
-<!-- ДОБАВЬТЕ ЭТОТ СКРИПТ ПОСЛЕ ОСНОВНЫХ -->
-<script>
-// Функция открытия инвентаря
-function openInventory() {
-    // Проверяем авторизацию
-    const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
-    const userId = localStorage.getItem('jojoland_userId');
-    
-    console.log('🔐 Проверка авторизации для инвентаря:', { isLoggedIn, userId });
-    
-    if (!isLoggedIn || !userId) {
-        // Показываем сообщение об ошибке
-        showShopError('Сначала войдите в аккаунт');
-        
-        // Перенаправляем на страницу входа
-        setTimeout(() => {
-            window.location.href = '../index.html';
-        }, 2000);
-        return;
-    }
-    
-    console.log('✅ Переход в инвентарь');
-    // Переходим на страницу инвентаря
-    window.location.href = 'inventory.html';
-}
-
-// Функция показа ошибок для магазина (чтобы не конфликтовать с существующей)
-function showShopError(message) {
-    // Проверяем, есть ли уже уведомление
-    const existingError = document.querySelector('.shop-error-notification');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // Создаем элемент для сообщения
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'shop-error-notification';
-    errorDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 68, 68, 0.9);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        z-index: 10000;
-        max-width: 300px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        animation: slideInRight 0.3s ease;
-        font-family: 'Orbitron', sans-serif;
-    `;
-    
-    errorDiv.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">⚠️</span>
-            <div>
-                <strong style="display: block; margin-bottom: 5px;">Внимание</strong>
-                <div style="font-size: 14px;">${message}</div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(errorDiv);
-    
-    // Автоматически скрыть через 3 секунды
-    setTimeout(() => {
-        errorDiv.style.opacity = '0';
-        errorDiv.style.transition = 'opacity 0.5s';
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.parentNode.removeChild(errorDiv);
-            }
-        }, 500);
-    }, 3000);
-}
-
-// Добавляем стили для анимации, если их нет
-if (!document.querySelector('#shop-error-styles')) {
-    const style = document.createElement('style');
-    style.id = 'shop-error-styles';
-    style.textContent = `
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .shop-error-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 68, 68, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            z-index: 10000;
-            max-width: 300px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            animation: slideInRight 0.3s ease;
-            font-family: 'Orbitron', sans-serif;
-        }
-        
-        .shop-error-notification strong {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 16px;
-        }
-        
-        .shop-error-notification div {
-            font-size: 14px;
-        }
-    `;
-    document.head.appendChild(style);
-}
-</script>
-
+<script src="shop.js"></script>
 </body>
 </html>
