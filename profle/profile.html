@@ -24,11 +24,11 @@
 <div id="content">
     <header>
         <div class="header-top">
-            <a href="../index.html" class="profile-btn">
+            <a href="index.html" class="profile-btn">
                 <span class="profile-icon">🏠</span>
                 <span class="profile-text">На главную</span>
             </a>
-            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+            <img src="images/logo.png" class="logo" alt="JojoLand Logo">
         </div>
         
         <h1 id="page-title">Мой профиль</h1>
@@ -52,8 +52,10 @@
 
             <!-- Мобильные кнопки действий -->
             <div class="mobile-actions" id="mobile-actions">
-                <a href="../index.html" class="mobile-action-btn">🏠 Главная</a>
+                <a href="index.html" class="mobile-action-btn">🏠 Главная</a>
                 <a href="players.html" class="mobile-action-btn">👥 Игроки</a>
+                <a href="points.html" class="mobile-action-btn">🎄 Очки</a>
+                <a href="shop.html" class="mobile-action-btn">🎁 Магазин</a>
                 <button class="mobile-action-btn logout-btn" id="mobile-logout-btn">🚪 Выйти</button>
             </div>
 
@@ -82,6 +84,23 @@
                         <div class="compact-stat-value" id="activity-level">Новичок</div>
                     </div>
                 </div>
+                
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">🎄</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Новогодние очки</div>
+                        <div class="compact-stat-value" id="holiday-points">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- СЕКЦИЯ ПОДАРКОВ -->
+            <div class="gifts-section" id="gifts-section" style="display: none;">
+                <h3 class="section-title">🎁 Коллекция подарков</h3>
+                <div class="gifts-grid" id="profile-gifts-grid">
+                    <!-- Подарки загружаются через JS -->
+                </div>
+                <a href="shop.html" class="view-gifts-btn">🛍️ Весь инвентарь</a>
             </div>
 
             <h3 class="section-title">🏆 Достижения</h3>
@@ -89,12 +108,14 @@
 
             <!-- Десктопные кнопки действий -->
             <div class="desktop-actions" id="desktop-actions">
-                <a href="../index.html" class="desktop-action-btn">🏠 На главную</a>
+                <a href="index.html" class="desktop-action-btn">🏠 На главную</a>
                 <a href="players.html" class="desktop-action-btn">👥 Все игроки</a>
+                <a href="points.html" class="desktop-action-btn">🎄 Новогодние очки</a>
+                <a href="shop.html" class="desktop-action-btn">🎁 Магазин подарков</a>
                 <button class="desktop-action-btn logout-btn" id="desktop-logout-btn">🚪 Выйти из аккаунта</button>
             </div>
 
-            <a href="../index.html" class="back-btn">← Вернуться на главную</a>
+            <a href="index.html" class="back-btn">← Вернуться на главную</a>
         </div>
     </div>
 
@@ -433,20 +454,14 @@ async function loadHolidayPoints(userId) {
             const totalPoints = pointsData.total_points || pointsData.totalPoints || 0;
             console.log('🎄 Всего новогодних очков:', totalPoints);
             
-            // Возвращаем данные для других функций
-            return {
-                total: totalPoints,
-                available: pointsData.available_points || pointsData.availablePoints || 0,
-                spent: pointsData.spent_points || pointsData.spentPoints || 0,
-                streak: pointsData.current_streak || pointsData.currentStreak || 0
-            };
+            return totalPoints;
         } else {
             console.log('⚠️ Данные новогодних очков не найдены для пользователя:', userId);
-            return { total: 0, available: 0, spent: 0, streak: 0 };
+            return 0;
         }
     } catch (error) {
         console.error('❌ Ошибка загрузки новогодних очков:', error);
-        return { total: 0, available: 0, spent: 0, streak: 0 };
+        return 0;
     }
 }
 
@@ -482,10 +497,13 @@ async function loadUserProfile() {
             applyRankTheme(rank, hasCustomAvatar);
             
             // Загружаем новогодние очки
-            const pointsData = await loadHolidayPoints(userId);
+            const holidayPoints = await loadHolidayPoints(userId);
+            
+            // Загружаем подарки пользователя
+            await displayUserGifts(userId);
             
             // Отображаем все данные
-            displayUserData(userData, userId, nickname, pointsData.total, rank);
+            displayUserData(userData, userId, nickname, holidayPoints, rank);
             
             // Если есть кастомный аватар, отображаем его
             if (hasCustomAvatar) {
@@ -566,10 +584,13 @@ async function loadOtherUserProfile(viewUserId) {
         applyRankTheme(rank, hasCustomAvatar);
         
         // Загружаем новогодние очки
-        const pointsData = await loadHolidayPoints(viewUserId);
+        const holidayPoints = await loadHolidayPoints(viewUserId);
+        
+        // Загружаем подарки другого игрока
+        await displayUserGifts(viewUserId);
         
         // Отображаем все данные
-        displayUserData(userData, viewUserId, userData.nickname, pointsData.total, rank);
+        displayUserData(userData, viewUserId, userData.nickname, holidayPoints, rank);
         
         // Если есть кастомный аватар, отображаем его
         if (hasCustomAvatar) {
@@ -638,6 +659,7 @@ function displayUserData(userData, userId, nickname, holidayPoints, rank) {
     
     document.getElementById('register-date').textContent = formatDate(createdAt);
     document.getElementById('last-visit').textContent = formatTime(lastVisit);
+    document.getElementById('holiday-points').textContent = holidayPoints;
     
     // Уровень активности (на основе visitsCount)
     const visits = userData.visitsCount || userData.visitscount || 1;
@@ -825,6 +847,111 @@ function showError(message) {
             }
         }, 500);
     }, 5000);
+}
+
+// ==================== ЗАГРУЗКА ПОДАРКОВ ПОЛЬЗОВАТЕЛЯ ====================
+async function loadUserGifts(userId) {
+    console.log('🎁 Загружаю подарки пользователя:', userId);
+    
+    try {
+        const [inventorySnapshot, giftsSnapshot] = await Promise.all([
+            database.ref('gift_inventory/' + userId).once('value'),
+            database.ref('shop_gifts').once('value')
+        ]);
+        
+        if (!inventorySnapshot.exists()) {
+            console.log('📭 У пользователя нет подарков');
+            return [];
+        }
+        
+        const inventory = inventorySnapshot.val();
+        const allGifts = giftsSnapshot.val();
+        const userGifts = [];
+        
+        // Собираем данные о подарках пользователя
+        for (const [giftId, inventoryData] of Object.entries(inventory)) {
+            const gift = allGifts[giftId];
+            if (gift) {
+                userGifts.push({
+                    ...gift,
+                    inventory_data: inventoryData
+                });
+            }
+        }
+        
+        console.log('✅ Загружено подарков:', userGifts.length);
+        return userGifts;
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки подарков:', error);
+        return [];
+    }
+}
+
+// ==================== ОТОБРАЖЕНИЕ ПОДАРКОВ В ПРОФИЛЕ ====================
+async function displayUserGifts(userId) {
+    const giftsSection = document.getElementById('gifts-section');
+    const giftsGrid = document.getElementById('profile-gifts-grid');
+    
+    const userGifts = await loadUserGifts(userId);
+    
+    if (userGifts.length === 0) {
+        giftsSection.style.display = 'none';
+        return;
+    }
+    
+    // Показываем секцию
+    giftsSection.style.display = 'block';
+    
+    // Ограничиваем количество отображаемых подарков
+    const displayGifts = userGifts.slice(0, 12); // Показываем первые 12
+    
+    giftsGrid.innerHTML = displayGifts.map(gift => `
+        <div class="profile-gift-card ${gift.rarity}" 
+             title="${gift.name}" 
+             onclick="window.open('shop.html', '_blank')">
+            
+            ${gift.inventory_data.is_selling ? 
+                '<div class="selling-badge" title="На продаже">💰</div>' : ''}
+            
+            <div class="profile-gift-icon">
+                ${gift.icon}
+            </div>
+            
+            <div class="profile-gift-name">${gift.name}</div>
+            
+            <div class="profile-gift-rarity ${gift.rarity}">
+                ${getRarityName(gift.rarity)}
+            </div>
+            
+            <div class="profile-gift-date">
+                ${new Date(gift.inventory_data.purchased_at).toLocaleDateString('ru-RU')}
+            </div>
+        </div>
+    `).join('');
+    
+    // Если подарков больше 12, показываем сообщение
+    if (userGifts.length > 12) {
+        const moreCount = userGifts.length - 12;
+        giftsGrid.innerHTML += `
+            <div class="empty-gifts">
+                <div class="empty-gifts-icon">➕</div>
+                <p>И еще ${moreCount} подарков</p>
+                <small>Нажмите "Весь инвентарь" для просмотра</small>
+            </div>
+        `;
+    }
+}
+
+// Вспомогательная функция для получения названия редкости
+function getRarityName(rarity) {
+    const names = {
+        'common': 'Обычный',
+        'rare': 'Редкий',
+        'mythical': 'Мифический',
+        'golden': 'Золотой'
+    };
+    return names[rarity] || rarity;
 }
 
 // ==================== ОБРАБОТЧИКИ ДЛЯ НОВЫХ КНОПОК ====================
