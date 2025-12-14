@@ -12,6 +12,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// Глобальные переменные
+let userId = null;
+let userNickname = null;
+let userBalance = 0;
+let userInventory = [];
+let giftsData = {};
+let exchangeOrders = [];
+let priceChart = null;
+let threeDScenes = {};
+
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
+
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
@@ -38,15 +50,156 @@ function createParticles() {
     }
 }
 
-// Глобальные переменные
-let userId = null;
-let userNickname = null;
-let userBalance = 0;
-let userInventory = [];
-let giftsData = {};
-let exchangeOrders = [];
-let priceChart = null;
-let threeDScenes = {};
+// ПОКАЗ УВЕДОМЛЕНИЙ
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(0, 204, 102, 0.9)' : 'rgba(255, 68, 68, 0.9)'};
+        border: 1px solid ${type === 'success' ? '#00cc66' : '#ff4444'};
+        border-radius: 10px;
+        padding: 15px 25px;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        z-index: 2000;
+        animation: slideInRight 0.5s ease;
+        max-width: 300px;
+        font-size: 14px;
+    `;
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">
+            ${type === 'success' ? '✅ Успешно!' : '⚠️ Ошибка'}
+        </div>
+        <div>${message}</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// ПОКАЗ ОШИБОК
+function showError(message) {
+    showNotification(message, 'error');
+}
+
+// ПРОВЕРКА АВТОРИЗАЦИИ
+async function checkAuth() {
+    userId = localStorage.getItem('jojoland_userId');
+    userNickname = localStorage.getItem('jojoland_nickname');
+    
+    if (!userId || !userNickname) {
+        showError('Для доступа к магазину необходимо войти в аккаунт');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 3000);
+        return false;
+    }
+    
+    return true;
+}
+
+// ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+async function loadUserData() {
+    try {
+        // Загружаем баланс (новогодние очки)
+        const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
+        if (pointsSnapshot.exists()) {
+            const pointsData = pointsSnapshot.val();
+            userBalance = pointsData.total_points || pointsData.totalPoints || 0;
+        }
+        
+        // Загружаем инвентарь
+        const inventorySnapshot = await database.ref('gift_inventory/' + userId).once('value');
+        if (inventorySnapshot.exists()) {
+            const inventory = inventorySnapshot.val();
+            userInventory = Object.values(inventory);
+        } else {
+            userInventory = [];
+        }
+        
+        // Обновляем UI
+        updateBalance();
+        updateInventoryStats();
+        
+    } catch (error) {
+        console.error('Ошибка загрузки данных пользователя:', error);
+        showError('Ошибка загрузки данных');
+    }
+}
+
+// ОБНОВЛЕНИЕ БАЛАНСА
+function updateBalance() {
+    const userBalanceEl = document.getElementById('user-balance');
+    const balanceAmountEl = document.getElementById('balance-amount');
+    
+    if (userBalanceEl) userBalanceEl.textContent = userBalance;
+    if (balanceAmountEl) balanceAmountEl.textContent = userBalance;
+}
+
+// ОБНОВЛЕНИЕ СТАТИСТИКИ ИНВЕНТАРЯ
+function updateInventoryStats() {
+    const counts = {
+        common: 0,
+        rare: 0,
+        mythical: 0,
+        golden: 0,
+        selling: 0
+    };
+    
+    userInventory.forEach(item => {
+        const gift = giftsData[item.gift_id];
+        if (gift && counts.hasOwnProperty(gift.rarity)) {
+            counts[gift.rarity]++;
+        }
+        if (item.is_selling) {
+            counts.selling++;
+        }
+    });
+    
+    const total = userInventory.length;
+    
+    const elements = {
+        'total-gifts': total,
+        'golden-count': counts.golden,
+        'mythical-count': counts.mythical,
+        'rare-count': counts.rare,
+        'common-count': counts.common,
+        'selling-count': counts.selling
+    };
+    
+    for (const [id, value] of Object.entries(elements)) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+}
+
+// ДОБАВЬТЕ ЭТИ СТИЛИ ДЛЯ АНИМАЦИЙ УВЕДОМЛЕНИЙ
+const notificationStyles = document.createElement('style');
+notificationStyles.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(notificationStyles);
 
 // ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
