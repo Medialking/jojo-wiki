@@ -51,28 +51,41 @@
                 </div>
             </div>
 
-            <h3 class="section-title">📊 Статистика</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-title">Дата регистрации</div>
-                    <div class="stat-value" id="register-date">--.--.----</div>
+            <!-- Мобильные кнопки действий (видны только на мобильных) -->
+            <div class="mobile-actions" id="mobile-actions">
+                <a href="../index.html" class="mobile-action-btn">🏠 Главная</a>
+                <a href="players.html" class="mobile-action-btn">👥 Игроки</a>
+                <button class="mobile-action-btn logout-btn" id="mobile-logout-btn">🚪 Выйти</button>
+            </div>
+
+            <!-- Компактная сетка статистики -->
+            <div class="compact-stats-grid">
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">📅</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Регистрация</div>
+                        <div class="compact-stat-value" id="register-date">--.--.----</div>
+                    </div>
                 </div>
                 
-                <div class="stat-card">
-                    <div class="stat-icon">⏱️</div>
-                    <div class="stat-title">Последний визит</div>
-                    <div class="stat-value" id="last-visit">--:--</div>
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">⏱️</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Последний визит</div>
+                        <div class="compact-stat-value" id="last-visit">--:--</div>
+                    </div>
                 </div>
                 
-                <div class="stat-card">
-                    <div class="stat-icon">🎮</div>
-                    <div class="stat-title">Уровень активности</div>
-                    <div class="stat-value" id="activity-level">Новичок</div>
+                <div class="compact-stat-card">
+                    <div class="compact-stat-icon">🎮</div>
+                    <div class="compact-stat-content">
+                        <div class="compact-stat-title">Активность</div>
+                        <div class="compact-stat-value" id="activity-level">Новичок</div>
+                    </div>
                 </div>
             </div>
 
-            <h3 class="section-title">✨ О себе</h3>
+            <h3 class="section-title">📝 О себе</h3>
             <div class="about-me-card stat-card">
                 <div id="about-me-display">
                     <p id="about-me-text">Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!</p>
@@ -97,26 +110,19 @@
                 </div>
                 <button class="action-btn" id="edit-about-me-btn" style="margin-top: 15px; width: 100%;">✏️ Редактировать</button>
             </div>
-            <h3 class="section-title">🎄 Новогодние очки</h3>
-            <div class="holiday-points-card">
-                <div class="points-display" id="holiday-points">0</div>
-                <div class="points-label">собрано очков</div>
-                <p>Участвуйте в новогодних активностях, чтобы получить больше очков!</p>
-                <a href="points.html" class="holiday-btn">Как получить очки →</a>
-            </div>
 
             <h3 class="section-title">🏆 Достижения</h3>
-            <div class="achievements-grid" id="achievements-container">
+            <div class="compact-achievements" id="achievements-container">
                 </div>
 
-            <div class="action-buttons" id="action-buttons">
-                <a href="index.html" class="action-btn">🏠 На главную</a>
-                <a href="players.html" class="action-btn">👥 Все игроки</a>
-                <a href="points.html" class="action-btn">🎄 Новогодние очки</a>
-                <button class="action-btn" id="logout-btn-profile">🚪 Выйти из аккаунта</button>
+            <!-- Десктопные кнопки действий (видны только на ПК) -->
+            <div class="desktop-actions" id="desktop-actions">
+                <a href="../index.html" class="desktop-action-btn">🏠 На главную</a>
+                <a href="players.html" class="desktop-action-btn">👥 Все игроки</a>
+                <button class="desktop-action-btn logout-btn" id="desktop-logout-btn">🚪 Выйти из аккаунта</button>
             </div>
 
-            <a href="index.html" class="back-btn">← Вернуться на главную</a>
+            <a href="../index.html" class="back-btn">← Вернуться на главную</a>
         </div>
     </div>
 
@@ -455,9 +461,6 @@ async function loadHolidayPoints(userId) {
             const totalPoints = pointsData.total_points || pointsData.totalPoints || 0;
             console.log('🎄 Всего новогодних очков:', totalPoints);
             
-            // Обновляем отображение
-            document.getElementById('holiday-points').textContent = totalPoints;
-            
             // Возвращаем данные для других функций
             return {
                 total: totalPoints,
@@ -467,12 +470,10 @@ async function loadHolidayPoints(userId) {
             };
         } else {
             console.log('⚠️ Данные новогодних очков не найдены для пользователя:', userId);
-            document.getElementById('holiday-points').textContent = 0;
             return { total: 0, available: 0, spent: 0, streak: 0 };
         }
     } catch (error) {
         console.error('❌ Ошибка загрузки новогодних очков:', error);
-        document.getElementById('holiday-points').textContent = 0;
         return { total: 0, available: 0, spent: 0, streak: 0 };
     }
 }
@@ -496,7 +497,7 @@ async function loadUserProfile() {
         const snapshot = await database.ref('users/' + userId).once('value');
         
         if (snapshot.exists()) {
-            const userData = snapshot.val(); // ← ЗДЕСЬ userData ОПРЕДЕЛЕНА
+            const userData = snapshot.val();
             console.log('✅ Данные пользователя загружены:', userData);
             
             // Определяем ранг пользователя
@@ -520,7 +521,7 @@ async function loadUserProfile() {
             }
 
             // Обновляем последний визит (только для своего профиля)
-            await updateLastVisit(userId, userData); // ← userData передается сюда (ЭТА СТРОКА 496)
+            await updateLastVisit(userId, userData);
         } else {
             console.log('❌ Пользователь не найден в базе данных');
             document.getElementById('user-nickname').textContent = nickname;
@@ -529,9 +530,6 @@ async function loadUserProfile() {
             
             // Применяем стандартную тему
             applyRankTheme('player', false);
-            
-            // Пытаемся загрузить хотя бы новогодние очки
-            await loadHolidayPoints(userId);
         }
     } catch (error) {
         console.error('❌ Ошибка загрузки профиля:', error);
@@ -610,23 +608,15 @@ async function loadOtherUserProfile(viewUserId) {
         document.getElementById('page-title').textContent = 'Профиль игрока';
         document.getElementById('page-subtitle').textContent = `Просмотр профиля игрока "${userData.nickname || 'Неизвестно'}"`;
         
-        // Изменяем кнопки действий
-        const actionButtons = document.getElementById('action-buttons');
-        actionButtons.innerHTML = `
-            <a href="players.html" class="action-btn">👥 Назад к списку игроков</a>
-            <a href="index.html" class="action-btn">🏠 На главную</a>
-        `;
+        // Изменяем кнопки действий - скрываем мобильные и десктопные кнопки для чужих профилей
+        document.getElementById('mobile-actions').style.display = 'none';
+        document.getElementById('desktop-actions').style.display = 'none';
         
-        // Убираем кнопку выхода
-        const logoutBtn = document.getElementById('logout-btn-profile');
-        if (logoutBtn) {
-            logoutBtn.style.display = 'none';
-        }
-        
-        // Обновляем ссылку "Назад"
+        // Показываем кнопки для навигации
         const backBtn = document.querySelector('.back-btn');
         backBtn.href = 'players.html';
         backBtn.textContent = '← Назад к списку игроков';
+        backBtn.style.display = 'block';
         
     } catch (error) {
         console.error('❌ Ошибка загрузки профиля другого игрока:', error);
@@ -714,7 +704,6 @@ function setupAboutMeEditing() {
         editArea.style.display = 'block';
         
         // Загружаем текущий текст в текстовое поле
-        // (Обрезаем начальный/заглушечный текст, если он есть)
         const currentText = aboutMeTextEl.textContent;
         if (currentText !== 'Пока здесь ничего нет. Нажмите "Редактировать", чтобы рассказать о себе!' && currentText !== 'Игрок не оставил информацию о себе.') {
              textarea.value = currentText;
@@ -733,7 +722,7 @@ function setupAboutMeEditing() {
 
     // Клик по "Сохранить"
     saveBtn.addEventListener('click', async () => {
-        const newText = textarea.value.trim().substring(0, 300); // Ограничение в 300 символов
+        const newText = textarea.value.trim().substring(0, 300);
 
         // Показываем спиннер на кнопке сохранения
         saveBtn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;margin: 0 auto;"></div>';
@@ -749,7 +738,7 @@ function setupAboutMeEditing() {
             displayText.style.display = 'block';
             editBtn.style.display = 'block';
             editArea.style.display = 'none';
-            showError('Информация о себе сохранена!'); // Используем существующую функцию
+            showError('Информация о себе сохранена!');
 
         } catch (error) {
             console.error('Ошибка сохранения "О себе":', error);
@@ -761,7 +750,6 @@ function setupAboutMeEditing() {
         }
     });
 }
-
 
 // ==================== ОТОБРАЖЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ====================
 function displayUserData(userData, userId, nickname, holidayPoints, rank) {
@@ -785,10 +773,8 @@ function displayUserData(userData, userId, nickname, holidayPoints, rank) {
     if (visits > 50) activityLevel = 'Легенда';
     document.getElementById('activity-level').textContent = activityLevel;
     
-    // --> Обновление секции "О себе"
+    // Обновление секции "О себе"
     displayAboutMe(userData.aboutMe, userId);
-    
-    // Новогодние очки уже загружены отдельно
     
     // Бейджи и достижения
     displayBadges(userData, visits, holidayPoints, rank);
@@ -873,49 +859,49 @@ function displayAchievements(userData, visits, holidayPoints) {
             id: 'regular', 
             icon: '📅', 
             name: 'Постоянный гость', 
-            desc: '3 посещения сайта', 
+            desc: '3 посещения', 
             earned: visits >= 3 
         },
         { 
             id: 'veteran', 
             icon: '⭐', 
             name: 'Ветеран', 
-            desc: '10 посещений сайта', 
+            desc: '10 посещений', 
             earned: visits >= 10 
         },
         { 
             id: 'legend', 
             icon: '👑', 
             name: 'Легенда', 
-            desc: '30 посещений сайта', 
+            desc: '30 посещений', 
             earned: visits >= 30 
         },
         { 
             id: 'new_year_start', 
             icon: '🎄', 
-            name: 'Новогодний дух', 
-            desc: 'Получить новогодние очки', 
+            name: 'Новый год', 
+            desc: 'Получить очки', 
             earned: holidayPoints >= 1 
         },
         { 
             id: 'collector', 
             icon: '🏆', 
             name: 'Коллекционер', 
-            desc: '50 новогодних очков', 
+            desc: '50 очков', 
             earned: holidayPoints >= 50 
         },
         { 
             id: 'rich', 
             icon: '💰', 
             name: 'Богатый', 
-            desc: '100 новогодних очков', 
+            desc: '100 очков', 
             earned: holidayPoints >= 100 
         },
         { 
             id: 'master', 
             icon: '👑', 
             name: 'Мастер', 
-            desc: '500 новогодних очков', 
+            desc: '500 очков', 
             earned: holidayPoints >= 500 
         }
     ];
@@ -969,11 +955,32 @@ function showError(message) {
     }, 5000);
 }
 
-// ==================== ВЫХОД ИЗ АККАУНТА ====================
+// ==================== ОБРАБОТЧИКИ ДЛЯ НОВЫХ КНОПОК ====================
 document.addEventListener('DOMContentLoaded', function() {
-    const logoutBtn = document.getElementById('logout-btn-profile');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
+    // Обработчик для кнопки выхода в мобильной версии
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите выйти из аккаунта?\nДля входа снова потребуется пароль.')) {
+                localStorage.removeItem('jojoland_nickname');
+                localStorage.removeItem('jojoland_userId');
+                localStorage.removeItem('jojoland_loggedIn');
+                // Очищаем кэш аватаров при выходе
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('jojoland_avatar_')) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                window.location.href = 'index.html';
+            }
+        });
+    }
+    
+    // Обработчик для кнопки выхода в десктопной версии
+    const desktopLogoutBtn = document.getElementById('desktop-logout-btn');
+    if (desktopLogoutBtn) {
+        desktopLogoutBtn.addEventListener('click', function() {
             if (confirm('Вы уверены, что хотите выйти из аккаунта?\nДля входа снова потребуется пароль.')) {
                 localStorage.removeItem('jojoland_nickname');
                 localStorage.removeItem('jojoland_userId');
