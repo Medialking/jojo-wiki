@@ -251,31 +251,48 @@ function showError(message) {
 // ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ПОЛЬЗОВАТЕЛЬ АДМИНОМ
 async function checkIfAdmin(userId) {
     try {
-        // Способ 1: Проверка Custom Claims (рекомендуется)
-        if (currentUser) {
-            // Получаем ID токен и проверяем claims
-            const idTokenResult = await currentUser.getIdTokenResult();
+        // Способ 1: Проверка в базе данных
+        const adminSnapshot = await database.ref(`admins/${userId}`).once('value');
+        if (adminSnapshot.exists()) {
+            const adminData = adminSnapshot.val();
             
-            if (idTokenResult.claims.admin) {
-                console.log('✅ Пользователь админ (Custom Claims)');
+            if (adminData.active === false) {
+                console.log('❌ Админ деактивирован');
+                return false;
+            }
+            
+            console.log(`✅ Пользователь админ: ${adminData.email} (Уровень: ${adminData.level})`);
+            
+            // Сохраняем данные админа
+            window.adminData = adminData;
+            
+            return true;
+        }
+        
+        // Способ 2: Проверка по email
+        if (currentUser?.email) {
+            const emailSnapshot = await database.ref('admin_emails').once('value');
+            const adminEmails = emailSnapshot.val() || {};
+            
+            const userEmail = currentUser.email.toLowerCase();
+            const isEmailInList = Object.values(adminEmails).some(email => 
+                email.toLowerCase() === userEmail
+            );
+            
+            if (isEmailInList) {
+                console.log('✅ Пользователь админ (по email списку)');
+                
+                // Создаем запись в базе, если ее нет
+                await database.ref(`admins/${userId}`).set({
+                    email: currentUser.email,
+                    displayName: currentUser.displayName || 'Администратор',
+                    level: 'admin',
+                    createdAt: new Date().toISOString(),
+                    active: true
+                });
+                
                 return true;
             }
-        }
-        
-        // Способ 2: Проверка в базе данных
-        const adminSnapshot = await database.ref(`admins/${userId}`).once('value');
-        if (adminSnapshot.exists() && adminSnapshot.val().active === true) {
-            console.log('✅ Пользователь админ (Database)');
-            return true;
-        }
-        
-        // Способ 3: Проверка по email (для начальной настройки)
-        const userEmail = currentUser?.email || '';
-        const adminEmails = await getAdminEmailsFromDB();
-        
-        if (adminEmails.includes(userEmail.toLowerCase())) {
-            console.log('✅ Пользователь админ (Email list)');
-            return true;
         }
         
         console.log('❌ Пользователь не админ');
