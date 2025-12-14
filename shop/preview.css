@@ -1,5 +1,26 @@
-/* preview.css - стили для страницы предпросмотра */
+/* КАСТОМНЫЕ ТЕМЫ ПРОФИЛЯ */
+.profile-header.custom-theme {
+    /* Стили будут применяться динамически через JS */
+}
 
+/* АНИМИРОВАННЫЕ ЭЛЕМЕНТЫ */
+.floating-badge {
+    position: absolute;
+    font-size: 20px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+.sparkle {
+    position: absolute;
+    font-size: 12px;
+    animation: sparkle 2s infinite;
+}
+/* preview.css - стили для страницы предпросмотра */
 .preview-container {
     max-width: 1400px;
     margin: 40px auto;
