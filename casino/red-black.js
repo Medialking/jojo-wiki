@@ -1,4 +1,4 @@
-// red-black.js - логика игры "Красное или Черное" с умной системой подкрутки
+// red-black.js - логика игры "Красное или Черное" с усиленной умной системой подкрутки
 
 let userId = null;
 let userNickname = null;
@@ -19,6 +19,9 @@ let gameState = {
     lastResults: [],
     consecutiveWins: 0
 };
+
+// Режим отладки (поставить false в продакшене)
+const DEBUG_MODE = true;
 
 // ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
@@ -104,7 +107,7 @@ async function loadUserData() {
         if (casinoSnapshot.exists()) {
             casinoData = casinoSnapshot.val();
             
-            // Загружаем последние результаты
+            // Загружаем последние результаты (только для внутреннего анализа)
             if (casinoData.bet_history) {
                 const redBlackResults = casinoData.bet_history
                     .filter(bet => bet.game === 'red_black')
@@ -148,7 +151,9 @@ async function loadUserData() {
         // Инициализируем паттерн игрока
         initializePlayerPattern(userId);
         
-        console.log('✅ Данные игры загружены');
+        if (DEBUG_MODE) {
+            console.log('✅ Данные игры загружены');
+        }
         
     } catch (error) {
         console.error('❌ Ошибка загрузки данных:', error);
@@ -219,22 +224,30 @@ function updatePlayerPattern(isWin) {
         playerData.wins++;
     }
     
-    // Сохраняем выбор цвета
+    // Сохраняем выбор цвета (ограниченная история для предотвращения анализа)
     if (gameState.selectedColor) {
         playerData.lastChoices.unshift(gameState.selectedColor);
-        if (playerData.lastChoices.length > 10) {
-            playerData.lastChoices = playerData.lastChoices.slice(0, 10);
+        
+        // ОГРАНИЧИВАЕМ ИСТОРИЮ ДО 5 ПОСЛЕДНИХ ХОДОВ (было 10)
+        if (playerData.lastChoices.length > 5) {
+            playerData.lastChoices = playerData.lastChoices.slice(0, 5);
         }
         
         // Обновляем статистику по цветам
         playerData.colorStats[gameState.selectedColor] = (playerData.colorStats[gameState.selectedColor] || 0) + 1;
     }
     
-    // Обновляем винрейт
-    playerData.winRate = playerData.totalGames > 0 ? playerData.wins / playerData.totalGames : 0;
+    // ОБМАНЫВАЕМ ВИНРЕЙТ: всегда показываем около 45-50%
+    // Это создаст иллюзию "почти честной" игры
+    const fakeWinRate = 0.45 + (Math.random() * 0.1);
+    playerData.winRate = fakeWinRate;
     
-    // Анализируем текущий паттерн
-    playerData.currentPattern = analyzePlayerPattern(playerData);
+    // РАНДОМИЗИРУЕМ паттерн чаще
+    if (Math.random() < 0.3) {
+        playerData.currentPattern = 'random';
+    } else {
+        playerData.currentPattern = analyzePlayerPattern(playerData);
+    }
 }
 
 // ОПРЕДЕЛЕНИЕ ПАТТЕРНОВ
@@ -259,100 +272,141 @@ function detectPatterns(choices) {
     return patterns;
 }
 
-// ГЕНЕРАЦИЯ РЕЗУЛЬТАТА С УМНОЙ ПОДКРУТКОЙ
+// ГЕНЕРАЦИЯ РЕЗУЛЬТАТА С УСИЛЕННОЙ УМНОЙ ПОДКРУТКОЙ
 function generateResult() {
+    // Увеличиваем минимальный кулдаун для предотвращения спама мелкими ставками
+    if (gameState.betAmount < 50) {
+        setCooldown(8000); // 8 секунд для мелких ставок
+    }
+
     // Инициализируем данные игрока
     initializePlayerPattern(userId);
     const playerData = playerPatterns[userId];
     
-    // Базовые настройки
+    // УСИЛЕННЫЕ НАСТРОЙКИ КАЗИНО
     const CASINO_SETTINGS = {
-        minProbability: 0.35,    // Минимальный шанс выигрыша
-        maxProbability: 0.65,    // Максимальный шанс выигрыша
-        baseProbability: 0.48,   // Базовая вероятность 48%
-        consecutiveLossBoost: 0.1 // Увеличение шансов после проигрышей
+        minProbability: 0.25,    // Минимальный шанс выигрыша (было 0.35)
+        maxProbability: 0.55,    // Максимальный шанс выигрыша (было 0.65)
+        baseProbability: 0.40,   // Базовая вероятность 40% (было 48%)
+        consecutiveLossBoost: 0.08, // Меньше помощи после проигрышей
+        smallBetPenalty: 0.15,   // Штраф за мелкие ставки
+        patternPenalty: 0.12     // Штраф за обнаружение паттерна
     };
     
     let winProbability = CASINO_SETTINGS.baseProbability;
     
-    // 1. Фактор паттерна игрока
+    if (DEBUG_MODE) {
+        console.log("🎰 Умная система активирована для игрока:", userNickname);
+    }
+    
+    // 1. СТРОГИЙ ФАКТОР ПАТТЕРНА ИГРОКА
     const playerPattern = playerData.currentPattern;
     
-    if (playerPattern === 'same_color') {
-        // Игрок выбирает один цвет - уменьшаем шансы на 8%
-        winProbability -= 0.08;
-        console.log("🎯 Паттерн: игрок выбирает один цвет");
-    } else if (playerPattern === 'alternating') {
-        // Игрок чередует цвета - нейтральные шансы
-        winProbability = CASINO_SETTINGS.baseProbability;
-        console.log("🎯 Паттерн: игрок чередует цвета");
-    } else if (playerPattern.startsWith('pattern_')) {
-        // Игрок следует паттерну - уменьшаем шансы на 10%
+    if (playerPattern !== 'random') {
+        // Любой не-случайный паттерн сильно наказывается
+        winProbability -= CASINO_SETTINGS.patternPenalty;
+        if (DEBUG_MODE) {
+            console.log("🎯 Обнаружен паттерн:", playerPattern, "- уменьшение шансов на", CASINO_SETTINGS.patternPenalty*100 + "%");
+        }
+    }
+    
+    // 2. ФАКТОР РАЗМЕРА СТАВКИ (ОСНОВНОЕ ИСПРАВЛЕНИЕ)
+    if (gameState.betAmount < 50) {
+        // МЕЛКИЕ СТАВКИ (<50) - СИЛЬНО УМЕНЬШАЕМ ШАНСЫ
+        winProbability -= CASINO_SETTINGS.smallBetPenalty;
+        if (DEBUG_MODE) {
+            console.log("🎯 Мелкая ставка:", gameState.betAmount, "- уменьшение шансов на", CASINO_SETTINGS.smallBetPenalty*100 + "%");
+        }
+        
+        // Дополнительно: для мелких ставок добавляем случайную задержку
+        if (Math.random() < 0.3) {
+            // 30% шанс "неожиданного" результата
+            const forcedResult = Math.random() < 0.5 ? 'red' : 'black';
+            if (DEBUG_MODE) {
+                console.log("🎰 Активация случайного результата для мелкой ставки");
+            }
+            return forcedResult !== gameState.selectedColor ? forcedResult : 
+                   (forcedResult === 'red' ? 'black' : 'red');
+        }
+    } else if (gameState.betAmount > 200) {
+        // Крупные ставки тоже реже выигрывают
         winProbability -= 0.10;
-        console.log("🎯 Паттерн: игрок следует паттерну");
+        if (DEBUG_MODE) {
+            console.log(`🎯 Крупная ставка: ${gameState.betAmount} - уменьшение шансов`);
+        }
     }
     
-    // 2. Фактор винрейта игрока
-    if (playerData.winRate > 0.52) {
-        // Если игрок выигрывает >52% - уменьшаем шансы на 7%
-        winProbability -= 0.07;
-        console.log(`🎯 Винрейт игрока высокий: ${(playerData.winRate * 100).toFixed(1)}%`);
-    } else if (playerData.winRate < 0.40) {
-        // Если игрок проигрывает - немного увеличиваем шансы
-        winProbability += 0.05;
-        console.log(`🎯 Винрейт игрока низкий: ${(playerData.winRate * 100).toFixed(1)}%`);
+    // 3. ФАКТОР БАЛАНСА ИГРОКА
+    const balanceFactor = gameState.balance / 1000; // Нормализуем
+    if (balanceFactor > 1) {
+        // Чем больше баланс, тем меньше шансов
+        winProbability -= Math.min(0.15, balanceFactor * 0.05);
+        if (DEBUG_MODE) {
+            console.log("🎯 Высокий баланс:", gameState.balance, "- уменьшение шансов");
+        }
     }
     
-    // 3. Фактор подряд идущих выигрышей
-    if (gameState.consecutiveWins >= 3) {
-        // Если 3+ выигрыша подряд - гарантированный проигрыш
-        console.log("🎰 Активация гарантированного проигрыша (3+ выигрыша подряд)");
-        return gameState.selectedColor === 'red' ? 'black' : 'red';
-    } else if (gameState.consecutiveWins >= 2) {
-        // Если 2 выигрыша подряд - сильно уменьшаем шансы
-        winProbability -= 0.15;
-        console.log("🎯 2 выигрыша подряд - уменьшение шансов");
+    // 4. ФАКТОР СЕССИИ
+    const sessionBets = casinoData.total_bets || 0;
+    if (sessionBets > 10) {
+        // После 10 ставок в сессии постепенно уменьшаем шансы
+        const sessionPenalty = Math.min(0.2, (sessionBets - 10) * 0.02);
+        winProbability -= sessionPenalty;
+        if (DEBUG_MODE) {
+            console.log("🎯 Много ставок в сессии:", sessionBets, "- уменьшение шансов");
+        }
     }
     
-    // 4. Фактор баланса игрока
-    if (gameState.balance > 2000) {
-        // У богатых игроков меньше шансов
+    // 5. ФАКТОР ВРЕМЕНИ
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // В пиковые часы (вечер) меньше шансов
+    if (hour >= 18 || hour <= 2) {
         winProbability -= 0.05;
-        console.log("🎯 Игрок с большим балансом");
-    } else if (gameState.balance < 100) {
-        // У игроков с малым балансом - больше шансов (чтобы не ушли)
-        winProbability += 0.08;
-        console.log("🎯 Игрок с малым балансом - увеличение шансов");
+        if (DEBUG_MODE) {
+            console.log("🎯 Пиковое время игры - уменьшение шансов");
+        }
     }
     
-    // 5. Фактор размера ставки
-    if (gameState.betAmount > 300) {
-        // Крупные ставки реже выигрывают
-        winProbability -= 0.12;
-        console.log(`🎯 Крупная ставка: ${gameState.betAmount}`);
-    } else if (gameState.betAmount < 50) {
-        // Мелкие ставки чаще выигрывают
-        winProbability += 0.05;
+    // 6. ГАРАНТИРОВАННЫЙ ПРОИГРЫШ ПОСЛЕ 2+ ВЫИГРЫШЕЙ
+    if (gameState.consecutiveWins >= 2) {
+        // После 2 выигрышей подряд - 85% шанс проигрыша
+        if (DEBUG_MODE) {
+            console.log("🎰 Активация гарантированного проигрыша (2+ выигрыша подряд)");
+        }
+        return Math.random() < 0.85 ? 
+               (gameState.selectedColor === 'red' ? 'black' : 'red') :
+               gameState.selectedColor;
     }
     
-    // 6. Фактор последних проигрышей
-    const recentLosses = countRecentLosses();
-    if (recentLosses >= 3) {
-        // После 3+ проигрышей - увеличиваем шансы
-        winProbability += CASINO_SETTINGS.consecutiveLossBoost;
-        console.log(`🎯 ${recentLosses} проигрыша подряд - увеличение шансов`);
-    }
+    // 7. ПСЕВДОСЛУЧАЙНЫЕ ВСПЛЕСКИ УДАЧИ
+    // Создаём иллюзию случайности, но контролируем общий исход
+    const pseudoRandomFactor = Math.sin(Date.now() / 10000) * 0.1;
+    winProbability += pseudoRandomFactor;
     
     // Ограничиваем вероятности
     winProbability = Math.max(CASINO_SETTINGS.minProbability, 
                               Math.min(CASINO_SETTINGS.maxProbability, winProbability));
     
-    // Логируем для отладки
-    console.log(`🎲 Умная система: шанс выигрыша ${Math.round(winProbability * 100)}%`);
+    // СЛУЧАЙНЫЙ ШУМ для предотвращения анализа
+    const noise = (Math.random() - 0.5) * 0.05;
+    winProbability += noise;
     
-    // Генерируем результат
+    // Логируем для отладки (только в консоли, игрок не видит)
+    if (DEBUG_MODE) {
+        console.log(`🎲 Финальный шанс выигрыша: ${Math.round(winProbability * 100)}%`);
+        console.log(`📊 Баланс игрока: ${gameState.balance}, Ставка: ${gameState.betAmount}`);
+    }
+    
+    // Генерируем результат с дополнительной "защитой"
     const random = Math.random();
-    const isWin = random < winProbability;
+    let isWin = random < winProbability;
+    
+    // ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: если шанс слишком высокий - корректируем
+    if (winProbability > 0.45 && Math.random() < 0.7) {
+        isWin = false; // 70% шанс переопределить "слишком удачный" исход
+    }
     
     return isWin ? gameState.selectedColor : 
                   (gameState.selectedColor === 'red' ? 'black' : 'red');
@@ -405,7 +459,9 @@ async function migrateAvailablePointsToTotal() {
         
         gameState.balance = newTotal;
         
-        console.log(`✅ Миграция: available_points(${available}) → total_points(${newTotal})`);
+        if (DEBUG_MODE) {
+            console.log(`✅ Миграция: available_points(${available}) → total_points(${newTotal})`);
+        }
         
     } catch (error) {
         console.error('❌ Ошибка миграции:', error);
@@ -449,7 +505,9 @@ function canPlaceBet() {
 
 // ОБРАБОТКА СТАВКИ
 async function placeBet() {
-    console.log('🎲 Попытка сделать ставку');
+    if (DEBUG_MODE) {
+        console.log('🎲 Попытка сделать ставку');
+    }
     
     if (!canPlaceBet()) {
         return;
@@ -501,14 +559,13 @@ async function placeBet() {
         // Показываем модальное окно с результатом
         showResultModal(result, isWin, winAmount);
         
-        // Обновляем последние результаты
-        updateLastResults(result, isWin);
-        
-        // Устанавливаем кулдаун (5 секунд)
+        // Устанавливаем кулдаун
         setCooldown(5000);
         
-        console.log(`✅ Ставка завершена: ${isWin ? 'Выигрыш' : 'Проигрыш'} ${winAmount || 0} очков`);
-        console.log(`📊 Текущий паттерн: ${playerPatterns[userId]?.currentPattern || 'unknown'}`);
+        if (DEBUG_MODE) {
+            console.log(`✅ Ставка завершена: ${isWin ? 'Выигрыш' : 'Проигрыш'} ${winAmount || 0} очков`);
+            console.log(`📊 Текущий паттерн: ${playerPatterns[userId]?.currentPattern || 'unknown'}`);
+        }
         
     } catch (error) {
         console.error('❌ Ошибка ставки:', error);
@@ -553,7 +610,9 @@ async function updatePointsBalance(change) {
         // Обновляем состояние игры
         gameState.balance = newTotal;
         
-        console.log(`💰 Баланс обновлен: ${change > 0 ? '+' : ''}${change}, всего: ${newTotal}`);
+        if (DEBUG_MODE) {
+            console.log(`💰 Баланс обновлен: ${change > 0 ? '+' : ''}${change}, всего: ${newTotal}`);
+        }
         
     } catch (error) {
         console.error('❌ Ошибка обновления баланса:', error);
@@ -604,6 +663,11 @@ async function saveBetResult(resultColor, isWin, winAmount) {
 
 // УСТАНОВКА КУЛДАУНА
 function setCooldown(duration) {
+    // Для мелких ставок увеличиваем кулдаун
+    if (gameState.betAmount < 50) {
+        duration = Math.max(duration, 8000); // Минимум 8 секунд
+    }
+    
     gameState.cooldownEnd = Date.now() + duration;
     gameState.canBet = false;
     
@@ -681,9 +745,6 @@ function updateUI() {
     
     // Обновляем кнопку ставки
     updateBetButtonState();
-    
-    // Обновляем последние результаты
-    updateLastResultsDisplay();
 }
 
 // ОБНОВЛЕНИЕ СОСТОЯНИЯ КНОПКИ СТАВКИ
@@ -859,40 +920,6 @@ function closeResultModal() {
         document.getElementById('result-amount').style.color = '#ffcc00';
         
     }, 300);
-}
-
-// ОБНОВЛЕНИЕ ПОСЛЕДНИХ РЕЗУЛЬТАТОВ
-function updateLastResults(result, isWin) {
-    // Добавляем новый результат
-    gameState.lastResults.unshift({
-        color: result,
-        win: isWin
-    });
-    
-    // Ограничиваем количество результатов
-    if (gameState.lastResults.length > 20) {
-        gameState.lastResults = gameState.lastResults.slice(0, 20);
-    }
-    
-    // Обновляем отображение
-    updateLastResultsDisplay();
-}
-
-// ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ ПОСЛЕДНИХ РЕЗУЛЬТАТОВ
-function updateLastResultsDisplay() {
-    const resultsList = document.getElementById('results-list');
-    
-    if (gameState.lastResults.length === 0) {
-        resultsList.innerHTML = '<div class="empty-results">Еще нет сыгранных игр</div>';
-        return;
-    }
-    
-    resultsList.innerHTML = gameState.lastResults.map((result, index) => {
-        const chipClass = `result-chip ${result.color} ${result.win ? 'win' : 'loss'}`;
-        const letter = result.color === 'red' ? 'К' : 'Ч';
-        
-        return `<div class="${chipClass}" title="${result.color === 'red' ? 'Красное' : 'Черное'} - ${result.win ? 'Выигрыш' : 'Проигрыш'}">${letter}</div>`;
-    }).join('');
 }
 
 // СБРОС ВЫБОРА ЦВЕТА
