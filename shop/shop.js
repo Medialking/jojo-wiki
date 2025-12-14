@@ -1,4 +1,4 @@
-// Firebase Init (Matches your existing config)
+// Firebase Init (Matches your existing config)f
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
     authDomain: "jojoland-chat.firebasestorage.app",
