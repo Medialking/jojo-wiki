@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JojoLand — Официальный сайт</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Игровой шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ПРОСТЫЕ ЭФФЕКТЫ ФОНА */
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Скрыть/показать формы */
+        .form-container {
+            display: none;
+        }
+        
+        .form-container.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<!-- АНИМАЦИЯ ЗАГРУЗКИ -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ВХОДА/РЕГИСТРАЦИИ -->
+<div id="auth-modal" class="modal-overlay">
+    <div class="modal-content">
+        <!-- ВКЛАДКИ ВХОД/РЕГИСТРАЦИЯ -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Вход</button>
+            <button class="auth-tab" data-tab="register">Регистрация</button>
+        </div>
+        
+        <!-- ФОРМА ВХОДА -->
+        <div id="login-form" class="form-container active">
+            <div class="modal-header">
+                <h2>Вход в аккаунт</h2>
+                <p>Введите данные для входа</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="login-nickname">Никнейм:</label>
+                    <input 
+                        type="text" 
+                        id="login-nickname" 
+                        placeholder="Ваш никнейм"
+                        autocomplete="username"
+                    >
+                </div>
+                
+                <div class="input-group">
+                    <label for="login-password">Пароль:</label>
+                    <input 
+                        type="password" 
+                        id="login-password" 
+                        placeholder="Ваш пароль"
+                        autocomplete="current-password"
+                    >
+                    <div class="password-toggle" id="toggle-login-password">👁️</div>
+                </div>
+                
+                <div class="error-message" id="login-error"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="login-btn" class="submit-btn">
+                    Войти в аккаунт
+                </button>
+                <p class="modal-note">
+                    Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- ФОРМА РЕГИСТРАЦИИ -->
+        <div id="register-form" class="form-container">
+            <div class="modal-header">
+                <h2>Регистрация</h2>
+                <p>Создайте новый аккаунт</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="reg-nickname">Никнейм:</label>
+                    <input 
+                        type="text" 
+                        id="reg-nickname" 
+                        placeholder="Придумайте ник (3-16 символов)"
+                        maxlength="16"
+                        autocomplete="username"
+                    >
+                    <div class="input-hint">
+                        <span id="reg-char-count">0/16</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-password">Пароль:</label>
+                    <input 
+                        type="password" 
+                        id="reg-password" 
+                        placeholder="Придумайте пароль (минимум 6 символов)"
+                        autocomplete="new-password"
+                    >
+                    <div class="password-toggle" id="toggle-reg-password">👁️</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-confirm-password">Повторите пароль:</label>
+                    <input 
+                        type="password" 
+                        id="reg-confirm-password" 
+                        placeholder="Повторите пароль"
+                        autocomplete="new-password"
+                    >
+                    <div class="password-toggle" id="toggle-reg-confirm">👁️</div>
+                </div>
+                
+                <div class="requirements">
+                    <h4>Требования:</h4>
+                    <ul>
+                        <li id="req-nick-length" class="invalid">✓ Ник: 3-16 символов</li>
+                        <li id="req-nick-format" class="invalid">✓ Только буквы, цифры, _</li>
+                        <li id="req-nick-unique" class="valid">✓ Ник свободен</li>
+                        <li id="req-password-length" class="invalid">✓ Пароль: минимум 6 символов</li>
+                        <li id="req-password-match" class="invalid">✓ Пароли совпадают</li>
+                    </ul>
+                </div>
+                
+                <div class="error-message" id="reg-error"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="register-btn" class="submit-btn" disabled>
+                    Зарегистрироваться
+                </button>
+                <p class="modal-note">
+                    Есть аккаунт? <a href="#" id="switch-to-login">Войти</a>
+                </p>
+            </div>
+        </div>
+        
+        <div class="server-info-small">
+            <span>IP сервера: <strong>play.jojoland.ru</strong></span>
+        </div>
+    </div>
+</div>
+
+<!-- ФОНОВЫЕ ЭФФЕКТЫ -->
+<div class="background-effects" id="particles"></div>
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<div id="content">
+
+<header>
+    <div class="header-top">
+        <a href="profle/profile.html" class="profile-btn" id="profile-link" style="display: none;">
+            <span class="profile-icon">👤</span>
+            <span class="profile-text">Профиль</span>
+        </a>
+        <button class="profile-btn" id="logout-btn-header" style="display: none;">
+            <span class="profile-icon">🚪</span>
+            <span class="profile-text">Выйти</span>
+        </button>
+        <img src="images/logo.png" class="logo" alt="JojoLand Logo">
+    </div>
+    
+    <h1>JojoLand</h1>
+    <p class="subtitle">Официальный сайт сервера</p>
+
+    <nav>
+        <a href="rules.html" class="nav-btn">📜 Правила</a>
+        <a href="tgk.html" class="nav-btn">📘 TGK</a>
+        <a href="obzhalovanie.html" class="nav-btn">🔐 Обжалование</a>
+    </nav>
+</header>
+
+<main class="main-content">
+    <!-- ИНФОРМАЦИОННЫЙ БЛОК -->
+    <div class="info-block">
+        <h2>Главные ресурсы сервера</h2>
+        <p>Все важные ссылки для комфортной игры на нашем сервере</p>
+    </div>
+
+    <!-- ГЛАВНЫЕ КНОПКИ -->
+<div class="button-grid">
+    <a href="https://t.me/+18-ycRRnOTgxZTgy" class="main-btn tgk-btn">
+        <div class="btn-icon">📌</div>
+        <div class="btn-content">
+            <h3>TGK чат</h3>
+            <p>Основной чат для игроков</p>
+        </div>
+    </a>
+    
+    <a href="https://t.me/Jojolandpe" class="main-btn tg-btn">
+        <div class="btn-icon">💬</div>
+        <div class="btn-content">
+            <h3>Telegram группа</h3>
+            <p>Официальный Telegram-канал</p>
+        </div>
+    </a>
+    
+    <a href="http://pay.jojoland.ru/" class="main-btn donate-btn">
+        <div class="btn-icon">💎</div>
+        <div class="btn-content">
+            <h3>Донат сайт</h3>
+            <p>Покупка привилегий</p>
+        </div>
+    </a>
+    
+    <a href="points.html" class="main-btn points-btn">
+        <div class="btn-icon">🎁</div>
+        <div class="btn-content">
+            <h3>Новогодние очки</h3>
+            <p>Собери праздничные очки</p>
+        </div>
+    </a>
+
+    <a href="casino/casino.html" class="main-btn casino-btn">
+        <div class="btn-icon">🎰</div>
+        <div class="btn-content">
+            <h3>Казино</h3>
+            <p>Испытайте удачу в играх</p>
+        </div>
+    </a>
+    
+    <!-- ЕСЛИ ЕСТЬ КНОПКА ИГРОКОВ, ТОЖЕ ДОБАВИТЬ СЮДА -->
+    <a href="players.html" class="main-btn players-btn">
+        <div class="btn-icon">👥</div>
+        <div class="btn-content">
+            <h3>Игроки</h3>
+            <p>Список всех игроков сервера</p>
+        </div>
+    </a>
+</div> <!-- Закрываем button-grid -->
+
+    <!-- БЫСТРЫЕ ССЫЛКИ -->
+    <div class="quick-links">
+        <h3>Частые вопросы:</h3>
+        <div class="faq-items">
+            <div class="faq-item">
+                <h4>Как получить привилегию?</h4>
+                <p>Купите её на нашем <a href="http://pay.jojoland.ru/">донат сайте</a></p>
+            </div>
+            <div class="faq-item">
+                <h4>Как вступить в TGK?</h4>
+                <p>Нажмите на кнопку "TGK чат" выше</p>
+            </div>
+            <div class="faq-item">
+                <h4>Что такое новогодние очки?</h4>
+                <p>Специальная валюта для покупки праздничных предметов</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ИНФОРМАЦИОННЫЙ БЛОК -->
+    <div class="server-info">
+        <h3>О сервере JojoLand</h3>
+        <p>Добро пожаловать на официальный сайт сервера <strong>JojoLand</strong>! Здесь вы найдёте всю необходимую информацию для комфортной игры.</p>
+        <p>Сервер работает на последней версии Minecraft с множеством интересных режимов и плагинов.</p>
+        
+        <div class="holiday-info">
+            <h4>🎄 Новогоднее событие 2025</h4>
+            <p>Собирайте <strong>новогодние очки</strong>, участвуйте в праздничных активностях и получайте эксклюзивные награды!</p>
+            <a href="points.html" class="holiday-btn">Подробнее о новогодних очках →</a>
+        </div>
+    </div>
+</main>
+
+<!-- КНОПКА БЫСТРОЙ ПОМОЩИ -->
+<a class="help-btn" href="chat.html" target="_blank">
+    <div class="help-icon">💬</div>
+    <span>Помощь</span>
+</a>
+
+<footer>
+    <div class="footer-content">
+        <p>© 2025 JojoLand • Все права защищены</p>
+        <p class="footer-ip">IP: play.jojoland.ru</p>
+    </div>
+</footer>
+
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+// Инициализация Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+    authDomain: "jojoland-chat.firebasestorage.app",
+    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+    projectId: "jojoland-chat",
+    storageBucket: "jojoland-chat.firebasestorage.app",
+    messagingSenderId: "602788305122",
+    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        
+        const size = Math.random() * 2 + 1;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        particle.style.opacity = Math.random() * 0.5 + 0.2;
+        
+        const duration = Math.random() * 20 + 15;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `${Math.random() * 10}s`;
+        
+        particlesContainer.appendChild(particle);
+    }
+}
+
+// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С АККАУНТАМИ ====================
+
+// Генерация ID пользователя из ника
+function generateUserId(nickname) {
+    return nickname.toLowerCase()
+        .replace(/[^a-zа-яё0-9_]/g, '_')
+        .replace(/[а-яё]/g, function(match) {
+            const map = {
+                'а':'a','б':'b','в':'v','г':'g','д':'d',
+                'е':'e','ё':'yo','ж':'zh','з':'z','и':'i',
+                'й':'y','к':'k','л':'l','м':'m','н':'n',
+                'о':'o','п':'p','р':'r','с':'s','т':'t',
+                'у':'u','ф':'f','х':'h','ц':'ts','ч':'ch',
+                'ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'',
+                'э':'e','ю':'yu','я':'ya'
+            };
+            return map[match] || match;
+        });
+}
+
+// Проверка валидности ника
+function isValidNickname(nickname) {
+    if (nickname.length < 3 || nickname.length > 16) {
+        return false;
+    }
+    const regex = /^[a-zA-Zа-яА-ЯёЁ0-9_]+$/;
+    return regex.test(nickname);
+}
+
+// Проверка валидности пароля
+function isValidPassword(password) {
+    return password.length >= 6;
+}
+
+// Хэширование пароля
+function hashPassword(password) {
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
+
+// Проверка уникальности ника
+async function isNicknameUnique(nickname) {
+    try {
+        const userId = generateUserId(nickname);
+        const snapshot = await database.ref('users/' + userId).once('value');
+        return !snapshot.exists();
+    } catch (error) {
+        console.error('Ошибка проверки ника:', error);
+        return false;
+    }
+}
+
+// АВТОРИЗАЦИЯ (вход)
+async function loginUser(nickname, password) {
+    try {
+        const userId = generateUserId(nickname);
+        const snapshot = await database.ref('users/' + userId).once('value');
+        
+        if (!snapshot.exists()) {
+            return { success: false, error: 'Аккаунт не найден' };
+        }
+        
+        const userData = snapshot.val();
+        const passwordHash = hashPassword(password);
+        
+        if (userData.passwordHash !== passwordHash) {
+            return { success: false, error: 'Неверный пароль' };
+        }
+        
+        // Сохраняем данные в localStorage
+        localStorage.setItem('jojoland_nickname', nickname);
+        localStorage.setItem('jojoland_userId', userId);
+        localStorage.setItem('jojoland_loggedIn', 'true');
+        
+        // Обновляем последний визит
+        await updateLastVisit(userId, userData);
+        
+        return { success: true, userData: userData };
+    } catch (error) {
+        console.error('Ошибка входа:', error);
+        return { success: false, error: 'Ошибка сервера' };
+    }
+}
+
+// ==================== РЕФЕРАЛЬНАЯ СИСТЕМА ====================
+
+// Проверка реферальной ссылки при загрузке страницы
+function checkReferralOnPageLoad() {
+    // Проверяем хеш (#ref=...)
+    const hash = window.location.hash;
+    let refCode = null;
+    
+    if (hash && hash.includes('ref=')) {
+        refCode = hash.split('ref=')[1];
+        // Очищаем хеш из URL
+        window.location.hash = '';
+        console.log('Реферальный код из хеша:', refCode);
+    }
+    
+    // Также проверяем параметры (?ref=...) на всякий случай
+    const urlParams = new URLSearchParams(window.location.search);
+    const refParam = urlParams.get('ref');
+    if (refParam) {
+        refCode = refParam;
+        // Очищаем параметры из URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        console.log('Реферальный код из параметров:', refCode);
+    }
+    
+    if (refCode) {
+        // Сохраняем код для использования при регистрации
+        localStorage.setItem('jojoland_referral_code', refCode);
+        console.log('Реферальный код сохранен в localStorage');
+    }
+    
+    return refCode;
+}
+
+// ФУНКЦИЯ ОБРАБОТКИ РЕФЕРАЛЬНОГО КОДА ПРИ РЕГИСТРАЦИИ
+async function processReferralCode(refCode, newUserId, nickname) {
+    try {
+        console.log('=== ОБРАБОТКА РЕФЕРАЛЬНОГО КОДА ===');
+        console.log('Код:', refCode);
+        console.log('Новый пользователь ID:', newUserId);
+        console.log('Никнейм:', nickname);
+        
+        // Ищем реферала по коду
+        const referralsSnapshot = await database.ref('referrals').once('value');
+        
+        if (!referralsSnapshot.exists()) {
+            console.log('❌ Нет рефералов в базе');
+            return null;
+        }
+        
+        let referrerId = null;
+        let referrerData = null;
+        
+        referralsSnapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            if (data.referral_code === refCode) {
+                referrerId = childSnapshot.key;
+                referrerData = data;
+            }
+        });
+        
+        if (!referrerId || !referrerData) {
+            console.log('❌ Реферальный код не найден');
+            return null;
+        }
+        
+        console.log('✅ Найден пригласивший:', referrerId);
+        
+        // Проверяем лимит приглашений
+        if (referrerData.referrals_count >= referrerData.max_referrals) {
+            console.log('❌ Достигнут лимит приглашений');
+            return null;
+        }
+        
+        // Проверяем, не регистрировался ли уже этот пользователь
+        const usersSnapshot = await database.ref('users').once('value');
+        let isNewUser = true;
+        
+        usersSnapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
+            if (userData.nickname && 
+                userData.nickname.toLowerCase() === nickname.toLowerCase() && 
+                childSnapshot.key !== newUserId) {
+                isNewUser = false;
+            }
+        });
+        
+        if (!isNewUser) {
+            console.log('❌ Пользователь уже существует');
+            return null;
+        }
+        
+        // Начисляем награды
+        const inviterReward = Math.floor(Math.random() * 5) + 1; // 1-5 очков
+        const invitedReward = Math.floor(Math.random() * 3) + 1; // 1-3 очков
+        
+        console.log('🎯 Награды:');
+        console.log('   • Пригласивший:', inviterReward, 'очков');
+        console.log('   • Новый пользователь:', invitedReward, 'очков');
+        
+        // ========== 1. ОБНОВЛЯЕМ ОЧКИ ПРИГЛАСИВШЕГО В holiday_points ==========
+        console.log('📊 Обновление очков пригласившего...');
+        const inviterPointsSnapshot = await database.ref('holiday_points/' + referrerId).once('value');
+        let inviterPointsData;
+        
+        if (inviterPointsSnapshot.exists()) {
+            inviterPointsData = inviterPointsSnapshot.val();
+            console.log('   Текущие очки пригласившего:', inviterPointsData.total_points || 0);
+            
+            // Увеличиваем очки
+            inviterPointsData.total_points = (inviterPointsData.total_points || 0) + inviterReward;
+            inviterPointsData.available_points = (inviterPointsData.available_points || 0) + inviterReward;
+            
+            // Добавляем в историю наград (если нет массива - создаем)
+            if (!inviterPointsData.rewards_history) {
+                inviterPointsData.rewards_history = [];
+            }
+            
+            const inviterRewardRecord = {
+                date: new Date().toISOString(),
+                points: inviterReward,
+                type: 'referral_reward',
+                description: `Бонус за приглашение друга: ${nickname}`
+            };
+            
+            inviterPointsData.rewards_history.unshift(inviterRewardRecord);
+            
+        } else {
+            // Создаем новую запись holiday_points для пригласившего
+            inviterPointsData = {
+                total_points: inviterReward,
+                available_points: inviterReward,
+                spent_points: 0,
+                daily_gifts: {},
+                rewards_history: [{
+                    date: new Date().toISOString(),
+                    points: inviterReward,
+                    type: 'referral_reward',
+                    description: `Бонус за приглашение друга: ${nickname}`
+                }],
+                current_streak: 0,
+                max_streak: 0,
+                last_claim: null
+            };
+        }
+        
+        // Сохраняем обновленные очки пригласившего
+        await database.ref('holiday_points/' + referrerId).set(inviterPointsData);
+        console.log('   ✅ Очки пригласившего сохранены:', inviterPointsData.total_points, 'очков');
+        
+        // ========== 2. ОБНОВЛЯЕМ ОЧКИ НОВОГО ПОЛЬЗОВАТЕЛЯ ==========
+        console.log('📊 Обновление очков нового пользователя...');
+        const newUserPointsSnapshot = await database.ref('holiday_points/' + newUserId).once('value');
+        let newUserPointsData;
+        
+        if (newUserPointsSnapshot.exists()) {
+            newUserPointsData = newUserPointsSnapshot.val();
+            newUserPointsData.total_points = (newUserPointsData.total_points || 0) + invitedReward;
+            newUserPointsData.available_points = (newUserPointsData.available_points || 0) + invitedReward;
+            
+            if (!newUserPointsData.rewards_history) {
+                newUserPointsData.rewards_history = [];
+            }
+        } else {
+            newUserPointsData = {
+                total_points: invitedReward,
+                available_points: invitedReward,
+                spent_points: 0,
+                daily_gifts: {},
+                rewards_history: [],
+                current_streak: 0,
+                max_streak: 0,
+                last_claim: null
+            };
+        }
+        
+        // Добавляем запись в историю нового пользователя
+        const newUserRewardRecord = {
+            date: new Date().toISOString(),
+            points: invitedReward,
+            type: 'referral_bonus',
+            description: `Бонус за регистрацию по реферальной ссылке`
+        };
+        
+        newUserPointsData.rewards_history.unshift(newUserRewardRecord);
+        
+        await database.ref('holiday_points/' + newUserId).set(newUserPointsData);
+        console.log('   ✅ Очки нового пользователя сохранены:', newUserPointsData.total_points, 'очков');
+        
+        // ========== 3. ОБНОВЛЯЕМ STATS В REFERRALS ==========
+        console.log('📊 Обновление статистики referrals...');
+        const updatedReferrerData = {
+            ...referrerData,
+            referrals_count: (referrerData.referrals_count || 0) + 1,
+            total_points: (referrerData.total_points || 0) + inviterReward,
+            referrals_list: [
+                ...(referrerData.referrals_list || []),
+                {
+                    nickname: nickname,
+                    date: new Date().toISOString(),
+                    points_rewarded: inviterReward,
+                    user_id: newUserId,
+                    inviter_points: inviterReward,
+                    invited_points: invitedReward
+                }
+            ]
+        };
+        
+        await database.ref('referrals/' + referrerId).set(updatedReferrerData);
+        console.log('   ✅ Данные referrals обновлены');
+        
+        // ========== 4. СОХРАНЯЕМ ИНФОРМАЦИЮ О РЕФЕРАЛЕ ==========
+        console.log('📊 Сохранение информации о реферале...');
+        await database.ref('users/' + newUserId).update({
+            referred_by: referrerId,
+            referral_bonus_received: invitedReward,
+            referral_code_used: refCode
+        });
+        
+        console.log('   ✅ Информация о реферале сохранена');
+        
+        console.log('🎉 РЕФЕРАЛЬНЫЙ БОНУС УСПЕШНО НАЧИСЛЕН!');
+        console.log('==========================================');
+        console.log('   Пригласивший ' + referrerId + ' получил: ' + inviterReward + ' новогодних очков');
+        console.log('   Новый пользователь ' + nickname + ' получил: ' + invitedReward + ' новогодних очков');
+        console.log('==========================================');
+        
+        return {
+            referrerId: referrerId,
+            inviterReward: inviterReward,
+            invitedReward: invitedReward
+        };
+        
+    } catch (error) {
+        console.error('❌ ОШИБКА ОБРАБОТКИ РЕФЕРАЛЬНОЙ ССЫЛКИ:', error);
+        console.error('Детали ошибки:', error.message);
+        return null;
+    }
+}
+
+// РЕГИСТРАЦИЯ С РЕФЕРАЛЬНОЙ СИСТЕМОЙ
+async function registerUser(nickname, password) {
+    try {
+        const newUserId = generateUserId(nickname);
+        
+        // Проверяем, существует ли уже пользователь
+        const snapshot = await database.ref('users/' + newUserId).once('value');
+        if (snapshot.exists()) {
+            return { success: false, error: 'Этот ник уже занят' };
+        }
+        
+        // Проверяем реферальный код
+        const refCode = localStorage.getItem('jojoland_referral_code');
+        let referralResult = null;
+        
+        // Подготавливаем данные пользователя
+        const now = new Date();
+        const userData = {
+            nickname: nickname,
+            passwordHash: hashPassword(password),
+            rank: 'player',
+            createdAt: now.toISOString(),
+            lastVisit: now.toISOString(),
+            visitsCount: 1,
+            registeredAt: Date.now(),
+            stats: {
+                totalVisits: 1,
+                achievements: ['first_visit']
+            }
+        };
+        
+        // Если есть реферальный код - обрабатываем
+        if (refCode) {
+            referralResult = await processReferralCode(refCode, newUserId, nickname);
+            // Очищаем код из localStorage
+            localStorage.removeItem('jojoland_referral_code');
+            
+            if (referralResult) {
+                // Добавляем информацию о реферале
+                userData.referred_by = referralResult.referrerId;
+                userData.referral_bonus_received = referralResult.invitedReward;
+                userData.referral_code_used = refCode;
+            }
+        }
+        
+        // Сохраняем в Firebase
+        await database.ref('users/' + newUserId).set(userData);
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('jojoland_nickname', nickname);
+        localStorage.setItem('jojoland_userId', newUserId);
+        localStorage.setItem('jojoland_loggedIn', 'true');
+        
+        // Показываем уведомление с бонусом если есть
+        if (referralResult && referralResult.invitedReward) {
+            showWelcomeNotification(nickname, true, referralResult.invitedReward);
+        } else {
+            showWelcomeNotification(nickname, true);
+        }
+        
+        return { 
+            success: true, 
+            userData: userData, 
+            referralBonus: referralResult?.invitedReward 
+        };
+        
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        return { success: false, error: 'Ошибка сервера' };
+    }
+}
+
+// Обновляем последний визит
+async function updateLastVisit(userId, userData) {
+    try {
+        await database.ref('users/' + userId).update({
+            lastVisit: new Date().toISOString(),
+            visitsCount: (userData.visitsCount || 1) + 1
+        });
+    } catch (error) {
+        console.error('Ошибка обновления визита:', error);
+    }
+}
+
+// ==================== ВАЛИДАЦИЯ ФОРМ В РЕАЛЬНОМ ВРЕМЕНИ ====================
+
+let checkTimeout;
+
+// Валидация формы регистрации
+async function validateRegistrationForm() {
+    const nickname = document.getElementById('reg-nickname').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirmPassword = document.getElementById('reg-confirm-password').value;
+    const registerBtn = document.getElementById('register-btn');
+    const errorMsg = document.getElementById('reg-error');
+    
+    // Элементы требований
+    const reqNickLength = document.getElementById('req-nick-length');
+    const reqNickFormat = document.getElementById('req-nick-format');
+    const reqNickUnique = document.getElementById('req-nick-unique');
+    const reqPasswordLength = document.getElementById('req-password-length');
+    const reqPasswordMatch = document.getElementById('req-password-match');
+    
+    // Сбрасываем состояние
+    errorMsg.textContent = '';
+    registerBtn.disabled = true;
+    
+    // Проверка длины ника
+    if (nickname.length >= 3 && nickname.length <= 16) {
+        reqNickLength.className = 'valid';
+    } else {
+        reqNickLength.className = 'invalid';
+    }
+    
+    // Проверка формата ника
+    if (isValidNickname(nickname)) {
+        reqNickFormat.className = 'valid';
+    } else {
+        reqNickFormat.className = 'invalid';
+    }
+    
+    // Проверка длины пароля
+    if (isValidPassword(password)) {
+        reqPasswordLength.className = 'valid';
+    } else {
+        reqPasswordLength.className = 'invalid';
+    }
+    
+    // Проверка совпадения паролей
+    if (password === confirmPassword && password.length > 0) {
+        reqPasswordMatch.className = 'valid';
+    } else {
+        reqPasswordMatch.className = 'invalid';
+    }
+    
+    // Если все базовые проверки пройдены, проверяем уникальность ника
+    if (nickname.length >= 3 && nickname.length <= 16 && 
+        isValidNickname(nickname) && 
+        isValidPassword(password) && 
+        password === confirmPassword) {
+        
+        reqNickUnique.textContent = '✓ Проверка...';
+        
+        clearTimeout(checkTimeout);
+        checkTimeout = setTimeout(async () => {
+            const isUnique = await isNicknameUnique(nickname);
+            
+            if (isUnique) {
+                reqNickUnique.className = 'valid';
+                reqNickUnique.textContent = '✓ Ник свободен';
+                registerBtn.disabled = false;
+            } else {
+                reqNickUnique.className = 'invalid';
+                reqNickUnique.textContent = '✗ Ник занят';
+                errorMsg.textContent = 'Этот никнейм уже используется';
+            }
+        }, 500);
+    } else {
+        reqNickUnique.textContent = '✗ Заполните поля';
+        reqNickUnique.className = 'invalid';
+        
+        // Показываем конкретные ошибки
+        if (nickname.length > 0) {
+            if (nickname.length < 3) {
+                errorMsg.textContent = 'Ник должен содержать минимум 3 символа';
+            } else if (nickname.length > 16) {
+                errorMsg.textContent = 'Ник не может быть длиннее 16 символов';
+            } else if (!isValidNickname(nickname)) {
+                errorMsg.textContent = 'Разрешены только буквы, цифры и символ _';
+            } else if (!isValidPassword(password)) {
+                errorMsg.textContent = 'Пароль должен содержать минимум 6 символов';
+            } else if (password !== confirmPassword) {
+                errorMsg.textContent = 'Пароли не совпадают';
+            }
+        }
+    }
+}
+
+// Обновление счетчика символов для ника
+function updateCharCount() {
+    const input = document.getElementById('reg-nickname');
+    const charCount = document.getElementById('reg-char-count');
+    const length = input.value.length;
+    charCount.textContent = `${length}/16`;
+    
+    if (length < 3) {
+        charCount.style.color = '#ff4444';
+    } else if (length > 16) {
+        charCount.style.color = '#ff4444';
+    } else {
+        charCount.style.color = '#00cc66';
+    }
+}
+
+// Переключение видимости пароля
+function setupPasswordToggles() {
+    const toggles = document.querySelectorAll('.password-toggle');
+    toggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const inputId = this.id.replace('toggle-', '');
+            const input = document.getElementById(inputId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.textContent = '👁️‍🗨️';
+            } else {
+                input.type = 'password';
+                this.textContent = '👁️';
+            }
+        });
+    });
+}
+
+// Переключение между вкладками входа и регистрации
+function setupAuthTabs() {
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = document.querySelectorAll('.form-container');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Обновляем активную вкладку
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Показываем соответствующую форму
+            forms.forEach(form => {
+                form.classList.remove('active');
+                if (form.id === `${tabName}-form`) {
+                    form.classList.add('active');
+                }
+            });
+            
+            // Очищаем ошибки
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('reg-error').textContent = '';
+            
+            // Очищаем поля
+            if (tabName === 'login') {
+                document.getElementById('login-nickname').focus();
+            } else {
+                document.getElementById('reg-nickname').focus();
+            }
+        });
+    });
+    
+    // Ссылки для переключения
+    document.getElementById('switch-to-register').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('[data-tab="register"]').click();
+    });
+    
+    document.getElementById('switch-to-login').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('[data-tab="login"]').click();
+    });
+}
+
+// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+
+// Обработка входа
+function setupLoginHandler() {
+    const loginBtn = document.getElementById('login-btn');
+    const nicknameInput = document.getElementById('login-nickname');
+    const passwordInput = document.getElementById('login-password');
+    
+    loginBtn.addEventListener('click', async function() {
+        const nickname = nicknameInput.value.trim();
+        const password = passwordInput.value;
+        const errorMsg = document.getElementById('login-error');
+        
+        // Валидация
+        if (!nickname) {
+            errorMsg.textContent = 'Введите никнейм';
+            nicknameInput.focus();
+            return;
+        }
+        
+        if (!password) {
+            errorMsg.textContent = 'Введите пароль';
+            passwordInput.focus();
+            return;
+        }
+        
+        // Показываем загрузку
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Вход...';
+        
+        // Пытаемся войти
+        const result = await loginUser(nickname, password);
+        
+        if (result.success) {
+            loginBtn.textContent = '✓ Успешно!';
+            loginBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
+            
+            // Закрываем модальное окно через 1 секунду
+            setTimeout(() => {
+                document.getElementById('auth-modal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-modal').style.display = 'none';
+                    updateHeaderForLoggedInUser(nickname);
+                    showWelcomeNotification(nickname, false);
+                }, 300);
+            }, 1000);
+        } else {
+            loginBtn.textContent = 'Войти в аккаунт';
+            loginBtn.disabled = false;
+            errorMsg.textContent = result.error;
+            loginBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
+        }
+    });
+    
+    // Обработка Enter в форме входа
+    nicknameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') passwordInput.focus();
+    });
+    
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginBtn.click();
+    });
+}
+
+// Обработка регистрации
+function setupRegisterHandler() {
+    const registerBtn = document.getElementById('register-btn');
+    const nicknameInput = document.getElementById('reg-nickname');
+    const passwordInput = document.getElementById('reg-password');
+    const confirmInput = document.getElementById('reg-confirm-password');
+    
+    registerBtn.addEventListener('click', async function() {
+        const nickname = nicknameInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmInput.value;
+        const errorMsg = document.getElementById('reg-error');
+        
+        // Дополнительная проверка перед отправкой
+        if (!isValidNickname(nickname)) {
+            errorMsg.textContent = 'Неверный формат ника';
+            return;
+        }
+        
+        if (!isValidPassword(password)) {
+            errorMsg.textContent = 'Пароль слишком короткий';
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            errorMsg.textContent = 'Пароли не совпадают';
+            return;
+        }
+        
+        // Показываем загрузку
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Регистрация...';
+        
+        // Пытаемся зарегистрировать
+        const result = await registerUser(nickname, password);
+        
+        if (result.success) {
+            registerBtn.textContent = '✓ Успешно!';
+            registerBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
+            
+            // Закрываем модальное окно через 1 секунду
+            setTimeout(() => {
+                document.getElementById('auth-modal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-modal').style.display = 'none';
+                    updateHeaderForLoggedInUser(nickname);
+                }, 300);
+            }, 1000);
+        } else {
+            registerBtn.textContent = 'Зарегистрироваться';
+            registerBtn.disabled = false;
+            errorMsg.textContent = result.error;
+            registerBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
+        }
+    });
+}
+
+// Обновление хедера для авторизованного пользователя
+function updateHeaderForLoggedInUser(nickname) {
+    const profileLink = document.getElementById('profile-link');
+    const logoutBtn = document.getElementById('logout-btn-header');
+    
+    if (profileLink) {
+        profileLink.style.display = 'flex';
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.style.display = 'flex';
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+                localStorage.removeItem('jojoland_nickname');
+                localStorage.removeItem('jojoland_userId');
+                localStorage.removeItem('jojoland_loggedIn');
+                window.location.reload();
+            }
+        });
+    }
+}
+
+// Показ приветственного уведомления
+function showWelcomeNotification(nickname, isNew = false, referralBonus = null) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(90deg, ${isNew ? '#00cc66' : '#6200ff'}, ${isNew ? '#00ff88' : '#ff00ff'});
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 5px 20px rgba(98, 0, 255, 0.5);
+        max-width: 300px;
+        font-family: 'Orbitron', sans-serif;
+    `;
+    
+    let message = isNew ? `🎉 Добро пожаловать!` : `👋 С возвращением!`;
+    let details = isNew ? `Аккаунт ${nickname} создан!` : `Рады видеть вас снова, ${nickname}!`;
+    
+    if (referralBonus) {
+        message = `🎁 +${referralBonus} новогодних очков!`;
+        details = `Вы получили бонус за регистрацию по реферальной ссылке!`;
+    }
+    
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">
+            ${message}
+        </div>
+        <div style="font-size: 12px; opacity: 0.9;">
+            ${details}
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Проверка авторизации при загрузке
+function checkAuth() {
+    const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
+    const nickname = localStorage.getItem('jojoland_nickname');
+    
+    if (isLoggedIn && nickname) {
+        // Пользователь уже авторизован
+        updateHeaderForLoggedInUser(nickname);
+        return false; // Не показывать модальное окно
+    }
+    
+    return true; // Показывать модальное окно
+}
+
+// ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
+
+window.onload = async function() {
+    // Проверяем реферальную ссылку сразу при загрузке
+    checkReferralOnPageLoad();
+    
+    createParticles();
+    
+    // Анимация загрузки
+    document.getElementById("loader").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.opacity = "1";
+        
+        // Проверяем, нужно ли показывать форму авторизации
+        if (checkAuth()) {
+            // Показываем модальное окно авторизации
+            document.getElementById('auth-modal').style.display = 'flex';
+            
+            // Настраиваем всё
+            setupAuthTabs();
+            setupPasswordToggles();
+            setupLoginHandler();
+            setupRegisterHandler();
+            
+            // Настраиваем валидацию формы регистрации в реальном времени
+            const regNicknameInput = document.getElementById('reg-nickname');
+            const regPasswordInput = document.getElementById('reg-password');
+            const regConfirmInput = document.getElementById('reg-confirm-password');
+            
+            regNicknameInput.addEventListener('input', () => {
+                updateCharCount();
+                validateRegistrationForm();
+            });
+            
+            regPasswordInput.addEventListener('input', validateRegistrationForm);
+            regConfirmInput.addEventListener('input', validateRegistrationForm);
+            
+            // Фокусируемся на поле ввода ника в форме входа
+            setTimeout(() => {
+                document.getElementById('login-nickname').focus();
+            }, 300);
+        }
+    }, 400);
+};
+
+// Добавляем анимацию для уведомления
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>
