@@ -52,7 +52,7 @@
 
             <!-- Мобильные кнопки действий -->
             <div class="mobile-actions" id="mobile-actions">
-                <a href="index.html" class="mobile-action-btn">🏠 Главная</a>
+                <a href="../index.html" class="mobile-action-btn">🏠 Главная</a>
                 <a href="players.html" class="mobile-action-btn">👥 Игроки</a>
                 <a href="points.html" class="mobile-action-btn">🎄 Очки</a>
                 <button class="mobile-action-btn logout-btn" id="mobile-logout-btn">🚪 Выйти</button>
@@ -98,13 +98,13 @@
 
             <!-- Десктопные кнопки действий -->
             <div class="desktop-actions" id="desktop-actions">
-                <a href="index.html" class="desktop-action-btn">🏠 На главную</a>
+                <a href="../index.html" class="desktop-action-btn">🏠 На главную</a>
                 <a href="players.html" class="desktop-action-btn">👥 Все игроки</a>
                 <a href="points.html" class="desktop-action-btn">🎄 Новогодние очки</a>
                 <button class="desktop-action-btn logout-btn" id="desktop-logout-btn">🚪 Выйти из аккаунта</button>
             </div>
 
-            <a href="index.html" class="back-btn">← Вернуться на главную</a>
+            <a href="../index.html" class="back-btn">← Вернуться на главную</a>
         </div>
     </div>
 
@@ -120,7 +120,7 @@
                 </p>
                 <a href="../index.html" class="auth-redirect-btn">🚀 Войти в аккаунт</a>
                 <div style="margin-top: 20px;">
-                    <a href="index.html" class="back-to-main-btn">← На главную страницу</a>
+                    <a href="../index.html" class="back-to-main-btn">← На главную страницу</a>
                 </div>
             </div>
         </div>
@@ -210,7 +210,7 @@ function logoutUser() {
     
     // Редирект на главную страницу
     setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     }, 500);
 }
 
@@ -490,7 +490,7 @@ async function loadUserProfile() {
     if (!nickname || !userId) {
         showError('Сначала нужно войти в аккаунт на главной странице');
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         }, 2000);
         return;
     }
@@ -877,7 +877,7 @@ window.onload = async function() {
         
         // Редирект на главную страницу
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         }, 1000);
         
         // Анимация загрузки
