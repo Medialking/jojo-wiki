@@ -480,12 +480,40 @@ async function loadHolidayPoints(userId) {
     }
 }
 
+// ==================== ПРОВЕРКА ВАЛИДНОСТИ ID ====================
+function isValidUserId(userId) {
+    if (!userId) return false;
+    
+    // ID не должен быть слишком коротким или длинным
+    if (userId.length < 10 || userId.length > 50) return false;
+    
+    // Проверяем на специальные символы (Firebase ID обычно содержит только буквы, цифры и некоторые символы)
+    const validPattern = /^[a-zA-Z0-9\-_]+$/;
+    if (!validPattern.test(userId)) return false;
+    
+    // Проверяем, что это не специальные значения
+    const invalidValues = ['null', 'undefined', 'NaN', '0', 'false'];
+    if (invalidValues.includes(userId.toLowerCase())) return false;
+    
+    return true;
+}
+
 // ==================== ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ====================
 async function loadUserProfile() {
     const nickname = localStorage.getItem('jojoland_nickname');
     const userId = localStorage.getItem('jojoland_userId');
     
     console.log('👤 Загружаю свой профиль:', { nickname, userId });
+    
+    // РЕШЕНИЕ 2: ПРОВЕРКА ВАЛИДНОСТИ ID ПЕРЕД ЗАПРОСОМ
+    if (!isValidUserId(userId)) {
+        console.log('❌ Невалидный ID пользователя:', userId);
+        showError('Ошибка идентификации пользователя. Пожалуйста, войдите заново.');
+        setTimeout(() => {
+            logoutUser();
+        }, 2000);
+        return;
+    }
     
     if (!nickname || !userId) {
         showError('Сначала нужно войти в аккаунт на главной странице');
@@ -502,13 +530,18 @@ async function loadUserProfile() {
             const userData = snapshot.val();
             console.log('✅ Данные пользователя загружены:', userData);
             
-            // Дополнительная проверка: совпадает ли никнейм
-            if (userData.nickname !== nickname) {
-                console.log('⚠️ Никнейм не совпадает с сохраненным');
-                // Аккаунт мог быть изменен администратором
-                showError('Данные аккаунта были изменены. Требуется повторная авторизация');
-                logoutUser();
-                return;
+            // РЕШЕНИЕ 1: УБРАНА СТРОГАЯ ПРОВЕРКА НИКНЕЙМА
+            // Вместо строгой проверки, просто используем никнейм из базы данных если он есть
+            const displayNickname = userData.nickname || nickname;
+            
+            // Если никнейм в базе отличается от сохраненного, обновляем localStorage
+            if (userData.nickname && userData.nickname !== nickname) {
+                console.log('⚠️ Никнейм в базе отличается от сохраненного:', {
+                    saved: nickname,
+                    db: userData.nickname
+                });
+                localStorage.setItem('jojoland_nickname', userData.nickname);
+                console.log('✅ Никнейм обновлен в localStorage');
             }
             
             // Определяем ранг пользователя
@@ -524,7 +557,7 @@ async function loadUserProfile() {
             const holidayPoints = await loadHolidayPoints(userId);
             
             // Отображаем все данные
-            displayUserData(userData, userId, nickname, holidayPoints, rank);
+            displayUserData(userData, userId, displayNickname, holidayPoints, rank);
             
             // Если есть кастомный аватар, отображаем его
             if (hasCustomAvatar) {
@@ -553,6 +586,16 @@ async function loadUserProfile() {
 
 // ==================== ЗАГРУЗКА ПРОФИЛЯ ДРУГОГО ИГРОКА ====================
 async function loadOtherUserProfile(viewUserId) {
+    // РЕШЕНИЕ 2: ПРОВЕРКА ВАЛИДНОСТИ ID ПЕРЕД ЗАПРОСОМ
+    if (!isValidUserId(viewUserId)) {
+        console.log('❌ Невалидный ID другого пользователя:', viewUserId);
+        showError('Некорректный ID профиля');
+        setTimeout(() => {
+            window.location.href = 'players.html';
+        }, 2000);
+        return;
+    }
+    
     try {
         console.log('👤 Загружаю профиль другого игрока:', viewUserId);
         
@@ -600,7 +643,7 @@ async function loadOtherUserProfile(viewUserId) {
         // Показываем кнопки для навигации
         const backBtn = document.querySelector('.back-btn');
         backBtn.href = 'players.html';
-        backBtn.textContent = '← Назад к списку игроков';
+        backBtn.textContent = '← Назад к списку игроки';
         backBtn.style.display = 'block';
         
     } catch (error) {
