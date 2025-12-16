@@ -250,7 +250,7 @@ function setupAvatarUpload() {
             
             // Обновляем UI
             displayAvatar(compressedImage, userId);
-            showError('Фото профиля обновлено!'); // Используем сущ. функцию для уведомления (зеленый цвет можно настроить в CSS, но пока так)
+            showError('Фото профиля обновлено!');
             
         } catch (error) {
             console.error('Ошибка загрузки фото:', error);
@@ -261,7 +261,7 @@ function setupAvatarUpload() {
     });
 }
 
-// Сжатие изображения (очень важно для Realtime Database)
+// Сжатие изображения
 function compressImage(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -271,7 +271,7 @@ function compressImage(file) {
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 300; // Ограничиваем размер
+                const MAX_WIDTH = 300;
                 const MAX_HEIGHT = 300;
                 let width = img.width;
                 let height = img.height;
@@ -293,7 +293,6 @@ function compressImage(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Конвертируем в JPEG с качеством 0.7
                 resolve(canvas.toDataURL('image/jpeg', 0.7));
             };
             img.onerror = (err) => reject(err);
@@ -305,12 +304,10 @@ function compressImage(file) {
 // Отображение аватара
 function displayAvatar(base64Image, userId) {
     const avatarEl = document.getElementById('user-avatar');
-    // Добавляем оверлей для редактирования (если это свой профиль)
     const overlayHtml = `<div class="avatar-edit-overlay">📷</div>`;
     
     avatarEl.innerHTML = `<img src="${base64Image}" alt="Avatar">${overlayHtml}`;
     
-    // Также обновляем аватар в localStorage для быстрого доступа
     if (userId === localStorage.getItem('jojoland_userId')) {
         localStorage.setItem(`jojoland_avatar_${userId}`, base64Image);
     }
@@ -357,7 +354,6 @@ function applyRankTheme(rank, hasCustomAvatar) {
     // Обновляем иконку аватара ТОЛЬКО если нет своего фото
     if (!hasCustomAvatar) {
         const avatar = document.getElementById('user-avatar');
-        // Сохраняем оверлей редактирования
         const overlayHtml = `<div class="avatar-edit-overlay">📷</div>`;
         let emoji = '👤';
         
@@ -482,7 +478,7 @@ async function loadUserProfile() {
             // Проверяем, есть ли аватарка
             const hasCustomAvatar = !!userData.avatar;
 
-            // Применяем тему по рангу (передаем флаг аватара)
+            // Применяем тему по рангу
             applyRankTheme(rank, hasCustomAvatar);
             
             // Загружаем новогодние очки
@@ -496,7 +492,7 @@ async function loadUserProfile() {
                 displayAvatar(userData.avatar, userId);
             }
 
-            // Обновляем последний визит (только для своего профиля)
+            // Обновляем последний визит
             await updateLastVisit(userId, userData);
         } else {
             console.log('❌ Пользователь не найден в базе данных');
