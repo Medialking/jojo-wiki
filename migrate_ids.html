@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Миграция ID пользователей</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+        
+        h1 {
+            color: #6200ff;
+            text-align: center;
+        }
+        
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #6200ff;
+        }
+        
+        .log-box {
+            background: black;
+            color: #00ff88;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            background: linear-gradient(90deg, #6200ff, #ff00ff);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .warning {
+            background: rgba(255, 100, 0, 0.1);
+            border-left: 4px solid #ff6400;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: rgba(0, 255, 100, 0.1);
+            border-left: 4px solid #00ff64;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Миграция ID пользователей</h1>
+        
+        <div class="warning">
+            <strong>⚠️ ВНИМАНИЕ!</strong>
+            <p>Этот скрипт мигрирует существующих пользователей на новую систему ID.</p>
+            <p>Старые пользователи (где ID = никнейм) получат новые 6-значные ID.</p>
+            <p>Перед запуском сделайте БЭКАП базы данных!</p>
+        </div>
+        
+        <div class="status-box">
+            <h3>Статус миграции</h3>
+            <p id="status-text">Готов к запуску...</p>
+            <p id="progress-text">Ожидание запуска</p>
+        </div>
+        
+        <div>
+            <button id="start-btn" onclick="startMigration()">🚀 Начать миграцию</button>
+            <button id="check-btn" onclick="checkExistingUsers()">🔍 Проверить пользователей</button>
+            <button id="test-btn" onclick="testMigration()">🧪 Тестовый запуск (без сохранения)</button>
+        </div>
+        
+        <div class="log-box" id="log-box">
+            === Лог миграции ===
+            Журнал событий появится здесь...
+        </div>
+        
+        <div class="status-box" id="results" style="display: none;">
+            <h3>Результаты миграции</h3>
+            <p id="result-text"></p>
+        </div>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+// Инициализация Firebase (те же настройки)
+const firebaseConfig = {
+    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+    authDomain: "jojoland-chat.firebasestorage.app",
+    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+    projectId: "jojoland-chat",
+    storageBucket: "jojoland-chat.firebasestorage.app",
+    messagingSenderId: "602788305122",
+    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+let logBox = document.getElementById('log-box');
+let statusText = document.getElementById('status-text');
+let progressText = document.getElementById('progress-text');
+let resultsDiv = document.getElementById('results');
+let resultText = document.getElementById('result-text');
+
+// Генерация случайного 6-значного цифрового ID (как в новой системе)
+function generateRandomId() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Проверка уникальности ID
+async function isUserIdUnique(userId) {
+    try {
+        const snapshot = await database.ref('users/' + userId).once('value');
+        return !snapshot.exists();
+    } catch (error) {
+        log('❌ Ошибка проверки ID: ' + error.message);
+        return false;
+    }
+}
+
+// Генерация уникального ID
+async function generateUniqueId() {
+    let attempts = 0;
+    const maxAttempts = 20; // Больше попыток для надежности
+    
+    while (attempts < maxAttempts) {
+        const newId = generateRandomId();
+        const isUnique = await isUserIdUnique(newId);
+        
+        if (isUnique) {
+            return newId;
+        }
+        
+        attempts++;
+        log(`🔄 Попытка ${attempts}: ID ${newId} уже занят`);
+    }
+    
+    log('⚠️ Не удалось сгенерировать уникальный ID за 20 попыток');
+    return generateRandomId();
+}
+
+// Функция логирования
+function log(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    logBox.textContent += `\n[${timestamp}] ${message}`;
+    logBox.scrollTop = logBox.scrollHeight;
+    console.log(message);
+}
+
+// Обновление статуса
+function updateStatus(status, progress = '') {
+    statusText.textContent = status;
+    if (progress) {
+        progressText.textContent = progress;
+    }
+}
+
+// Проверка существующих пользователей
+async function checkExistingUsers() {
+    log('🔍 Проверка существующих пользователей...');
+    updateStatus('Проверка пользователей...');
+    
+    try {
+        const snapshot = await database.ref('users').once('value');
+        
+        if (!snapshot.exists()) {
+            log('❌ Нет пользователей в базе данных');
+            return;
+        }
+        
+        let oldFormatUsers = [];
+        let newFormatUsers = [];
+        let total = 0;
+        
+        snapshot.forEach((childSnapshot) => {
+            const userId = childSnapshot.key;
+            const userData = childSnapshot.val();
+            total++;
+            
+            // Проверяем формат ID
+            if (/^\d{6}$/.test(userId)) {
+                // Новый формат: 6 цифр
+                newFormatUsers.push({
+                    id: userId,
+                    nickname: userData.nickname || 'Без ника'
+                });
+            } else {
+                // Старый формат: никнейм как ID
+                oldFormatUsers.push({
+                    id: userId,
+                    nickname: userData.nickname || 'Без ника',
+                    data: userData
+                });
+            }
+        });
+        
+        log(`📊 Всего пользователей: ${total}`);
+        log(`✅ Новый формат (6 цифр): ${newFormatUsers.length}`);
+        log(`🔄 Старый формат (никнейм как ID): ${oldFormatUsers.length}`);
+        
+        if (oldFormatUsers.length > 0) {
+            log('\n👤 Пользователи для миграции:');
+            oldFormatUsers.forEach(user => {
+                log(`   • ${user.nickname} (ID: ${user.id})`);
+            });
+            
+            resultsDiv.style.display = 'block';
+            resultText.innerHTML = `
+                <strong>Найдено ${oldFormatUsers.length} пользователей для миграции</strong><br>
+                ${oldFormatUsers.map(u => `• ${u.nickname}`).join('<br>')}
+            `;
+        } else {
+            log('🎉 Все пользователи уже в новом формате! Миграция не требуется.');
+            resultsDiv.style.display = 'block';
+            resultText.innerHTML = '🎉 Все пользователи уже в новом формате! Миграция не требуется.';
+        }
+        
+    } catch (error) {
+        log('❌ Ошибка проверки: ' + error.message);
+    }
+}
+
+// Тестовый запуск (без сохранения)
+async function testMigration() {
+    log('🧪 Тестовый запуск миграции (без сохранения)...');
+    updateStatus('Тестовый запуск...');
+    
+    try {
+        const snapshot = await database.ref('users').once('value');
+        
+        if (!snapshot.exists()) {
+            log('❌ Нет пользователей для миграции');
+            return;
+        }
+        
+        let migrated = 0;
+        let errors = 0;
+        let usersToMigrate = [];
+        
+        // Собираем пользователей для миграции
+        snapshot.forEach((childSnapshot) => {
+            const oldId = childSnapshot.key;
+            const userData = childSnapshot.val();
+            
+            // Мигрируем только пользователей со старым форматом ID
+            if (!/^\d{6}$/.test(oldId)) {
+                usersToMigrate.push({ oldId, userData });
+            }
+        });
+        
+        log(`📋 Найдено ${usersToMigrate.length} пользователей для миграции`);
+        
+        // Симулируем миграцию (без сохранения)
+        for (let i = 0; i < usersToMigrate.length; i++) {
+            const { oldId, userData } = usersToMigrate[i];
+            const newId = await generateUniqueId();
+            
+            log(`\n${i+1}/${usersToMigrate.length}: ${userData.nickname || oldId}`);
+            log(`   Старый ID: ${oldId}`);
+            log(`   Новый ID: ${newId}`);
+            log(`   [ТЕСТ] Копирование данных...`);
+            
+            migrated++;
+            
+            updateStatus('Тестовый запуск...', `Обработано: ${i+1}/${usersToMigrate.length}`);
+        }
+        
+        log('\n🧪 ТЕСТ ЗАВЕРШЕН');
+        log(`📊 Было бы мигрировано: ${migrated} пользователей`);
+        log(`❌ Ошибок: ${errors}`);
+        log('⚠️ Данные НЕ были сохранены (тестовый режим)');
+        
+        resultsDiv.style.display = 'block';
+        resultText.innerHTML = `
+            <strong>Тестовый запуск завершен</strong><br>
+            Было бы мигрировано: <strong>${migrated}</strong> пользователей<br>
+            Ошибок: <strong>${errors}</strong>
+        `;
+        
+    } catch (error) {
+        log('❌ Ошибка тестового запуска: ' + error.message);
+    }
+}
+
+// Основная функция миграции
+async function startMigration() {
+    if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы уверены, что хотите запустить миграцию?\nЭто действие нельзя отменить!\n\nПродолжить?')) {
+        return;
+    }
+    
+    log('🚀 Запуск миграции пользователей...');
+    updateStatus('Миграция запущена...');
+    
+    const startBtn = document.getElementById('start-btn');
+    const checkBtn = document.getElementById('check-btn');
+    const testBtn = document.getElementById('test-btn');
+    
+    startBtn.disabled = true;
+    checkBtn.disabled = true;
+    testBtn.disabled = true;
+    
+    try {
+        const snapshot = await database.ref('users').once('value');
+        
+        if (!snapshot.exists()) {
+            log('❌ Нет пользователей для миграции');
+            return;
+        }
+        
+        let migrated = 0;
+        let errors = 0;
+        let skipped = 0;
+        let usersToMigrate = [];
+        
+        // Собираем пользователей для миграции
+        snapshot.forEach((childSnapshot) => {
+            const oldId = childSnapshot.key;
+            const userData = childSnapshot.val();
+            
+            // Мигрируем только пользователей со старым форматом ID
+            if (!/^\d{6}$/.test(oldId)) {
+                usersToMigrate.push({ oldId, userData });
+            } else {
+                skipped++;
+            }
+        });
+        
+        log(`📋 Всего для миграции: ${usersToMigrate.length} пользователей`);
+        log(`⏭️ Пропущено (уже новый формат): ${skipped}`);
+        
+        if (usersToMigrate.length === 0) {
+            log('🎉 Нет пользователей для миграции!');
+            startBtn.disabled = false;
+            checkBtn.disabled = false;
+            testBtn.disabled = false;
+            return;
+        }
+        
+        // Мигрируем каждого пользователя
+        for (let i = 0; i < usersToMigrate.length; i++) {
+            const { oldId, userData } = usersToMigrate[i];
+            
+            log(`\n${i+1}/${usersToMigrate.length}: ${userData.nickname || oldId}`);
+            updateStatus('Миграция...', `Обработано: ${i+1}/${usersToMigrate.length}`);
+            
+            try {
+                // Генерируем новый ID
+                const newId = await generateUniqueId();
+                log(`   Старый ID: ${oldId}`);
+                log(`   Новый ID: ${newId}`);
+                
+                // Копируем данные в новую запись
+                log(`   Копирование данных...`);
+                await database.ref('users/' + newId).set(userData);
+                
+                // Удаляем старую запись
+                log(`   Удаление старой записи...`);
+                await database.ref('users/' + oldId).remove();
+                
+                // Обновляем holiday_points если есть
+                log(`   Проверка holiday_points...`);
+                const pointsSnapshot = await database.ref('holiday_points/' + oldId).once('value');
+                if (pointsSnapshot.exists()) {
+                    const pointsData = pointsSnapshot.val();
+                    await database.ref('holiday_points/' + newId).set(pointsData);
+                    await database.ref('holiday_points/' + oldId).remove();
+                    log(`   ✓ holiday_points перенесены`);
+                }
+                
+                migrated++;
+                log(`   ✅ Успешно мигрирован!`);
+                
+            } catch (error) {
+                errors++;
+                log(`   ❌ Ошибка миграции: ${error.message}`);
+            }
+            
+            // Небольшая пауза между пользователями
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        log('\n🎉 МИГРАЦИЯ ЗАВЕРШЕНА!');
+        log(`📊 Результаты:`);
+        log(`   ✅ Успешно мигрировано: ${migrated}`);
+        log(`   ❌ Ошибок: ${errors}`);
+        log(`   ⏭️ Пропущено: ${skipped}`);
+        
+        resultsDiv.style.display = 'block';
+        resultText.innerHTML = `
+            <strong>Миграция завершена успешно!</strong><br><br>
+            ✅ Успешно мигрировано: <strong>${migrated}</strong> пользователей<br>
+            ❌ Ошибок: <strong>${errors}</strong><br>
+            ⏭️ Пропущено: <strong>${skipped}</strong><br><br>
+            <em>Теперь все пользователи имеют 6-значные цифровые ID</em>
+        `;
+        
+    } catch (error) {
+        log('❌ Критическая ошибка миграции: ' + error.message);
+    } finally {
+        startBtn.disabled = false;
+        checkBtn.disabled = false;
+        testBtn.disabled = false;
+    }
+}
+
+// Автоматическая проверка при загрузке
+window.onload = function() {
+    log('🚀 Скрипт миграции загружен');
+    log('IP: play.jojoland.ru');
+    log('========================');
+    checkExistingUsers();
+};
+</script>
+</body>
+</html>
