@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сапер | Казино JojoLand</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="minesweeper.css">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<div class="background-effects" id="particles"></div>
+
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="../index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <a href="casino.html" class="profile-btn">
+                <span class="profile-icon">🎰</span>
+                <span class="profile-text">Все игры</span>
+            </a>
+            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>💣 Сапер Казино</h1>
+        <p class="subtitle">Найдите алмазы и избегайте бомб! Умножьте свою ставку!</p>
+    </header>
+
+    <div class="game-container">
+        <!-- ИГРОВАЯ ОБЛАСТЬ -->
+        <div class="game-area">
+            <!-- ИГРОВОЕ ПОЛЕ -->
+            <div class="game-board-container">
+                <div class="game-header">
+                    <div class="game-stats">
+                        <div class="stat-item">
+                            <span class="stat-icon">💎</span>
+                            <span class="stat-label">Алмазы:</span>
+                            <span class="stat-value" id="diamonds-found">0</span>
+                            <span class="stat-total">/</span>
+                            <span class="stat-total" id="total-diamonds">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">💣</span>
+                            <span class="stat-label">Бомбы:</span>
+                            <span class="stat-value" id="bombs-left">3</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">💰</span>
+                            <span class="stat-label">Множитель:</span>
+                            <span class="stat-value" id="current-multiplier">1.00x</span>
+                        </div>
+                    </div>
+                    
+                    <div class="multiplier-display">
+                        <div class="multiplier-label">Текущий выигрыш:</div>
+                        <div class="multiplier-value" id="current-win">0</div>
+                    </div>
+                </div>
+                
+                <div class="game-board" id="game-board">
+                    <!-- Ячейки будут создаваться динамически -->
+                </div>
+                
+                <div class="game-controls">
+                    <button class="control-btn" id="cashout-btn" disabled>
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Забрать</span>
+                        <span class="control-value" id="cashout-amount">0</span>
+                    </button>
+                    <button class="control-btn" id="next-cell-btn">
+                        <i class="fas fa-forward"></i>
+                        <span>Следующая</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- СТАТИСТИКА И РЕЗУЛЬТАТ -->
+            <div class="game-sidebar">
+                <div class="result-display">
+                    <div class="result-title">Статус игры</div>
+                    <div class="game-status" id="game-status">Готов к игре</div>
+                    <div class="result-amount" id="result-amount">0</div>
+                    
+                    <div class="multiplier-progress">
+                        <div class="progress-label">Прогресс множителя</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="multiplier-progress" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-value" id="multiplier-text">1.00x</div>
+                    </div>
+                </div>
+                
+                <div class="multiplier-table">
+                    <h3>Таблица множителей</h3>
+                    <div class="multiplier-grid">
+                        <div class="multiplier-card">
+                            <div class="multiplier-count">1 алмаз</div>
+                            <div class="multiplier-value">1.5x</div>
+                        </div>
+                        <div class="multiplier-card">
+                            <div class="multiplier-count">2 алмаза</div>
+                            <div class="multiplier-value">2.2x</div>
+                        </div>
+                        <div class="multiplier-card">
+                            <div class="multiplier-count">3 алмаза</div>
+                            <div class="multiplier-value">3.5x</div>
+                        </div>
+                        <div class="multiplier-card">
+                            <div class="multiplier-count">4 алмаза</div>
+                            <div class="multiplier-value">6.0x</div>
+                        </div>
+                        <div class="multiplier-card jackpot">
+                            <div class="multiplier-count">5 алмазов</div>
+                            <div class="multiplier-value">10.0x</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТАВКИ И УПРАВЛЕНИЕ -->
+        <div class="betting-section">
+            <div class="bet-controls">
+                <!-- ВЫБОР СТАВКИ -->
+                <div class="bet-amount">
+                    <h3><i class="fas fa-coins"></i> Сумма ставки:</h3>
+                    <div class="amount-display">
+                        <button class="amount-btn" id="decrease-bet">-</button>
+                        <input type="number" id="bet-input" value="50" min="50" max="1000" step="50">
+                        <button class="amount-btn" id="increase-bet">+</button>
+                    </div>
+                    <div class="amount-presets">
+                        <button class="preset-btn" data-amount="50">50</button>
+                        <button class="preset-btn" data-amount="100">100</button>
+                        <button class="preset-btn" data-amount="200">200</button>
+                        <button class="preset-btn" data-amount="500">500</button>
+                        <button class="preset-btn" data-amount="1000">1000</button>
+                    </div>
+                </div>
+
+                <!-- НАСТРОЙКИ ИГРЫ -->
+                <div class="game-settings">
+                    <h3><i class="fas fa-cog"></i> Настройки поля:</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label for="grid-size">Размер поля:</label>
+                            <select id="grid-size">
+                                <option value="5x5">5x5 (25 клеток)</option>
+                                <option value="6x6">6x6 (36 клеток)</option>
+                                <option value="7x7">7x7 (49 клеток)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="bomb-count">Количество бомб:</label>
+                            <select id="bomb-count">
+                                <option value="3">3 бомбы</option>
+                                <option value="4">4 бомбы</option>
+                                <option value="5">5 бомб</option>
+                                <option value="6">6 бомб</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="diamond-count">Количество алмазов:</label>
+                            <select id="diamond-count">
+                                <option value="5">5 алмазов</option>
+                                <option value="6">6 алмазов</option>
+                                <option value="7">7 алмазов</option>
+                                <option value="8">8 алмазов</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- КНОПКА НАЧАЛА ИГРЫ -->
+                <div class="bet-action">
+                    <button class="place-bet-btn" id="start-game-btn">
+                        <span class="bet-icon"><i class="fas fa-play"></i></span>
+                        <span class="bet-text">Начать игру</span>
+                        <span class="bet-cost">-<span id="start-bet-amount">50</span></span>
+                    </button>
+                    <div class="bet-info">
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-wallet"></i></span>
+                            <span>Ваша ставка: <strong id="current-bet">50</strong></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-trophy"></i></span>
+                            <span>Макс. выигрыш: <strong id="max-win">500</strong></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-chart-line"></i></span>
+                            <span>Шанс на джекпот: <strong>~3%</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- БАЛАНС И ИНФО -->
+            <div class="balance-panel">
+                <div class="balance-display">
+                    <div class="balance-label">Ваш баланс:</div>
+                    <div class="balance-amount" id="current-balance">0</div>
+                </div>
+                <div class="balance-actions">
+                    <button class="balance-btn" id="auto-cashout-btn">
+                        <i class="fas fa-robot"></i>
+                        <span>Авто-вывод</span>
+                        <span class="balance-value" id="auto-cashout-value">2.5x</span>
+                    </button>
+                    <button class="balance-btn" id="quick-bet-btn">
+                        <i class="fas fa-bolt"></i>
+                        <span>Повторить</span>
+                    </button>
+                </div>
+                <div class="cooldown-info" id="cooldown-info" style="display: none;">
+                    <span class="cooldown-icon"><i class="fas fa-hourglass-half"></i></span>
+                    <span>Следующая игра через: <span id="cooldown-timer">5с</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ИНФОРМАЦИЯ ОБ ИГРЕ -->
+        <div class="game-info">
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-gamepad"></i></div>
+                <div class="info-content">
+                    <h4>Как играть?</h4>
+                    <p>1. Сделайте ставку<br>2. Нажимайте на клетки<br>3. Находите алмазы<br>4. Забирайте выигрыш до бомбы!</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-gem"></i></div>
+                <div class="info-content">
+                    <h4>Алмазы</h4>
+                    <p>Каждый алмаз увеличивает множитель. Соберите все алмазы для джекпота 10x!</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-bomb"></i></div>
+                <div class="info-content">
+                    <h4>Бомбы</h4>
+                    <p>Если наступите на бомбу - проигрываете всю ставку. Будьте осторожны!</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="info-content">
+                    <h4>Математика</h4>
+                    <p>Средний RTP: 94-96%. Шанс найти алмаз: ~70%. Шанс на бомбу: 12-20%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ -->
+        <div class="recent-results">
+            <h3><i class="fas fa-history"></i> Последние игры</h3>
+            <div class="results-list" id="recent-games">
+                <div class="empty-results">
+                    <div class="empty-icon"><i class="fas fa-gamepad"></i></div>
+                    <p>Здесь будут ваши результаты</p>
+                    <small>Сыграйте первую игру!</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <a href="casino.html" class="action-btn"><i class="fas fa-dice"></i> Все игры</a>
+            <button class="action-btn" id="help-btn"><i class="fas fa-question-circle"></i> Помощь</button>
+            <button class="action-btn" id="sound-toggle"><i class="fas fa-volume-up"></i> Звук</button>
+            <a href="../points.html" class="action-btn"><i class="fas fa-gift"></i> Получить очки</a>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТА -->
+<div id="result-modal" class="modal-overlay">
+    <div class="modal-content result-modal">
+        <div class="result-confetti" id="win-confetti" style="display: none;"></div>
+        
+        <div class="result-header" id="result-modal-header">
+            <h2 id="modal-title">🎮 Результат игры</h2>
+            <p id="modal-subtitle">Игра завершена!</p>
+        </div>
+        
+        <div class="result-body">
+            <div class="result-icon" id="modal-icon">
+                <i class="fas fa-trophy" style="font-size: 80px; color: gold;"></i>
+            </div>
+            
+            <div class="result-details">
+                <div class="detail-item">
+                    <span class="detail-label">Ставка:</span>
+                    <span class="detail-value" id="modal-bet">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Найдено алмазов:</span>
+                    <span class="detail-value" id="modal-diamonds">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Финальный множитель:</span>
+                    <span class="detail-value" id="modal-multiplier">1.00x</span>
+                </div>
+            </div>
+            
+            <div class="result-amount-display" id="modal-amount-display">
+                <div class="amount-label" id="modal-amount-label">Вы выиграли:</div>
+                <div class="amount-value" id="modal-amount-value">0</div>
+            </div>
+            
+            <div class="result-message" id="modal-message">
+                <!-- Сообщение будет добавляться динамически -->
+            </div>
+        </div>
+        
+        <div class="result-footer">
+            <button id="close-result" class="result-btn">Продолжить</button>
+            <button id="play-again" class="result-btn secondary">Играть снова</button>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+        authDomain: "jojoland-chat.firebasestorage.app",
+        databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+        projectId: "jojoland-chat",
+        storageBucket: "jojoland-chat.firebasestorage.app",
+        messagingSenderId: "602788305122",
+        appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+</script>
+
+<script src="minesweeper.js"></script>
+
+</body>
+</html>
