@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Краш | Казино JojoLand</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="crash.css">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<div class="background-effects" id="particles"></div>
+
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="../index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <a href="casino.html" class="profile-btn">
+                <span class="profile-icon">🎰</span>
+                <span class="profile-text">Все игры</span>
+            </a>
+            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+        </div>
+        
+        <h1>🚀 Краш Игра</h1>
+        <p class="subtitle">Забирайте выигрыш до того как график рухнет!</p>
+    </header>
+
+    <div class="game-container">
+        <!-- ОСНОВНОЙ ГРАФИК И СТАТИСТИКА -->
+        <div class="crash-main-section">
+            <!-- ГРАФИК И ТАЙМЕР -->
+            <div class="crash-graph-container">
+                <div class="graph-header">
+                    <div class="round-info">
+                        <div class="round-label">РАУНД #<span id="round-number">1</span></div>
+                        <div class="round-timer">
+                            <span class="timer-icon"><i class="fas fa-clock"></i></span>
+                            <span id="round-timer">5</span>с до начала
+                        </div>
+                    </div>
+                    
+                    <div class="crash-multiplier">
+                        <div class="multiplier-label">ТЕКУЩИЙ МНОЖИТЕЛЬ</div>
+                        <div class="multiplier-value" id="current-multiplier">1.00x</div>
+                    </div>
+                </div>
+                
+                <!-- ГРАФИК -->
+                <div class="graph-wrapper">
+                    <canvas id="crash-graph"></canvas>
+                    <div class="graph-overlay">
+                        <div class="multiplier-indicators">
+                            <div class="indicator" style="top: 20%">2.00x</div>
+                            <div class="indicator" style="top: 40%">3.00x</div>
+                            <div class="indicator" style="top: 60%">5.00x</div>
+                            <div class="indicator" style="top: 80%">10.00x</div>
+                        </div>
+                        <div class="crash-line" id="crash-line"></div>
+                    </div>
+                </div>
+                
+                <!-- ИСТОРИЯ РАУНДОВ -->
+                <div class="round-history">
+                    <h3><i class="fas fa-history"></i> История раундов</h3>
+                    <div class="history-list" id="round-history-list">
+                        <div class="history-chip" style="background: rgba(255, 68, 68, 0.2);">0.85x</div>
+                        <div class="history-chip" style="background: rgba(0, 204, 102, 0.2);">2.34x</div>
+                        <div class="history-chip" style="background: rgba(0, 204, 102, 0.2);">1.56x</div>
+                        <div class="history-chip" style="background: rgba(255, 68, 68, 0.2);">1.02x</div>
+                        <div class="history-chip" style="background: rgba(0, 204, 102, 0.2);">5.78x</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- СТАТИСТИКА И ИНФО -->
+            <div class="crash-sidebar">
+                <!-- СТАТУС ИГРЫ -->
+                <div class="game-status-card">
+                    <div class="status-header">
+                        <span class="status-icon"><i class="fas fa-play-circle"></i></span>
+                        <span class="status-title">Статус игры</span>
+                    </div>
+                    <div class="status-content">
+                        <div class="status-text" id="game-status">Ожидание начала раунда</div>
+                        <div class="next-round" id="next-round-info">
+                            <span class="next-label">Следующий раунд через:</span>
+                            <span class="next-timer" id="next-round-timer">5</span>с
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ВАША СТАВКА -->
+                <div class="your-bet-card">
+                    <div class="bet-header">
+                        <span class="bet-icon"><i class="fas fa-coins"></i></span>
+                        <span class="bet-title">Ваша ставка</span>
+                    </div>
+                    <div class="bet-content">
+                        <div class="bet-amount-display">
+                            <span class="bet-label">Сумма:</span>
+                            <span class="bet-value" id="your-bet-amount">0</span>
+                        </div>
+                        <div class="bet-multiplier-display">
+                            <span class="bet-label">Забрать на:</span>
+                            <span class="bet-value" id="your-cashout-multiplier">0.00x</span>
+                        </div>
+                        <div class="bet-profit-display">
+                            <span class="bet-label">Выигрыш:</span>
+                            <span class="bet-value profit" id="your-profit">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- АВТО-ВЫВОД -->
+                <div class="auto-cashout-card">
+                    <div class="auto-header">
+                        <span class="auto-icon"><i class="fas fa-robot"></i></span>
+                        <span class="auto-title">Авто-вывод</span>
+                        <div class="auto-toggle" id="auto-toggle">
+                            <div class="toggle-switch"></div>
+                        </div>
+                    </div>
+                    <div class="auto-content">
+                        <div class="auto-multiplier">
+                            <label for="auto-multiplier-input">Множитель:</label>
+                            <div class="auto-input-group">
+                                <input type="number" id="auto-multiplier-input" value="2.00" step="0.10" min="1.10" max="100.00">
+                                <span class="auto-x">x</span>
+                            </div>
+                        </div>
+                        <div class="auto-info">
+                            <span class="info-icon"><i class="fas fa-info-circle"></i></span>
+                            <span>При достижении множителя выигрыш заберётся автоматически</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ЛУЧШИЕ ИГРОКИ -->
+                <div class="top-players-card">
+                    <div class="top-header">
+                        <span class="top-icon"><i class="fas fa-trophy"></i></span>
+                        <span class="top-title">Лучшие игроки</span>
+                    </div>
+                    <div class="top-list" id="top-players-list">
+                        <div class="top-player">
+                            <span class="player-rank">1.</span>
+                            <span class="player-name">JojoKing</span>
+                            <span class="player-multiplier">15.67x</span>
+                        </div>
+                        <div class="top-player">
+                            <span class="player-rank">2.</span>
+                            <span class="player-name">CrashMaster</span>
+                            <span class="player-multiplier">12.45x</span>
+                        </div>
+                        <div class="top-player">
+                            <span class="player-rank">3.</span>
+                            <span class="player-name">LuckyBoy</span>
+                            <span class="player-multiplier">9.23x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- СТАВКИ И УПРАВЛЕНИЕ -->
+        <div class="crash-controls-section">
+            <!-- ВЫБОР СТАВКИ -->
+            <div class="bet-controls">
+                <h3><i class="fas fa-money-bill-wave"></i> Сделать ставку</h3>
+                
+                <div class="amount-control">
+                    <div class="amount-label">
+                        <span>Сумма ставки:</span>
+                        <span class="balance-hint">(Баланс: <span id="user-balance">0</span>)</span>
+                    </div>
+                    <div class="amount-input-group">
+                        <button class="amount-btn" id="decrease-bet">-</button>
+                        <div class="amount-input-wrapper">
+                            <input type="number" id="bet-amount-input" value="50" min="10" max="1000">
+                            <span class="amount-suffix">очков</span>
+                        </div>
+                        <button class="amount-btn" id="increase-bet">+</button>
+                    </div>
+                    
+                    <div class="amount-presets">
+                        <button class="preset-btn" data-amount="10">10</button>
+                        <button class="preset-btn" data-amount="50">50</button>
+                        <button class="preset-btn" data-amount="100">100</button>
+                        <button class="preset-btn" data-amount="200">200</button>
+                        <button class="preset-btn" data-amount="500">500</button>
+                        <button class="preset-btn" data-amount="1000">1000</button>
+                    </div>
+                </div>
+                
+                <!-- КНОПКИ ДЕЙСТВИЙ -->
+                <div class="action-controls">
+                    <button class="bet-action-btn" id="place-bet-btn">
+                        <span class="action-icon"><i class="fas fa-play"></i></span>
+                        <span class="action-text">Сделать ставку</span>
+                        <span class="action-cost">-<span id="bet-cost">50</span></span>
+                    </button>
+                    
+                    <button class="bet-action-btn cashout" id="cashout-btn" disabled>
+                        <span class="action-icon"><i class="fas fa-money-bill-wave"></i></span>
+                        <span class="action-text">Забрать</span>
+                        <span class="action-cost">+<span id="cashout-amount">0</span></span>
+                    </button>
+                </div>
+                
+                <!-- БЫСТРЫЕ МНОЖИТЕЛИ -->
+                <div class="quick-multipliers">
+                    <h4><i class="fas fa-bolt"></i> Быстрый вывод</h4>
+                    <div class="multiplier-buttons">
+                        <button class="multiplier-btn" data-multiplier="1.20">1.20x</button>
+                        <button class="multiplier-btn" data-multiplier="1.50">1.50x</button>
+                        <button class="multiplier-btn" data-multiplier="2.00">2.00x</button>
+                        <button class="multiplier-btn" data-multiplier="3.00">3.00x</button>
+                        <button class="multiplier-btn" data-multiplier="5.00">5.00x</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- СТАТИСТИКА И ИНФО -->
+            <div class="info-stats">
+                <!-- ОБЩАЯ СТАТИСТИКА -->
+                <div class="stats-card">
+                    <div class="stats-header">
+                        <span class="stats-icon"><i class="fas fa-chart-bar"></i></span>
+                        <span class="stats-title">Статистика игры</span>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Всего игр:</span>
+                            <span class="stat-value" id="total-games">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Средний множитель:</span>
+                            <span class="stat-value" id="average-multiplier">1.00x</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Максимум:</span>
+                            <span class="stat-value" id="max-multiplier">0.00x</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Шанс 2x:</span>
+                            <span class="stat-value" id="chance-2x">49.5%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Шанс 5x:</span>
+                            <span class="stat-value" id="chance-5x">19.8%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Шанс 10x:</span>
+                            <span class="stat-value" id="chance-10x">9.9%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ИНФОРМАЦИЯ ОБ ИГРЕ -->
+                <div class="info-card">
+                    <div class="info-header">
+                        <span class="info-icon"><i class="fas fa-question-circle"></i></span>
+                        <span class="info-title">Как играть?</span>
+                    </div>
+                    <div class="info-content">
+                        <ol class="instructions">
+                            <li>Сделайте ставку перед началом раунда</li>
+                            <li>Наблюдайте за ростом множителя</li>
+                            <li>Нажмите "Забрать" до краха графика</li>
+                            <li>Чем выше множитель - тем больше выигрыш!</li>
+                            <li>Используйте авто-вывод для автоматизации</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- АКТИВНЫЕ СТАВКИ -->
+        <div class="active-bets-section">
+            <h3><i class="fas fa-users"></i> Активные ставки</h3>
+            <div class="bets-table">
+                <div class="table-header">
+                    <span class="col-player">Игрок</span>
+                    <span class="col-bet">Ставка</span>
+                    <span class="col-multiplier">Множитель</span>
+                    <span class="col-profit">Выигрыш</span>
+                </div>
+                <div class="table-body" id="active-bets-list">
+                    <div class="empty-bets">
+                        <div class="empty-icon"><i class="fas fa-user-slash"></i></div>
+                        <p>Нет активных ставок</p>
+                        <small>Сделайте ставку чтобы начать!</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <a href="casino.html" class="action-btn"><i class="fas fa-dice"></i> Все игры</a>
+            <button class="action-btn" id="sound-toggle"><i class="fas fa-volume-up"></i> Звук</button>
+            <button class="action-btn" id="help-btn"><i class="fas fa-question-circle"></i> Помощь</button>
+            <a href="../points.html" class="action-btn"><i class="fas fa-gift"></i> Получить очки</a>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТА -->
+<div id="result-modal" class="modal-overlay">
+    <div class="modal-content crash-modal">
+        <div class="result-confetti" id="win-confetti" style="display: none;"></div>
+        
+        <div class="result-header">
+            <h2 id="result-title">🎮 Результат раунда</h2>
+            <p id="result-subtitle">Игра завершена!</p>
+        </div>
+        
+        <div class="result-body">
+            <div class="result-icon" id="result-icon">
+                <i class="fas fa-trophy" style="font-size: 80px; color: gold;"></i>
+            </div>
+            
+            <div class="result-multiplier-display">
+                <div class="multiplier-label">Финальный множитель</div>
+                <div class="multiplier-value" id="result-multiplier">1.00x</div>
+            </div>
+            
+            <div class="result-details">
+                <div class="detail-row">
+                    <span class="detail-label">Ваша ставка:</span>
+                    <span class="detail-value" id="result-bet-amount">0</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Забрали на:</span>
+                    <span class="detail-value" id="result-cashout-multiplier">0.00x</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Крах на:</span>
+                    <span class="detail-value" id="result-crash-multiplier">0.00x</span>
+                </div>
+            </div>
+            
+            <div class="result-profit-display" id="result-profit-display">
+                <div class="profit-label" id="result-profit-label">Ваш выигрыш:</div>
+                <div class="profit-value" id="result-profit-value">0</div>
+            </div>
+            
+            <div class="result-message" id="result-message">
+                <!-- Сообщение будет добавляться динамически -->
+            </div>
+        </div>
+        
+        <div class="result-footer">
+            <button id="close-result" class="result-btn">Продолжить</button>
+            <button id="play-again" class="result-btn secondary">Сделать ставку</button>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+        authDomain: "jojoland-chat.firebasestorage.app",
+        databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+        projectId: "jojoland-chat",
+        storageBucket: "jojoland-chat.firebasestorage.app",
+        messagingSenderId: "602788305122",
+        appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+</script>
+
+<script src="crash.js"></script>
+
+</body>
+</html>
