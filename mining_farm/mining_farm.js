@@ -138,23 +138,7 @@ const UPGRADES = {
 
 // ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
-    createParticles();
-    
-    document.getElementById("loader").style.opacity = "0";
-    setTimeout(async () => {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("content").style.opacity = "1";
-        
-        if (await checkAuth()) {
-            await TimeManager.syncWithServer();
-            await loadPointsData();
-            await loadFarmData();
-            setupEventListeners();
-            startFarmUpdates();
-            updateFarmVisualization();
-            updateIncomeHistory();
-        }
-    }, 400);
+    // Инициализация уже происходит в initializeFarm()
 };
 
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
@@ -190,7 +174,7 @@ async function checkAuth() {
     if (!userId || !userNickname) {
         showError('Для доступа к ферме необходимо войти в аккаунт');
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         }, 3000);
         return false;
     }
@@ -663,7 +647,7 @@ function updateNextPayoutTimer() {
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// УЛУЧШЕНИЕ ХАРАКТЕРИСТИК
+// УЛУЧШЕНИЕ ХАРАКТЕРИСТИК - ИСПРАВЛЕННАЯ ФУНКЦИЯ
 async function upgradeCharacteristic(upgradeType) {
     if (!farmData || !farmData.upgrades || !pointsData) return;
     
@@ -710,15 +694,20 @@ async function upgradeCharacteristic(upgradeType) {
         // Обновляем очки в обоих местах
         pointsData.total_points = newPoints;
         
-        // Сохраняем обновленные данные
-        await Promise.all([
-            database.ref('holiday_points/' + userId).update({
-                total_points: newPoints
-            }),
-            database.ref('mining_farms/' + userId).update({
-                [`upgrades.${upgrade.name}`]: farmData.upgrades[upgrade.name]
-            })
-        ]);
+        // Используем set вместо update для исправления ошибки с точками
+        // Создаем объект для обновления
+        const updates = {};
+        updates[`upgrades/${upgrade.name}`] = farmData.upgrades[upgrade.name];
+        
+        // Обновляем все данные одним запросом
+        await database.ref('mining_farms/' + userId).update({
+            upgrades: farmData.upgrades
+        });
+        
+        // Обновляем очки отдельно
+        await database.ref('holiday_points/' + userId).update({
+            total_points: newPoints
+        });
         
         // Пересчитываем доход
         farmData.income.perHour = calculateIncomePerHour();
@@ -802,18 +791,18 @@ async function claimIncome() {
         // Ограничиваем историю 50 записями
         farmData.history = farmData.history.slice(0, 50);
         
-        // Сохраняем все изменения
-        await Promise.all([
-            database.ref('holiday_points/' + userId).update({
-                total_points: newPoints
-            }),
-            database.ref('mining_farms/' + userId).update({
-                income: farmData.income,
-                lastClaim: farmData.lastClaim,
-                totalEarned: farmData.totalEarned,
-                history: farmData.history
-            })
-        ]);
+        // Сохраняем все изменения одним запросом
+        await database.ref('mining_farms/' + userId).update({
+            income: farmData.income,
+            lastClaim: farmData.lastClaim,
+            totalEarned: farmData.totalEarned,
+            history: farmData.history
+        });
+        
+        // Обновляем очки отдельно
+        await database.ref('holiday_points/' + userId).update({
+            total_points: newPoints
+        });
         
         // Обновляем UI
         updateAllDisplays();
