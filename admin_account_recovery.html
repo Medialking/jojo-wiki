@@ -440,6 +440,43 @@
             background: rgba(255, 255, 255, 0.1);
             color: white;
         }
+        
+        .search-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-type-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-type-btn.active {
+            background: linear-gradient(90deg, #4dabf7, #339af0);
+        }
+        
+        .search-type-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .id-input {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        
+        .user-id-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -465,26 +502,34 @@
     <!-- Вкладка поиска -->
     <div id="tab-search" class="tab-content active">
         <div class="admin-panel">
-            <h2 class="panel-title">Поиск пользователя по никнейму</h2>
+            <h2 class="panel-title">Поиск пользователя по ID</h2>
+            
+            <div class="search-type">
+                <button class="search-type-btn active" data-type="id">🔢 Поиск по ID (6 цифр)</button>
+                <button class="search-type-btn" data-type="nickname">👤 Поиск по никнейму</button>
+            </div>
             
             <div class="search-box">
                 <input type="text" 
-                       id="username-search" 
-                       class="search-input" 
-                       placeholder="Введите никнейм пользователя..."
-                       autocomplete="off">
+                       id="user-search" 
+                       class="search-input id-input" 
+                       placeholder="Введите ID пользователя (6 цифр)..."
+                       autocomplete="off"
+                       maxlength="6"
+                       pattern="[0-9]*"
+                       inputmode="numeric">
                 <button id="search-btn" class="search-btn">Найти</button>
             </div>
             
             <div class="result-section" id="result-section">
                 <div class="user-info">
                     <div class="info-row">
-                        <div class="info-label">Никнейм:</div>
-                        <div class="info-value" id="result-nickname">-</div>
-                    </div>
-                    <div class="info-row">
                         <div class="info-label">ID пользователя:</div>
                         <div class="info-value" id="result-userid">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Никнейм:</div>
+                        <div class="info-value" id="result-nickname">-</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">Ранг:</div>
@@ -617,23 +662,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Генерация ID пользователя (такая же как на основном сайте)
-function generateUserId(nickname) {
-    return nickname.toLowerCase()
-        .replace(/[^a-zа-яё0-9_]/g, '_')
-        .replace(/[а-яё]/g, function(match) {
-            const map = {
-                'а':'a','б':'b','в':'v','г':'g','д':'d',
-                'е':'e','ё':'yo','ж':'zh','з':'z','и':'i',
-                'й':'y','к':'k','л':'l','м':'m','н':'n',
-                'о':'o','п':'p','р':'r','с':'s','т':'t',
-                'у':'u','ф':'f','х':'h','ц':'ts','ч':'ch',
-                'ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'',
-                'э':'e','ю':'yu','я':'ya'
-            };
-            return map[match] || match;
-        });
-}
+// Глобальные переменные
+let currentSearchType = 'id'; // 'id' или 'nickname'
+let currentUser = null;
 
 // Функция хеширования пароля (такая же как на основном сайте)
 function hashPassword(password) {
@@ -670,9 +701,8 @@ function checkPasswordStrength(password) {
     return score;
 }
 
-// Поиск пользователя
-async function searchUserByNickname(nickname) {
-    const userId = generateUserId(nickname);
+// Поиск пользователя по ID
+async function searchUserById(userId) {
     const resultSection = document.getElementById('result-section');
     const errorMsg = document.getElementById('error-message');
     const successMsg = document.getElementById('success-message');
@@ -681,11 +711,29 @@ async function searchUserByNickname(nickname) {
     errorMsg.style.display = 'none';
     successMsg.style.display = 'none';
     
+    // Валидация ID
+    userId = userId.trim();
+    
+    if (!userId) {
+        errorMsg.textContent = 'Введите ID пользователя';
+        errorMsg.style.display = 'block';
+        resultSection.classList.remove('active');
+        return null;
+    }
+    
+    // Проверяем формат ID (6 цифр)
+    if (!/^\d{6}$/.test(userId)) {
+        errorMsg.textContent = 'ID пользователя должен состоять из 6 цифр';
+        errorMsg.style.display = 'block';
+        resultSection.classList.remove('active');
+        return null;
+    }
+    
     try {
         const snapshot = await database.ref('users/' + userId).once('value');
         
         if (!snapshot.exists()) {
-            errorMsg.textContent = 'Пользователь с таким никнеймом не найден';
+            errorMsg.textContent = 'Пользователь с таким ID не найден';
             errorMsg.style.display = 'block';
             resultSection.classList.remove('active');
             return null;
@@ -694,8 +742,8 @@ async function searchUserByNickname(nickname) {
         const userData = snapshot.val();
         
         // Заполняем информацию
-        document.getElementById('result-nickname').textContent = userData.nickname || nickname;
-        document.getElementById('result-userid').textContent = userId;
+        document.getElementById('result-userid').innerHTML = `<span class="user-id-display">${userId}</span>`;
+        document.getElementById('result-nickname').textContent = userData.nickname || 'Без ника';
         document.getElementById('result-rank').textContent = userData.rank || 'player';
         document.getElementById('result-visits').textContent = userData.visitsCount || 1;
         
@@ -733,6 +781,96 @@ async function searchUserByNickname(nickname) {
         // Показываем результат
         resultSection.classList.add('active');
         return { userId, userData };
+        
+    } catch (error) {
+        console.error('Ошибка поиска:', error);
+        errorMsg.textContent = 'Ошибка сервера при поиске пользователя: ' + error.message;
+        errorMsg.style.display = 'block';
+        return null;
+    }
+}
+
+// Поиск пользователя по никнейму (для обратной совместимости)
+async function searchUserByNickname(nickname) {
+    const resultSection = document.getElementById('result-section');
+    const errorMsg = document.getElementById('error-message');
+    const successMsg = document.getElementById('success-message');
+    
+    // Скрываем сообщения
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+    
+    nickname = nickname.trim();
+    
+    if (!nickname) {
+        errorMsg.textContent = 'Введите никнейм пользователя';
+        errorMsg.style.display = 'block';
+        resultSection.classList.remove('active');
+        return null;
+    }
+    
+    try {
+        // Получаем всех пользователей и ищем по никнейму
+        const snapshot = await database.ref('users').once('value');
+        let foundUser = null;
+        let foundUserId = null;
+        
+        snapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
+            if (userData.nickname && 
+                userData.nickname.toLowerCase() === nickname.toLowerCase()) {
+                foundUser = userData;
+                foundUserId = childSnapshot.key;
+            }
+        });
+        
+        if (!foundUser) {
+            errorMsg.textContent = 'Пользователь с таким никнеймом не найден';
+            errorMsg.style.display = 'block';
+            resultSection.classList.remove('active');
+            return null;
+        }
+        
+        // Заполняем информацию
+        document.getElementById('result-userid').innerHTML = `<span class="user-id-display">${foundUserId}</span>`;
+        document.getElementById('result-nickname').textContent = foundUser.nickname;
+        document.getElementById('result-rank').textContent = foundUser.rank || 'player';
+        document.getElementById('result-visits').textContent = foundUser.visitsCount || 1;
+        
+        // Форматируем даты
+        if (foundUser.createdAt) {
+            const date = new Date(foundUser.createdAt);
+            document.getElementById('result-regdate').textContent = date.toLocaleString('ru-RU');
+        } else {
+            document.getElementById('result-regdate').textContent = 'Неизвестно';
+        }
+        
+        if (foundUser.lastVisit) {
+            const date = new Date(foundUser.lastVisit);
+            document.getElementById('result-lastvisit').textContent = date.toLocaleString('ru-RU');
+            
+            // Определяем статус
+            const now = new Date();
+            const lastVisit = new Date(foundUser.lastVisit);
+            const diffMinutes = (now - lastVisit) / (1000 * 60);
+            
+            if (diffMinutes < 5) {
+                document.getElementById('result-status').innerHTML = '<span class="status online">ОНЛАЙН (был(а) только что)</span>';
+            } else if (diffMinutes < 60) {
+                document.getElementById('result-status').innerHTML = `<span class="status online">Был(а) ${Math.floor(diffMinutes)} мин. назад</span>`;
+            } else if (diffMinutes < 1440) {
+                document.getElementById('result-status').innerHTML = `<span class="status offline">Был(а) ${Math.floor(diffMinutes/60)} час. назад</span>`;
+            } else {
+                document.getElementById('result-status').innerHTML = '<span class="status offline">ОФФЛАЙН (давно не заходил(а))</span>';
+            }
+        } else {
+            document.getElementById('result-lastvisit').textContent = 'Неизвестно';
+            document.getElementById('result-status').innerHTML = '<span class="status offline">ОФФЛАЙН</span>';
+        }
+        
+        // Показываем результат
+        resultSection.classList.add('active');
+        return { userId: foundUserId, userData: foundUser };
         
     } catch (error) {
         console.error('Ошибка поиска:', error);
@@ -794,11 +932,11 @@ async function loadAllUsers() {
                         <div>
                             <div class="user-nickname">${userData.nickname}</div>
                             <div class="user-date">
-                                ID: ${userId} | Регистрация: ${regDate}
+                                ID: <span class="user-id-display">${userId}</span> | Регистрация: ${regDate}
                             </div>
                         </div>
                         <div>
-                            <button class="view-btn" data-nickname="${userData.nickname}">
+                            <button class="view-btn" data-userid="${userId}">
                                 Восстановить доступ
                             </button>
                         </div>
@@ -817,9 +955,19 @@ async function loadAllUsers() {
         // Добавляем обработчики для кнопок
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const nickname = this.getAttribute('data-nickname');
-                document.getElementById('username-search').value = nickname;
-                searchUserByNickname(nickname);
+                const userId = this.getAttribute('data-userid');
+                
+                // Устанавливаем тип поиска на ID
+                setSearchType('id');
+                document.getElementById('user-search').value = userId;
+                
+                // Выполняем поиск
+                searchUserById(userId).then(result => {
+                    if (result) {
+                        currentUser = result;
+                        document.getElementById('reset-password-btn').disabled = false;
+                    }
+                });
                 
                 // Переключаем на вкладку поиска
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -923,10 +1071,43 @@ async function exportUsers() {
     }
 }
 
+// Установка типа поиска
+function setSearchType(type) {
+    currentSearchType = type;
+    const searchInput = document.getElementById('user-search');
+    const typeButtons = document.querySelectorAll('.search-type-btn');
+    
+    // Обновляем активную кнопку
+    typeButtons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Обновляем placeholder и ограничения ввода
+    if (type === 'id') {
+        searchInput.placeholder = 'Введите ID пользователя (6 цифр)...';
+        searchInput.maxLength = 6;
+        searchInput.pattern = '[0-9]*';
+        searchInput.inputMode = 'numeric';
+        searchInput.classList.add('id-input');
+    } else {
+        searchInput.placeholder = 'Введите никнейм пользователя...';
+        searchInput.maxLength = 16;
+        searchInput.pattern = null;
+        searchInput.inputMode = 'text';
+        searchInput.classList.remove('id-input');
+    }
+    
+    // Очищаем поле ввода
+    searchInput.value = '';
+    searchInput.focus();
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    let currentUser = null;
-    
     // Обработчики вкладок
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', function() {
@@ -949,11 +1130,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Обработчики типа поиска
+    document.querySelectorAll('.search-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            setSearchType(type);
+        });
+    });
+    
     // Поиск пользователя
     document.getElementById('search-btn').addEventListener('click', function() {
-        const nickname = document.getElementById('username-search').value.trim();
-        if (nickname) {
-            searchUserByNickname(nickname).then(result => {
+        const searchValue = document.getElementById('user-search').value.trim();
+        
+        if (!searchValue) {
+            const errorMsg = document.getElementById('error-message');
+            errorMsg.textContent = currentSearchType === 'id' 
+                ? 'Введите ID пользователя' 
+                : 'Введите никнейм пользователя';
+            errorMsg.style.display = 'block';
+            return;
+        }
+        
+        if (currentSearchType === 'id') {
+            searchUserById(searchValue).then(result => {
+                if (result) {
+                    currentUser = result;
+                    document.getElementById('reset-password-btn').disabled = false;
+                }
+            });
+        } else {
+            searchUserByNickname(searchValue).then(result => {
                 if (result) {
                     currentUser = result;
                     document.getElementById('reset-password-btn').disabled = false;
@@ -963,11 +1169,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Поиск по Enter
-    document.getElementById('username-search').addEventListener('keypress', function(e) {
+    document.getElementById('user-search').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            const nickname = this.value.trim();
-            if (nickname) {
-                searchUserByNickname(nickname).then(result => {
+            const searchValue = this.value.trim();
+            
+            if (!searchValue) return;
+            
+            if (currentSearchType === 'id') {
+                searchUserById(searchValue).then(result => {
+                    if (result) {
+                        currentUser = result;
+                        document.getElementById('reset-password-btn').disabled = false;
+                    }
+                });
+            } else {
+                searchUserByNickname(searchValue).then(result => {
                     if (result) {
                         currentUser = result;
                         document.getElementById('reset-password-btn').disabled = false;
@@ -1091,6 +1307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const credentials = `
             Ваш аккаунт восстановлен!
+            ID аккаунта: ${currentUser.userId}
             Логин: ${currentUser.userData.nickname}
             Пароль: ${password}
             
@@ -1168,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (weakPasswords.length > 0) {
                 alert(`Найдено ${weakPasswords.length} пользователей с простыми паролями:\n\n` +
-                    weakPasswords.map(u => `• ${u.nickname} (возможный пароль: ${u.suspectedPassword})`).join('\n'));
+                    weakPasswords.map(u => `• ${u.nickname} (ID: ${u.userId}, возможный пароль: ${u.suspectedPassword})`).join('\n'));
             } else {
                 alert('Пользователей с простыми паролями не обнаружено.');
             }
