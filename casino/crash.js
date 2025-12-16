@@ -271,6 +271,7 @@ function startRoundTimer() {
     safeUpdateElement('game-status', 'Прием ставок...');
     document.getElementById('game-status').style.color = '#ffcc00';
     
+    // ОБЪЯВЛЯЕМ timerElement ЗДЕСЬ, чтобы он был доступен в функции updateTimer
     const timerElement = document.getElementById('round-timer');
     const nextTimerElement = document.getElementById('next-round-timer');
     
@@ -318,6 +319,8 @@ function startRound() {
     safeUpdateElement('game-status', 'Раунд идет!');
     document.getElementById('game-status').style.color = '#00ff00';
     
+    // ВМЕСТО ЭТОГО ДОБАВЛЯЕМ:
+    const timerElement = document.getElementById('round-timer');
     if (timerElement) timerElement.classList.remove('timer-danger');
     
     // Запуск игрового цикла
