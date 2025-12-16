@@ -965,18 +965,35 @@ function checkCooldown() {
 
 // ОБНОВЛЕНИЕ UI
 function updateUI() {
-    document.getElementById('current-balance').textContent = gameState.balance;
+    // Проверяем, существует ли элемент перед обновлением
+    const balanceElement = document.getElementById('current-balance');
+    if (balanceElement) {
+        balanceElement.textContent = gameState.balance;
+    }
     
     const betInput = document.getElementById('bet-input');
-    betInput.value = gameState.betAmount;
+    if (betInput) {
+        betInput.value = gameState.betAmount;
+    }
     
-    document.getElementById('current-bet').textContent = gameState.betAmount;
-    document.getElementById('start-bet-amount').textContent = gameState.betAmount;
+    const currentBetElement = document.getElementById('current-bet');
+    if (currentBetElement) {
+        currentBetElement.textContent = gameState.betAmount;
+    }
+    
+    const startBetAmountElement = document.getElementById('start-bet-amount');
+    if (startBetAmountElement) {
+        startBetAmountElement.textContent = gameState.betAmount;
+    }
     
     // Рассчитываем максимальный выигрыш
     const maxMultiplier = GAME_SETTINGS.multipliers[GAME_SETTINGS.multipliers.length - 1];
     const maxWin = Math.floor(gameState.betAmount * maxMultiplier);
-    document.getElementById('max-win').textContent = maxWin;
+    
+    const maxWinElement = document.getElementById('max-win');
+    if (maxWinElement) {
+        maxWinElement.textContent = maxWin;
+    }
     
     updateGameButtons();
 }
