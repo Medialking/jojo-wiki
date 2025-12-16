@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Промокоды | Новогодние очки | JojoLand</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../points.css">
+    <link rel="stylesheet" href="promo-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+</div>
+
+<div class="background-effects" id="particles"></div>
+
+<div id="content">
+    <header>
+        <div class="header-top">
+            <a href="../index.html" class="profile-btn">
+                <span class="profile-icon">🏠</span>
+                <span class="profile-text">На главную</span>
+            </a>
+            <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+            <a href="../points.html" class="profile-btn">
+                <span class="profile-icon">🎄</span>
+                <span class="profile-text">Новогодние очки</span>
+            </a>
+        </div>
+        
+        <h1>🎟️ Промокоды</h1>
+        <p class="subtitle">Введи промокод и получи новогодние очки!</p>
+    </header>
+
+    <div class="promo-container">
+        <!-- КАРТОЧКА АКТИВАЦИИ -->
+        <div class="promo-card">
+            <div class="promo-header">
+                <h2>Активация промокода</h2>
+                <p>Введите специальный код для получения бонусных очков</p>
+            </div>
+            
+            <div class="promo-form">
+                <div class="input-group">
+                    <label class="input-label" for="promo-code">ПРОМОКОД</label>
+                    <input 
+                        type="text" 
+                        id="promo-code" 
+                        class="code-input" 
+                        placeholder="ВВЕДИТЕ КОД"
+                        maxlength="20"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </div>
+                
+                <button id="activate-btn" class="activate-btn">
+                    🎯 АКТИВИРОВАТЬ
+                </button>
+                
+                <div id="activation-status" class="activation-status" style="display: none;">
+                    <!-- Статус будет добавляться через JS -->
+                </div>
+            </div>
+            
+            <div class="promo-rules">
+                <h3 class="rules-title">📋 Правила промокодов:</h3>
+                <ul class="rules-list">
+                    <li>Промокоды чувствительны к регистру (A-Z, 0-9)</li>
+                    <li>Один промокод можно активировать только один раз</li>
+                    <li>Промокоды имеют срок действия</li>
+                    <li>Некоторые промокоды имеют ограничение по количеству активаций</li>
+                    <li>Очки зачисляются моментально после активации</li>
+                    <li>Для активации необходимо быть авторизованным</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ИСТОРИЯ АКТИВАЦИЙ -->
+        <div class="history-section">
+            <h2 class="history-title">📜 История активаций</h2>
+            <div class="history-list" id="history-list">
+                <!-- История будет добавляться через JS -->
+                <div class="empty-history">
+                    <p>Пока нет активированных промокодов</p>
+                    <small>Активируйте первый промокод и он появится здесь</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ИНФОРМАЦИЯ О ПРОМОКОДАХ -->
+        <div class="promo-card">
+            <div class="promo-header">
+                <h2>ℹ️ Где взять промокоды?</h2>
+                <p>Промокоды появляются в разных местах - следите за обновлениями!</p>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">🎮</div>
+                    <div class="info-content">
+                        <h4>Стримы и мероприятия</h4>
+                        <p>Следите за официальными стримами и игровыми мероприятиями</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">📱</div>
+                    <div class="info-content">
+                        <h4>Социальные сети</h4>
+                        <p>Подпишитесь на наши соцсети, чтобы не пропустить новые коды</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🤝</div>
+                    <div class="info-content">
+                        <h4>Партнерские акции</h4>
+                        <p>Сотрудничаем с партнерами для создания эксклюзивных промокодов</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🎉</div>
+                    <div class="info-content">
+                        <h4>Праздничные события</h4>
+                        <p>В праздники появляются специальные промокоды</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ НАВИГАЦИИ -->
+        <div class="action-buttons">
+            <a href="../points.html" class="action-btn">🎄 Новогодние очки</a>
+            <a href="../profile.html" class="action-btn">👤 Мой профиль</a>
+            <a href="../index.html" class="action-btn">🏠 На главную</a>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script src="promo-user.js"></script>
+
+</body>
+</html>
