@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Восстановление аккаунтов - Панель администратора</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .admin-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ff3366;
+        }
+        
+        .admin-header h1 {
+            color: #ff3366;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .admin-header p {
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .warning-banner {
+            background: linear-gradient(90deg, #ff3366, #ff6b6b);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 51, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
+        }
+        
+        .admin-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .panel-title {
+            color: #4dabf7;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .search-btn {
+            padding: 12px 30px;
+            background: linear-gradient(90deg, #4dabf7, #339af0);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-btn:hover {
+            background: linear-gradient(90deg, #339af0, #228be6);
+            transform: translateY(-2px);
+        }
+        
+        .result-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-info {
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-label {
+            width: 200px;
+            color: #aaa;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: white;
+        }
+        
+        .recovery-actions {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .action-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .action-title {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .password-reset-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-label {
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .form-input {
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #4dabf7;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #4dabf7, #339af0);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(90deg, #339af0, #228be6);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(90deg, #40c057, #2f9e44);
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: linear-gradient(90deg, #2f9e44, #248b39);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(90deg, #ff3366, #ff6b6b);
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(90deg, #ff6b6b, #ff5252);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .generated-password {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 1px;
+            color: #ffd700;
+            border: 2px dashed #ffd700;
+        }
+        
+        .users-list {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .user-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-nickname {
+            font-weight: 500;
+        }
+        
+        .user-date {
+            color: #aaa;
+            font-size: 12px;
+        }
+        
+        .view-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .view-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #aaa;
+        }
+        
+        .error-message {
+            background: rgba(255, 51, 102, 0.2);
+            border: 1px solid #ff3366;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: rgba(64, 192, 87, 0.2);
+            border: 1px solid #40c057;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.online {
+            background: rgba(64, 192, 87, 0.2);
+            color: #40c057;
+        }
+        
+        .status.offline {
+            background: rgba(255, 51, 102, 0.2);
+            color: #ff3366;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #4dabf7;
+            color: #4dabf7;
+        }
+        
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .note {
+            color: #aaa;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .strength-meter {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s;
+            border-radius: 3px;
+        }
+        
+        .strength-weak { background: #ff3366; }
+        .strength-medium { background: #ffa500; }
+        .strength-strong { background: #40c057; }
+        
+        .admin-auth {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>🔐 Панель восстановления аккаунтов</h1>
+        <p>Только для администраторов сервера JojoLand</p>
+    </div>
+    
+    <div class="warning-banner">
+        ⚠️ <strong>ВНИМАНИЕ:</strong> Эта панель предоставляет доступ к восстановлению аккаунтов. 
+        Пароли не могут быть показаны, так как они надежно зашифрованы. 
+        Используйте функцию сброса пароля для восстановления доступа.
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="search">🔍 Поиск пользователя</div>
+        <div class="tab" data-tab="list">👥 Все пользователи</div>
+        <div class="tab" data-tab="mass">📊 Массовые операции</div>
+    </div>
+    
+    <!-- Вкладка поиска -->
+    <div id="tab-search" class="tab-content active">
+        <div class="admin-panel">
+            <h2 class="panel-title">Поиск пользователя по никнейму</h2>
+            
+            <div class="search-box">
+                <input type="text" 
+                       id="username-search" 
+                       class="search-input" 
+                       placeholder="Введите никнейм пользователя..."
+                       autocomplete="off">
+                <button id="search-btn" class="search-btn">Найти</button>
+            </div>
+            
+            <div class="result-section" id="result-section">
+                <div class="user-info">
+                    <div class="info-row">
+                        <div class="info-label">Никнейм:</div>
+                        <div class="info-value" id="result-nickname">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">ID пользователя:</div>
+                        <div class="info-value" id="result-userid">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Ранг:</div>
+                        <div class="info-value" id="result-rank">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Дата регистрации:</div>
+                        <div class="info-value" id="result-regdate">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Последний вход:</div>
+                        <div class="info-value" id="result-lastvisit">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Количество входов:</div>
+                        <div class="info-value" id="result-visits">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Статус аккаунта:</div>
+                        <div class="info-value" id="result-status">-</div>
+                    </div>
+                </div>
+                
+                <div class="recovery-actions">
+                    <div class="action-box">
+                        <h3 class="action-title">🔄 Сброс пароля</h3>
+                        <p class="note">Пароли надежно зашифрованы и не могут быть показаны. Создайте новый пароль для пользователя.</p>
+                        
+                        <div class="password-reset-form">
+                            <div class="form-group">
+                                <label class="form-label">Новый пароль:</label>
+                                <input type="text" 
+                                       id="new-password" 
+                                       class="form-input" 
+                                       placeholder="Введите новый пароль"
+                                       maxlength="20">
+                                <div class="strength-meter">
+                                    <div class="strength-fill" id="password-strength"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Или сгенерировать пароль:</label>
+                                <div class="action-buttons">
+                                    <button id="generate-weak" class="btn btn-secondary">Слабый (6 символов)</button>
+                                    <button id="generate-medium" class="btn btn-secondary">Средний (10 символов)</button>
+                                    <button id="generate-strong" class="btn btn-success">Сильный (16 символов)</button>
+                                </div>
+                            </div>
+                            
+                            <div class="generated-password" id="generated-password" style="display: none;">
+                                Новый пароль: <span id="password-display"></span>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button id="reset-password-btn" class="btn btn-primary" disabled>
+                                    Установить новый пароль
+                                </button>
+                                <button id="close-result" class="btn btn-secondary">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-box">
+                        <h3 class="action-title">⚡ Быстрые действия</h3>
+                        <div class="action-buttons">
+                            <button id="copy-credentials" class="btn btn-secondary">
+                                📋 Скопировать данные для входа
+                            </button>
+                            <button id="test-login" class="btn btn-secondary">
+                                🔐 Проверить логин (тест)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="success-message" class="success-message" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <!-- Вкладка всех пользователей -->
+    <div id="tab-list" class="tab-content">
+        <div class="admin-panel">
+            <h2 class="panel-title">Все зарегистрированные пользователи</h2>
+            <div class="users-list" id="users-list">
+                <div class="loading">Загрузка списка пользователей...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Вкладка массовых операций -->
+    <div id="tab-mass" class="tab-content">
+        <div class="admin-panel">
+            <h2 class="panel-title">Массовые операции</h2>
+            
+            <div class="action-box">
+                <h3 class="action-title">📁 Экспорт данных</h3>
+                <p class="note">Экспортировать список всех пользователей в формате JSON</p>
+                <button id="export-users" class="btn btn-primary">📥 Экспортировать пользователей</button>
+            </div>
+            
+            <div class="action-box">
+                <h3 class="action-title">🛡️ Проверка безопасности</h3>
+                <p class="note">Найти пользователей с простыми паролями (на основе хеша)</p>
+                <button id="check-weak-passwords" class="btn btn-danger">🔍 Проверить слабые пароли</button>
+            </div>
+            
+            <div class="action-box">
+                <h3 class="action-title">📊 Статистика</h3>
+                <div id="stats-info" class="loading">Загрузка статистики...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Инициализация Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+    authDomain: "jojoland-chat.firebasestorage.app",
+    databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+    projectId: "jojoland-chat",
+    storageBucket: "jojoland-chat.firebasestorage.app",
+    messagingSenderId: "602788305122",
+    appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// Генерация ID пользователя (такая же как на основном сайте)
+function generateUserId(nickname) {
+    return nickname.toLowerCase()
+        .replace(/[^a-zа-яё0-9_]/g, '_')
+        .replace(/[а-яё]/g, function(match) {
+            const map = {
+                'а':'a','б':'b','в':'v','г':'g','д':'d',
+                'е':'e','ё':'yo','ж':'zh','з':'z','и':'i',
+                'й':'y','к':'k','л':'l','м':'m','н':'n',
+                'о':'o','п':'p','р':'r','с':'s','т':'t',
+                'у':'u','ф':'f','х':'h','ц':'ts','ч':'ch',
+                'ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'',
+                'э':'e','ю':'yu','я':'ya'
+            };
+            return map[match] || match;
+        });
+}
+
+// Функция хеширования пароля (такая же как на основном сайте)
+function hashPassword(password) {
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
+
+// Генерация случайного пароля
+function generatePassword(length = 12) {
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+}
+
+// Проверка сложности пароля
+function checkPasswordStrength(password) {
+    let score = 0;
+    
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
+    
+    return score;
+}
+
+// Поиск пользователя
+async function searchUserByNickname(nickname) {
+    const userId = generateUserId(nickname);
+    const resultSection = document.getElementById('result-section');
+    const errorMsg = document.getElementById('error-message');
+    const successMsg = document.getElementById('success-message');
+    
+    // Скрываем сообщения
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+    
+    try {
+        const snapshot = await database.ref('users/' + userId).once('value');
+        
+        if (!snapshot.exists()) {
+            errorMsg.textContent = 'Пользователь с таким никнеймом не найден';
+            errorMsg.style.display = 'block';
+            resultSection.classList.remove('active');
+            return null;
+        }
+        
+        const userData = snapshot.val();
+        
+        // Заполняем информацию
+        document.getElementById('result-nickname').textContent = userData.nickname || nickname;
+        document.getElementById('result-userid').textContent = userId;
+        document.getElementById('result-rank').textContent = userData.rank || 'player';
+        document.getElementById('result-visits').textContent = userData.visitsCount || 1;
+        
+        // Форматируем даты
+        if (userData.createdAt) {
+            const date = new Date(userData.createdAt);
+            document.getElementById('result-regdate').textContent = date.toLocaleString('ru-RU');
+        } else {
+            document.getElementById('result-regdate').textContent = 'Неизвестно';
+        }
+        
+        if (userData.lastVisit) {
+            const date = new Date(userData.lastVisit);
+            document.getElementById('result-lastvisit').textContent = date.toLocaleString('ru-RU');
+            
+            // Определяем статус
+            const now = new Date();
+            const lastVisit = new Date(userData.lastVisit);
+            const diffMinutes = (now - lastVisit) / (1000 * 60);
+            
+            if (diffMinutes < 5) {
+                document.getElementById('result-status').innerHTML = '<span class="status online">ОНЛАЙН (был(а) только что)</span>';
+            } else if (diffMinutes < 60) {
+                document.getElementById('result-status').innerHTML = `<span class="status online">Был(а) ${Math.floor(diffMinutes)} мин. назад</span>`;
+            } else if (diffMinutes < 1440) {
+                document.getElementById('result-status').innerHTML = `<span class="status offline">Был(а) ${Math.floor(diffMinutes/60)} час. назад</span>`;
+            } else {
+                document.getElementById('result-status').innerHTML = '<span class="status offline">ОФФЛАЙН (давно не заходил(а))</span>';
+            }
+        } else {
+            document.getElementById('result-lastvisit').textContent = 'Неизвестно';
+            document.getElementById('result-status').innerHTML = '<span class="status offline">ОФФЛАЙН</span>';
+        }
+        
+        // Показываем результат
+        resultSection.classList.add('active');
+        return { userId, userData };
+        
+    } catch (error) {
+        console.error('Ошибка поиска:', error);
+        errorMsg.textContent = 'Ошибка сервера при поиске пользователя: ' + error.message;
+        errorMsg.style.display = 'block';
+        return null;
+    }
+}
+
+// Сброс пароля пользователя
+async function resetUserPassword(userId, newPassword) {
+    try {
+        const passwordHash = hashPassword(newPassword);
+        
+        // Обновляем пароль в базе данных
+        await database.ref('users/' + userId).update({
+            passwordHash: passwordHash,
+            lastPasswordReset: new Date().toISOString()
+        });
+        
+        return true;
+    } catch (error) {
+        console.error('Ошибка сброса пароля:', error);
+        throw error;
+    }
+}
+
+// Загрузка всех пользователей
+async function loadAllUsers() {
+    const usersList = document.getElementById('users-list');
+    
+    try {
+        const snapshot = await database.ref('users').once('value');
+        
+        if (!snapshot.exists()) {
+            usersList.innerHTML = '<div class="error-message">Нет зарегистрированных пользователей</div>';
+            return;
+        }
+        
+        let usersHtml = '';
+        let userCount = 0;
+        
+        snapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
+            const userId = childSnapshot.key;
+            
+            if (userData.nickname) {
+                userCount++;
+                
+                // Форматируем дату регистрации
+                let regDate = 'Неизвестно';
+                if (userData.createdAt) {
+                    const date = new Date(userData.createdAt);
+                    regDate = date.toLocaleDateString('ru-RU');
+                }
+                
+                usersHtml += `
+                    <div class="user-item">
+                        <div>
+                            <div class="user-nickname">${userData.nickname}</div>
+                            <div class="user-date">
+                                ID: ${userId} | Регистрация: ${regDate}
+                            </div>
+                        </div>
+                        <div>
+                            <button class="view-btn" data-nickname="${userData.nickname}">
+                                Восстановить доступ
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        usersList.innerHTML = `
+            <div style="margin-bottom: 15px; color: #aaa; font-size: 14px;">
+                Всего пользователей: <strong>${userCount}</strong>
+            </div>
+            ${usersHtml}
+        `;
+        
+        // Добавляем обработчики для кнопок
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const nickname = this.getAttribute('data-nickname');
+                document.getElementById('username-search').value = nickname;
+                searchUserByNickname(nickname);
+                
+                // Переключаем на вкладку поиска
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector('.tab[data-tab="search"]').classList.add('active');
+                document.getElementById('tab-search').classList.add('active');
+                
+                window.scrollTo(0, 0);
+            });
+        });
+        
+    } catch (error) {
+        console.error('Ошибка загрузки пользователей:', error);
+        usersList.innerHTML = '<div class="error-message">Ошибка загрузки списка пользователей</div>';
+    }
+}
+
+// Загрузка статистики
+async function loadStats() {
+    const statsInfo = document.getElementById('stats-info');
+    
+    try {
+        const snapshot = await database.ref('users').once('value');
+        
+        if (!snapshot.exists()) {
+            statsInfo.innerHTML = '<div class="error-message">Нет данных</div>';
+            return;
+        }
+        
+        let totalUsers = 0;
+        let todayUsers = 0;
+        const today = new Date().toDateString();
+        
+        snapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
+            totalUsers++;
+            
+            if (userData.lastVisit) {
+                const lastVisit = new Date(userData.lastVisit).toDateString();
+                if (lastVisit === today) {
+                    todayUsers++;
+                }
+            }
+        });
+        
+        statsInfo.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                    <div style="color: #aaa; font-size: 12px;">Всего пользователей</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #4dabf7;">${totalUsers}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                    <div style="color: #aaa; font-size: 12px;">Заходили сегодня</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #40c057;">${todayUsers}</div>
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Ошибка загрузки статистики:', error);
+        statsInfo.innerHTML = '<div class="error-message">Ошибка загрузки статистики</div>';
+    }
+}
+
+// Экспорт пользователей
+async function exportUsers() {
+    try {
+        const snapshot = await database.ref('users').once('value');
+        
+        if (!snapshot.exists()) {
+            alert('Нет пользователей для экспорта');
+            return;
+        }
+        
+        const users = [];
+        snapshot.forEach((childSnapshot) => {
+            const userData = childSnapshot.val();
+            users.push({
+                id: childSnapshot.key,
+                nickname: userData.nickname || '',
+                rank: userData.rank || 'player',
+                createdAt: userData.createdAt || '',
+                lastVisit: userData.lastVisit || '',
+                visitsCount: userData.visitsCount || 0
+            });
+        });
+        
+        const dataStr = JSON.stringify(users, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `jojoland_users_${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+    } catch (error) {
+        console.error('Ошибка экспорта:', error);
+        alert('Ошибка экспорта данных');
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    let currentUser = null;
+    
+    // Обработчики вкладок
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // Обновляем активную вкладку
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Показываем соответствующий контент
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            // Загружаем данные для вкладки
+            if (tabId === 'list') {
+                loadAllUsers();
+            } else if (tabId === 'mass') {
+                loadStats();
+            }
+        });
+    });
+    
+    // Поиск пользователя
+    document.getElementById('search-btn').addEventListener('click', function() {
+        const nickname = document.getElementById('username-search').value.trim();
+        if (nickname) {
+            searchUserByNickname(nickname).then(result => {
+                if (result) {
+                    currentUser = result;
+                    document.getElementById('reset-password-btn').disabled = false;
+                }
+            });
+        }
+    });
+    
+    // Поиск по Enter
+    document.getElementById('username-search').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const nickname = this.value.trim();
+            if (nickname) {
+                searchUserByNickname(nickname).then(result => {
+                    if (result) {
+                        currentUser = result;
+                        document.getElementById('reset-password-btn').disabled = false;
+                    }
+                });
+            }
+        }
+    });
+    
+    // Генерация паролей
+    document.getElementById('generate-weak').addEventListener('click', function() {
+        const password = generatePassword(6);
+        document.getElementById('new-password').value = password;
+        updatePasswordStrength();
+        showGeneratedPassword(password);
+    });
+    
+    document.getElementById('generate-medium').addEventListener('click', function() {
+        const password = generatePassword(10);
+        document.getElementById('new-password').value = password;
+        updatePasswordStrength();
+        showGeneratedPassword(password);
+    });
+    
+    document.getElementById('generate-strong').addEventListener('click', function() {
+        const password = generatePassword(16);
+        document.getElementById('new-password').value = password;
+        updatePasswordStrength();
+        showGeneratedPassword(password);
+    });
+    
+    // Обновление сложности пароля
+    document.getElementById('new-password').addEventListener('input', function() {
+        updatePasswordStrength();
+        const password = this.value;
+        if (password.length >= 6) {
+            showGeneratedPassword(password);
+        } else {
+            document.getElementById('generated-password').style.display = 'none';
+        }
+    });
+    
+    function updatePasswordStrength() {
+        const password = document.getElementById('new-password').value;
+        const strength = checkPasswordStrength(password);
+        const strengthBar = document.getElementById('password-strength');
+        
+        let width = 0;
+        let className = 'strength-weak';
+        
+        if (password.length === 0) {
+            width = 0;
+        } else if (strength <= 2) {
+            width = 33;
+            className = 'strength-weak';
+        } else if (strength <= 4) {
+            width = 66;
+            className = 'strength-medium';
+        } else {
+            width = 100;
+            className = 'strength-strong';
+        }
+        
+        strengthBar.style.width = width + '%';
+        strengthBar.className = 'strength-fill ' + className;
+    }
+    
+    function showGeneratedPassword(password) {
+        document.getElementById('password-display').textContent = password;
+        document.getElementById('generated-password').style.display = 'block';
+    }
+    
+    // Сброс пароля
+    document.getElementById('reset-password-btn').addEventListener('click', async function() {
+        if (!currentUser) return;
+        
+        const newPassword = document.getElementById('new-password').value.trim();
+        const successMsg = document.getElementById('success-message');
+        const errorMsg = document.getElementById('error-message');
+        
+        if (newPassword.length < 6) {
+            errorMsg.textContent = 'Пароль должен содержать минимум 6 символов';
+            errorMsg.style.display = 'block';
+            return;
+        }
+        
+        this.disabled = true;
+        this.textContent = 'Сброс...';
+        
+        try {
+            await resetUserPassword(currentUser.userId, newPassword);
+            
+            successMsg.innerHTML = `
+                ✅ Пароль успешно сброшен!<br>
+                <strong>Новый пароль для ${currentUser.userData.nickname}: ${newPassword}</strong><br>
+                <small>Сообщите этот пароль пользователю. Старый пароль больше не работает.</small>
+            `;
+            successMsg.style.display = 'block';
+            
+            this.textContent = 'Пароль сброшен ✓';
+            this.style.background = 'linear-gradient(90deg, #40c057, #2f9e44)';
+            
+        } catch (error) {
+            errorMsg.textContent = 'Ошибка сброса пароля: ' + error.message;
+            errorMsg.style.display = 'block';
+            
+            this.textContent = 'Установить новый пароль';
+            this.disabled = false;
+        }
+    });
+    
+    // Копирование данных для входа
+    document.getElementById('copy-credentials').addEventListener('click', function() {
+        if (!currentUser) return;
+        
+        const password = document.getElementById('new-password').value.trim();
+        if (!password) {
+            alert('Сначала создайте новый пароль');
+            return;
+        }
+        
+        const credentials = `
+            Ваш аккаунт восстановлен!
+            Логин: ${currentUser.userData.nickname}
+            Пароль: ${password}
+            
+            Войдите на сайте: https://ваш-сайт.com
+        `;
+        
+        navigator.clipboard.writeText(credentials).then(() => {
+            const originalText = this.textContent;
+            this.textContent = '✓ Скопировано!';
+            this.style.background = 'linear-gradient(90deg, #40c057, #2f9e44)';
+            
+            setTimeout(() => {
+                this.textContent = originalText;
+                this.style.background = '';
+            }, 2000);
+        });
+    });
+    
+    // Проверка логина (тест)
+    document.getElementById('test-login').addEventListener('click', async function() {
+        if (!currentUser) return;
+        
+        const password = document.getElementById('new-password').value.trim();
+        if (!password) {
+            alert('Сначала создайте пароль для проверки');
+            return;
+        }
+        
+        const testHash = hashPassword(password);
+        const originalHash = currentUser.userData.passwordHash;
+        
+        if (testHash === originalHash) {
+            alert('✅ Тест пройден! Пароль совпадает с хешем в базе данных.');
+        } else {
+            alert('⚠️ Хеши не совпадают. Возможно, пароль уже был изменен или произошла ошибка.');
+        }
+    });
+    
+    // Закрытие результата
+    document.getElementById('close-result').addEventListener('click', function() {
+        document.getElementById('result-section').classList.remove('active');
+        currentUser = null;
+    });
+    
+    // Экспорт пользователей
+    document.getElementById('export-users').addEventListener('click', exportUsers);
+    
+    // Проверка слабых паролей
+    document.getElementById('check-weak-passwords').addEventListener('click', async function() {
+        this.disabled = true;
+        this.textContent = 'Проверка...';
+        
+        try {
+            const snapshot = await database.ref('users').once('value');
+            const weakPasswords = [];
+            const commonPasswords = ['123456', 'password', '123456789', '12345678', '12345', 'qwerty', '123123'];
+            
+            snapshot.forEach((childSnapshot) => {
+                const userData = childSnapshot.val();
+                if (userData.passwordHash) {
+                    // Проверяем хеши распространенных паролей
+                    for (const commonPwd of commonPasswords) {
+                        const hash = hashPassword(commonPwd);
+                        if (hash === userData.passwordHash) {
+                            weakPasswords.push({
+                                nickname: userData.nickname,
+                                userId: childSnapshot.key,
+                                suspectedPassword: commonPwd
+                            });
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            if (weakPasswords.length > 0) {
+                alert(`Найдено ${weakPasswords.length} пользователей с простыми паролями:\n\n` +
+                    weakPasswords.map(u => `• ${u.nickname} (возможный пароль: ${u.suspectedPassword})`).join('\n'));
+            } else {
+                alert('Пользователей с простыми паролями не обнаружено.');
+            }
+            
+        } catch (error) {
+            console.error('Ошибка проверки паролей:', error);
+            alert('Ошибка при проверке паролей');
+        } finally {
+            this.disabled = false;
+            this.textContent = '🔍 Проверить слабые пароли';
+        }
+    });
+    
+    // Инициализация
+    loadAllUsers();
+    loadStats();
+});
+</script>
+
+</body>
+</html>
