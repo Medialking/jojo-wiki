@@ -11,11 +11,69 @@ const firebaseConfig = {
     appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
 };
 
-// Инициализируем только если еще не инициализировано
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+// Проверяем, загружен ли Firebase
+if (typeof firebase === 'undefined') {
+    console.error('❌ Firebase не загружен!');
+    // Загружаем Firebase динамически если нужно
+    const firebaseScript = document.createElement('script');
+    firebaseScript.src = 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js';
+    firebaseScript.onload = function() {
+        const firebaseDBScript = document.createElement('script');
+        firebaseDBScript.src = 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js';
+        firebaseDBScript.onload = function() {
+            initializeFirebase();
+        };
+        document.head.appendChild(firebaseDBScript);
+    };
+    document.head.appendChild(firebaseScript);
+} else {
+    initializeFirebase();
 }
-const database = firebase.database();
+
+function initializeFirebase() {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    window.database = firebase.database();
+    
+    // Запускаем инициализацию фермы
+    initializeFarm();
+}
+
+function initializeFarm() {
+    // Ждем немного чтобы все загрузилось
+    setTimeout(() => {
+        createParticles();
+        
+        document.getElementById("loader").style.opacity = "0";
+        setTimeout(async () => {
+            document.getElementById("loader").style.display = "none";
+            document.getElementById("content").style.opacity = "1";
+            
+            if (await checkAuth()) {
+                // Проверяем, что TimeManager доступен
+                if (typeof TimeManager === 'undefined') {
+                    console.error('❌ TimeManager не загружен!');
+                    showError('Ошибка загрузки модуля времени');
+                    return;
+                }
+                
+                try {
+                    await TimeManager.syncWithServer();
+                    await loadPointsData();
+                    await loadFarmData();
+                    setupEventListeners();
+                    startFarmUpdates();
+                    updateFarmVisualization();
+                    updateIncomeHistory();
+                } catch (error) {
+                    console.error('❌ Ошибка инициализации фермы:', error);
+                    showError('Ошибка загрузки фермы: ' + error.message);
+                }
+            }
+        }, 400);
+    }, 100);
+}
 
 // Глобальные переменные
 let userId = null;
