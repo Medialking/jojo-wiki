@@ -1,4 +1,4 @@
-// red-black.js - логика игры "Красное или Черное" с усиленной умной системой подкрутки
+// red-black.js - логика игры "Красное или Черное" с умной системой подкрутки
 
 let userId = null;
 let userNickname = null;
@@ -21,7 +21,7 @@ let gameState = {
 };
 
 // Режим отладки (поставить false в продакшене)
-const DEBUG_MODE = false; // Изменено на false!
+const DEBUG_MODE = false;
 
 // Логи для админ-панели
 let adminLogs = [];
@@ -260,7 +260,7 @@ function updatePlayerPattern(isWin) {
     if (gameState.selectedColor) {
         playerData.lastChoices.unshift(gameState.selectedColor);
         
-        // ОГРАНИЧИВАЕМ ИСТОРИЮ ДО 5 ПОСЛЕДНИХ ХОДОВ (было 10)
+        // ОГРАНИЧИВАЕМ ИСТОРИЮ ДО 5 ПОСЛЕДНИХ ХОДОВ
         if (playerData.lastChoices.length > 5) {
             playerData.lastChoices = playerData.lastChoices.slice(0, 5);
         }
@@ -270,7 +270,6 @@ function updatePlayerPattern(isWin) {
     }
     
     // ОБМАНЫВАЕМ ВИНРЕЙТ: всегда показываем около 45-50%
-    // Это создаст иллюзию "почти честной" игры
     const fakeWinRate = 0.45 + (Math.random() * 0.1);
     playerData.winRate = fakeWinRate;
     
@@ -304,99 +303,84 @@ function detectPatterns(choices) {
     return patterns;
 }
 
-// ГЕНЕРАЦИЯ РЕЗУЛЬТАТА С УСИЛЕННОЙ УМНОЙ ПОДКРУТКОЙ
+// ГЕНЕРАЦИЯ РЕЗУЛЬТАТА С УМНОЙ СИСТЕМОЙ ПОДКРУТКИ
 function generateResult() {
-    // Увеличиваем минимальный кулдаун для предотвращения спама мелкими ставками
+    // Устанавливаем кулдаун в зависимости от ставки
     if (gameState.betAmount < 50) {
-        setCooldown(8000); // 8 секунд для мелких ставок
+        setCooldown(5000); // 5 секунд для мелких ставок
     }
 
     // Инициализируем данные игрока
     initializePlayerPattern(userId);
     const playerData = playerPatterns[userId];
     
-    // УСИЛЕННЫЕ НАСТРОЙКИ КАЗИНО
+    // НАСТРОЙКИ КАЗИНО (БАЛАНСИРОВАННЫЕ)
     const CASINO_SETTINGS = {
-        minProbability: 0.25,    // Минимальный шанс выигрыша (было 0.35)
-        maxProbability: 0.55,    // Максимальный шанс выигрыша (было 0.65)
-        baseProbability: 0.40,   // Базовая вероятность 40% (было 48%)
-        consecutiveLossBoost: 0.08, // Меньше помощи после проигрышей
-        smallBetPenalty: 0.15,   // Штраф за мелкие ставки
-        patternPenalty: 0.12     // Штраф за обнаружение паттерна
+        minProbability: 0.35,    // Минимальный шанс выигрыша
+        maxProbability: 0.65,    // Максимальный шанс выигрыша
+        baseProbability: 0.48,   // Базовая вероятность 48%
+        consecutiveLossBoost: 0.15, // Помощь после проигрышей
+        smallBetPenalty: 0.05,   // Небольшой штраф за мелкие ставки
+        patternPenalty: 0.08     // Штраф за обнаружение паттерна
     };
     
     let winProbability = CASINO_SETTINGS.baseProbability;
     
-    // Логируем в админ-панель (не в консоль!)
     addAdminLog("🎰 Умная система активирована", "system");
     
-    // 1. СТРОГИЙ ФАКТОР ПАТТЕРНА ИГРОКА
+    // 1. ФАКТОР ПАТТЕРНА ИГРОКА
     const playerPattern = playerData.currentPattern;
     
     if (playerPattern !== 'random') {
-        // Любой не-случайный паттерн сильно наказывается
         winProbability -= CASINO_SETTINGS.patternPenalty;
         addAdminLog(`🎯 Обнаружен паттерн: ${playerPattern} (-${CASINO_SETTINGS.patternPenalty*100}%)`, "pattern");
     }
     
-    // 2. ФАКТОР РАЗМЕРА СТАВКИ (ОСНОВНОЕ ИСПРАВЛЕНИЕ)
+    // 2. ФАКТОР РАЗМЕРА СТАВКИ (БАЛАНСИРОВАННЫЙ)
     if (gameState.betAmount < 50) {
-        // МЕЛКИЕ СТАВКИ (<50) - СИЛЬНО УМЕНЬШАЕМ ШАНСЫ
+        // Небольшой штраф для мелких ставок
         winProbability -= CASINO_SETTINGS.smallBetPenalty;
         addAdminLog(`🎯 Мелкая ставка: ${gameState.betAmount} (-${CASINO_SETTINGS.smallBetPenalty*100}%)`, "penalty");
-        
-        // Дополнительно: для мелких ставок добавляем случайную задержку
-        if (Math.random() < 0.3) {
-            // 30% шанс "неожиданного" результата
-            const forcedResult = Math.random() < 0.5 ? 'red' : 'black';
-            addAdminLog("🎰 Активация случайного результата для мелкой ставки", "forced");
-            return forcedResult !== gameState.selectedColor ? forcedResult : 
-                   (forcedResult === 'red' ? 'black' : 'red');
-        }
     } else if (gameState.betAmount > 200) {
-        // Крупные ставки тоже реже выигрывают
-        winProbability -= 0.10;
-        addAdminLog(`🎯 Крупная ставка: ${gameState.betAmount} (-10%)`, "penalty");
+        // Крупные ставки имеют немного меньший шанс
+        winProbability -= 0.05;
+        addAdminLog(`🎯 Крупная ставка: ${gameState.betAmount} (-5%)`, "penalty");
+    } else if (gameState.betAmount >= 50 && gameState.betAmount <= 100) {
+        // Средние ставки получают небольшой бонус
+        winProbability += 0.03;
+        addAdminLog(`🎯 Оптимальная ставка: ${gameState.betAmount} (+3%)`, "bonus");
     }
     
     // 3. ФАКТОР БАЛАНСА ИГРОКА
-    const balanceFactor = gameState.balance / 1000; // Нормализуем
+    const balanceFactor = gameState.balance / 2000;
     if (balanceFactor > 1) {
-        // Чем больше баланс, тем меньше шансов
-        winProbability -= Math.min(0.15, balanceFactor * 0.05);
+        // Для очень больших балансов
+        winProbability -= Math.min(0.10, balanceFactor * 0.03);
         addAdminLog(`🎯 Высокий баланс: ${gameState.balance}`, "balance");
+    } else if (balanceFactor < 0.5) {
+        // Маленький баланс - небольшой бонус
+        winProbability += 0.02;
+        addAdminLog(`🎯 Низкий баланс: ${gameState.balance} (+2%)`, "balance");
     }
     
-    // 4. ФАКТОР СЕССИИ
-    const sessionBets = casinoData.total_bets || 0;
-    if (sessionBets > 10) {
-        // После 10 ставок в сессии постепенно уменьшаем шансы
-        const sessionPenalty = Math.min(0.2, (sessionBets - 10) * 0.02);
-        winProbability -= sessionPenalty;
-        addAdminLog(`🎯 Много ставок в сессии: ${sessionBets} (-${Math.round(sessionPenalty*100)}%)`, "session");
+    // 4. ФАКТОР ПОДРЯД ИДУЩИХ ПРОИГРЫШЕЙ (ПОМОЩЬ)
+    const recentLosses = countRecentLosses();
+    if (recentLosses >= 3) {
+        // После 3 проигрышей подряд - увеличиваем шанс
+        winProbability += CASINO_SETTINGS.consecutiveLossBoost;
+        addAdminLog(`🎯 ${recentLosses} проигрыша подряд (+${CASINO_SETTINGS.consecutiveLossBoost*100}%)`, "help");
     }
     
-    // 5. ФАКТОР ВРЕМЕНИ
-    const now = new Date();
-    const hour = now.getHours();
-    
-    // В пиковые часы (вечер) меньше шансов
-    if (hour >= 18 || hour <= 2) {
-        winProbability -= 0.05;
-        addAdminLog("🎯 Пиковое время игры (-5%)", "time");
-    }
-    
-    // 6. ГАРАНТИРОВАННЫЙ ПРОИГРЫШ ПОСЛЕ 2+ ВЫИГРЫШЕЙ
+    // 5. ГАРАНТИРОВАННЫЙ ПРОИГРЫШ ПОСЛЕ 2+ ВЫИГРЫШЕЙ (БАЛАНСИРОВАННЫЙ)
     if (gameState.consecutiveWins >= 2) {
-        // После 2 выигрышей подряд - 85% шанс проигрыша
-        addAdminLog("🎰 Активация гарантированного проигрыша (2+ выигрыша подряд)", "guaranteed");
-        return Math.random() < 0.85 ? 
+        // После 2 выигрышей подряд - 60% шанс проигрыша
+        addAdminLog("🎰 Активация коррекции (2+ выигрыша подряд)", "correction");
+        return Math.random() < 0.60 ? 
                (gameState.selectedColor === 'red' ? 'black' : 'red') :
                gameState.selectedColor;
     }
     
-    // 7. ПСЕВДОСЛУЧАЙНЫЕ ВСПЛЕСКИ УДАЧИ
-    // Создаём иллюзию случайности, но контролируем общий исход
+    // 6. ПСЕВДОСЛУЧАЙНЫЕ ВСПЛЕСКИ УДАЧИ
     const pseudoRandomFactor = Math.sin(Date.now() / 10000) * 0.1;
     winProbability += pseudoRandomFactor;
     
@@ -405,33 +389,27 @@ function generateResult() {
                               Math.min(CASINO_SETTINGS.maxProbability, winProbability));
     
     // СЛУЧАЙНЫЙ ШУМ для предотвращения анализа
-    const noise = (Math.random() - 0.5) * 0.05;
+    const noise = (Math.random() - 0.5) * 0.1;
     winProbability += noise;
     
-    // Логируем финальную вероятность (только в админ-логи)
+    // Логируем финальную вероятность
     const finalChance = Math.round(winProbability * 100);
     addAdminLog(`🎲 Финальный шанс выигрыша: ${finalChance}%`, "probability");
     addAdminLog(`📊 Баланс: ${gameState.balance}, Ставка: ${gameState.betAmount}`, "stats");
     
-    // Генерируем результат с дополнительной "защитой"
+    // Генерируем результат на основе вероятности
     const random = Math.random();
     let isWin = random < winProbability;
-    
-    // ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: если шанс слишком высокий - корректируем
-    if (winProbability > 0.45 && Math.random() < 0.7) {
-        isWin = false; // 70% шанс переопределить "слишком удачный" исход
-        addAdminLog("🛡️ Активация защиты: снижение шанса", "protection");
-    }
     
     return isWin ? gameState.selectedColor : 
                   (gameState.selectedColor === 'red' ? 'black' : 'red');
 }
 
-// СЧЕТЧИК ПОДРЯД ИДУЩИХ ВЫИГРЫШЕЙ
-function countConsecutiveWins() {
+// СЧЕТЧИК ПОСЛЕДНИХ ПРОИГРЫШЕЙ
+function countRecentLosses() {
     let count = 0;
     for (let result of gameState.lastResults) {
-        if (result.win) {
+        if (!result.win) {
             count++;
         } else {
             break;
@@ -440,11 +418,11 @@ function countConsecutiveWins() {
     return count;
 }
 
-// СЧЕТЧИК ПОСЛЕДНИХ ПРОИГРЫШЕЙ
-function countRecentLosses() {
+// СЧЕТЧИК ПОДРЯД ИДУЩИХ ВЫИГРЫШЕЙ
+function countConsecutiveWins() {
     let count = 0;
     for (let result of gameState.lastResults) {
-        if (!result.win) {
+        if (result.win) {
             count++;
         } else {
             break;
@@ -677,9 +655,9 @@ async function saveBetResult(resultColor, isWin, winAmount) {
 
 // УСТАНОВКА КУЛДАУНА
 function setCooldown(duration) {
-    // Для мелких ставок увеличиваем кулдаун
+    // Для мелких ставок НЕ увеличиваем кулдаун так сильно
     if (gameState.betAmount < 50) {
-        duration = Math.max(duration, 8000); // Минимум 8 секунд
+        duration = Math.max(duration, 5000); // Минимум 5 секунд
     }
     
     gameState.cooldownEnd = Date.now() + duration;
