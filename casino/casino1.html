@@ -52,85 +52,98 @@
         </div>
 
         <!-- ИГРЫ -->
-        <div class="games-section">
-            <h2 class="section-title">🎮 Доступные игры</h2>
-            <p class="section-subtitle">Минимальная ставка: <strong>10 очков</strong></p>
-            
-            <div class="games-grid">
-                <!-- ИГРА 1: КРАСНОЕ ИЛИ ЧЕРНОЕ -->
-                <div class="game-card" data-game="red-black">
-                    <div class="game-header">
-                        <div class="game-icon">🎲</div>
-                        <div class="game-status active">Доступно</div>
-                    </div>
-                    <div class="game-body">
-                        <h3>Красное или Черное</h3>
-                        <p>Угадайте цвет и выиграйте ×1.5</p>
-                        <div class="game-stats">
-                            <div class="stat">
-                                <span class="stat-icon">📈</span>
-                                <span>Шанс: 49%</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-icon">🎯</span>
-                                <span>Множитель: ×1.5</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="game-footer">
-                        <a href="red-black.html" class="play-btn">Играть</a>
-                    </div>
-                    <div class="game-badge popular">Популярное</div>
-                </div>
-
-                <!-- СОЗДАЕМ МЕСТО ДЛЯ БУДУЩИХ ИГР -->
-                <div class="game-card" data-game="wheel">
-                    <div class="game-header">
-                        <div class="game-icon">🎡</div>
-                        <div class="game-status active">Доступно</div>
-               </div>
-               <div class="game-body">
-                   <h3>Колесо Фортуны</h3>
-                   <p>Крутите колесо за призами до ×10</p>
-                   <div class="game-stats">
-                       <div class="stat">
-                           <span class="stat-icon">🎰</span>
-                           <span>Стоимость: 50 очков</span>
-                       </div>
-                       <div class="stat">
-                           <span class="stat-icon">💰</span>
-                            <span>Призы до ×10</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="game-footer">
-                    <a href="wheel.html" class="play-btn">Играть</a>
-                </div>
-                <div class="game-badge new">НОВОЕ</div>
+<div class="games-section">
+    <h2 class="section-title">🎮 Доступные игры</h2>
+    <p class="section-subtitle">Используйте новогодние очки для ставок</p>
+    
+    <div class="games-grid">
+        <!-- ИГРА 1: КРАСНОЕ ИЛИ ЧЕРНОЕ -->
+        <div class="game-card" data-game="red-black">
+            <div class="game-header">
+                <div class="game-icon">🎲</div>
+                <div class="game-status active">Доступно</div>
             </div>
-
-                <div class="game-card coming-soon">
-                    <div class="game-header">
-                        <div class="game-icon">🎯</div>
-                        <div class="game-status">Скоро</div>
+            <div class="game-body">
+                <h3>Красное или Черное</h3>
+                <p>Угадайте цвет и выиграйте ×1.8</p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-icon">📈</span>
+                        <span>Шанс: 48%</span>
                     </div>
-                    <div class="game-body">
-                        <h3>Слоты</h3>
-                        <p>Соберите выигрышную комбинацию</p>
-                        <div class="game-stats">
-                            <div class="stat">
-                                <span class="stat-icon">⭐</span>
-                                <span>Джекпот</span>
-                            </div>
-                        </div>
+                    <div class="stat">
+                        <span class="stat-icon">💰</span>
+                        <span>Мин. ставка: 10</span>
                     </div>
-                    <div class="game-footer">
-                        <button class="play-btn disabled" disabled>Скоро</button>
+                    <div class="stat">
+                        <span class="stat-icon">🎯</span>
+                        <span>Выигрыш: ×1.8</span>
                     </div>
-                    <div class="game-badge">Скоро</div>
                 </div>
             </div>
+            <div class="game-footer">
+                <a href="red-black.html" class="play-btn">Играть</a>
+            </div>
+            <div class="game-badge popular">Популярное</div>
         </div>
+
+        <!-- ИГРА 2: САПЕР -->
+        <div class="game-card" data-game="minesweeper">
+            <div class="game-header">
+                <div class="game-icon">💣</div>
+                <div class="game-status active">Доступно</div>
+            </div>
+            <div class="game-body">
+                <h3>Сапер Казино</h3>
+                <p>Найдите алмазы, избегайте бомб!</p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-icon">💎</span>
+                        <span>Джекпот: ×10</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">💰</span>
+                        <span>Мин. ставка: 50</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">📊</span>
+                        <span>Шанс: 48%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="game-footer">
+                <a href="minesweeper.html" class="play-btn">Играть</a>
+            </div>
+            <div class="game-badge new">НОВОЕ</div>
+            <div class="game-badge hot" style="left: auto; right: 10px; background: linear-gradient(90deg, #ff4444, #ff9900);">ХИТ</div>
+        </div>
+
+        <!-- ИГРА 4: СЛОТЫ -->
+        <div class="game-card coming-soon">
+            <div class="game-header">
+                <div class="game-icon">🎰</div>
+                <div class="game-status">Скоро</div>
+            </div>
+            <div class="game-body">
+                <h3>Слоты</h3>
+                <p>Соберите выигрышную комбинацию</p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-icon">⭐</span>
+                        <span>Джекпот</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">💰</span>
+                        <span>Прогрессивный</span>
+                    </div>
+                </div>
+            </div>
+            <div class="game-footer">
+                <button class="play-btn disabled" disabled>Скоро</button>
+            </div>
+            <div class="game-badge">Скоро</div>
+        </div>
+    </div>
 
         <!-- ИСТОРИЯ ИГР -->
         <div class="history-section">
