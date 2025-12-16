@@ -1,6 +1,6 @@
 // mining_farm.js
 
-// Инициализация Firebase (используем ту же конфигурацию)
+// Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
     authDomain: "jojoland-chat.firebasestorage.app",
@@ -14,7 +14,6 @@ const firebaseConfig = {
 // Проверяем, загружен ли Firebase
 if (typeof firebase === 'undefined') {
     console.error('❌ Firebase не загружен!');
-    // Загружаем Firebase динамически если нужно
     const firebaseScript = document.createElement('script');
     firebaseScript.src = 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js';
     firebaseScript.onload = function() {
@@ -35,13 +34,73 @@ function initializeFirebase() {
         firebase.initializeApp(firebaseConfig);
     }
     window.database = firebase.database();
-    
-    // Запускаем инициализацию фермы
     initializeFarm();
 }
 
+// Глобальные переменные
+let userId = null;
+let userNickname = null;
+let farmData = null;
+let pointsData = null;
+let lastUpdateTime = null;
+let updateInterval = null;
+let autoSaveInterval = null;
+
+// Структура улучшений фермы
+const UPGRADES = {
+    COOLING: {
+        name: 'cooling',
+        maxLevel: 100,
+        baseCost: 100,
+        costMultiplier: 1.15,
+        incomeBonusPerLevel: 0.01,
+        description: 'Увеличивает стабильность фермы'
+    },
+    GPU: {
+        name: 'gpu',
+        maxCount: 50,
+        baseCost: 150,
+        costMultiplier: 1.2,
+        powerPerGPU: 10,
+        powerConsumption: 20,
+        description: 'Основная вычислительная мощность'
+    },
+    ENERGY: {
+        name: 'energy',
+        maxLevel: 50,
+        baseCost: 120,
+        costMultiplier: 1.12,
+        powerLimitPerLevel: 20,
+        description: 'Энергоснабжение фермы'
+    },
+    AI: {
+        name: 'ai',
+        maxLevel: 30,
+        baseCost: 200,
+        costMultiplier: 1.18,
+        efficiencyPerLevel: 0.005,
+        description: 'ИИ оптимизация процессов'
+    },
+    CLOUD: {
+        name: 'cloud',
+        maxLevel: 20,
+        baseCost: 300,
+        costMultiplier: 1.25,
+        powerBonusPerLevel: 0.02,
+        description: 'Облачные вычисления'
+    },
+    ALGORITHM: {
+        name: 'algorithm',
+        maxLevel: 10,
+        baseCost: 500,
+        costMultiplier: 1.3,
+        profitBonusPerLevel: 0.03,
+        description: 'Алгоритм майнинга'
+    }
+};
+
+// ИНИЦИАЛИЗАЦИЯ ФЕРМЫ
 function initializeFarm() {
-    // Ждем немного чтобы все загрузилось
     setTimeout(() => {
         createParticles();
         
@@ -51,7 +110,6 @@ function initializeFarm() {
             document.getElementById("content").style.opacity = "1";
             
             if (await checkAuth()) {
-                // Проверяем, что TimeManager доступен
                 if (typeof TimeManager === 'undefined') {
                     console.error('❌ TimeManager не загружен!');
                     showError('Ошибка загрузки модуля времени');
@@ -64,6 +122,7 @@ function initializeFarm() {
                     await loadFarmData();
                     setupEventListeners();
                     startFarmUpdates();
+                    startAutoSave();
                     updateFarmVisualization();
                     updateIncomeHistory();
                 } catch (error) {
@@ -75,93 +134,21 @@ function initializeFarm() {
     }, 100);
 }
 
-// Глобальные переменные
-let userId = null;
-let userNickname = null;
-let farmData = null;
-let pointsData = null;
-let lastUpdateTime = null;
-let updateInterval = null;
-
-// Структура улучшений фермы
-const UPGRADES = {
-    COOLING: {
-        name: 'cooling',
-        maxLevel: 100,
-        baseCost: 100,
-        costMultiplier: 1.15,
-        incomeBonusPerLevel: 0.01, // +1% к доходу за уровень
-        description: 'Увеличивает стабильность фермы'
-    },
-    GPU: {
-        name: 'gpu',
-        maxCount: 50,
-        baseCost: 150,
-        costMultiplier: 1.2,
-        powerPerGPU: 10, // GH/s за видеокарту
-        powerConsumption: 20, // Вт за видеокарту
-        description: 'Основная вычислительная мощность'
-    },
-    ENERGY: {
-        name: 'energy',
-        maxLevel: 50,
-        baseCost: 120,
-        costMultiplier: 1.12,
-        powerLimitPerLevel: 20, // +20 Вт за уровень
-        description: 'Энергоснабжение фермы'
-    },
-    AI: {
-        name: 'ai',
-        maxLevel: 30,
-        baseCost: 200,
-        costMultiplier: 1.18,
-        efficiencyPerLevel: 0.005, // +0.5% эффективности за уровень
-        description: 'ИИ оптимизация процессов'
-    },
-    CLOUD: {
-        name: 'cloud',
-        maxLevel: 20,
-        baseCost: 300,
-        costMultiplier: 1.25,
-        powerBonusPerLevel: 0.02, // +2% к мощности за уровень
-        description: 'Облачные вычисления'
-    },
-    ALGORITHM: {
-        name: 'algorithm',
-        maxLevel: 10,
-        baseCost: 500,
-        costMultiplier: 1.3,
-        profitBonusPerLevel: 0.03, // +3% прибыльности за уровень
-        description: 'Алгоритм майнинга'
-    }
-};
-
-// ЗАГРУЗКА СТРАНИЦЫ
-window.onload = async function() {
-    // Инициализация уже происходит в initializeFarm()
-};
-
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
-    
     for (let i = 0; i < 30; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
-        
         particle.style.left = `${Math.random() * 100}%`;
         particle.style.top = `${Math.random() * 100}%`;
-        
         const size = Math.random() * 2 + 1;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-        
         particle.style.opacity = Math.random() * 0.5 + 0.2;
-        
         const duration = Math.random() * 20 + 15;
         particle.style.animationDuration = `${duration}s`;
         particle.style.animationDelay = `${Math.random() * 10}s`;
-        
         particlesContainer.appendChild(particle);
     }
 }
@@ -186,17 +173,8 @@ async function checkAuth() {
 async function loadPointsData() {
     try {
         const snapshot = await database.ref('holiday_points/' + userId).once('value');
-        
-        if (snapshot.exists()) {
-            pointsData = snapshot.val();
-            console.log('✅ Данные очков загружены для фермы');
-        } else {
-            pointsData = { total_points: 0 };
-        }
-        
-        // Обновляем отображение очков
+        pointsData = snapshot.exists() ? snapshot.val() : { total_points: 0 };
         updatePointsDisplay();
-        
     } catch (error) {
         console.error('❌ Ошибка загрузки данных очков:', error);
         pointsData = { total_points: 0 };
@@ -219,18 +197,32 @@ async function loadFarmData() {
             
             if (!farmData.income) {
                 farmData.income = initializeIncome();
+            } else {
+                // ВОССТАНАВЛИВАЕМ НАКОПЛЕННЫЙ ДОХОД ПРИ ЗАГРУЗКЕ
+                if (farmData.income.lastUpdate) {
+                    const lastUpdate = new Date(farmData.income.lastUpdate);
+                    const now = new Date();
+                    const secondsPassed = (now - lastUpdate) / 1000;
+                    
+                    if (secondsPassed > 0) {
+                        const incomePerSecond = (farmData.income.perHour || calculateIncomePerHour()) / 3600;
+                        const incomeToAdd = incomePerSecond * secondsPassed;
+                        
+                        farmData.income.accumulated = (farmData.income.accumulated || 0) + incomeToAdd;
+                        farmData.income.lastUpdate = now.toISOString();
+                        
+                        console.log(`📈 Восстановлен доход за простой: +${incomeToAdd.toFixed(2)} очков`);
+                        
+                        // Сразу сохраняем восстановленный доход
+                        saveAccumulatedIncome();
+                    }
+                }
             }
             
-            if (!farmData.history) {
-                farmData.history = [];
-            }
-            
-            if (!farmData.lastClaim) {
-                farmData.lastClaim = null;
-            }
-            
-            // Обновляем данные в Firebase
-            await saveFarmData();
+            if (!farmData.history) farmData.history = [];
+            if (!farmData.lastClaim) farmData.lastClaim = null;
+            if (!farmData.createdAt) farmData.createdAt = new Date().toISOString();
+            if (!farmData.totalEarned) farmData.totalEarned = 0;
             
         } else {
             // Создаем новую ферму
@@ -247,7 +239,6 @@ async function loadFarmData() {
             console.log('✅ Новая ферма создана');
         }
         
-        // Обновляем UI
         updateAllDisplays();
         updateClaimProgress();
         
@@ -279,13 +270,56 @@ function initializeIncome() {
     };
 }
 
-// СОХРАНЕНИЕ ДАННЫХ ФЕРМЫ
-async function saveFarmData() {
+// АВТОСОХРАНЕНИЕ НАКОПЛЕННОГО ДОХОДА
+async function saveAccumulatedIncome() {
+    if (!farmData || !farmData.income || farmData.income.accumulated < 0.001) return;
+    
     try {
-        await database.ref('mining_farms/' + userId).set(farmData);
-        console.log('✅ Данные фермы сохранены');
+        await database.ref('mining_farms/' + userId + '/income').set(farmData.income);
+        console.log('💾 Накопленный доход сохранен:', farmData.income.accumulated.toFixed(2));
     } catch (error) {
-        console.error('❌ Ошибка сохранения данных фермы:', error);
+        console.error('❌ Ошибка автосохранения дохода:', error);
+    }
+}
+
+// ЗАПУСК АВТОСОХРАНЕНИЯ
+function startAutoSave() {
+    // Сохраняем каждые 30 секунд
+    autoSaveInterval = setInterval(() => {
+        if (farmData && farmData.income && farmData.income.accumulated > 0) {
+            saveAccumulatedIncome();
+        }
+    }, 30000);
+    
+    // Сохраняем при потере фокуса
+    window.addEventListener('blur', () => {
+        if (farmData && farmData.income && farmData.income.accumulated > 0) {
+            saveAccumulatedIncome();
+        }
+    });
+}
+
+// ОБНОВЛЕНИЕ ДОХОДА ФЕРМЫ
+function updateFarmIncome() {
+    if (!farmData || !farmData.income) return;
+    
+    const now = new Date();
+    const lastUpdate = farmData.income.lastUpdate ? new Date(farmData.income.lastUpdate) : now;
+    const secondsPassed = (now - lastUpdate) / 1000;
+    
+    if (secondsPassed > 0) {
+        const incomePerSecond = farmData.income.perHour / 3600;
+        const incomeToAdd = incomePerSecond * secondsPassed;
+        
+        farmData.income.accumulated = (farmData.income.accumulated || 0) + incomeToAdd;
+        farmData.income.lastUpdate = now.toISOString();
+        
+        updateClaimableAmount();
+        
+        // Сохраняем если накопилось достаточно
+        if (incomeToAdd > 0.01) {
+            setTimeout(saveAccumulatedIncome, 0);
+        }
     }
 }
 
@@ -327,7 +361,6 @@ function updateUpgradeDisplays() {
     // Видеокарты
     const gpuCount = upgrades.gpu.count || 1;
     const gpuCost = calculateUpgradeCost(UPGRADES.GPU, gpuCount);
-    const gpuPower = gpuCount * UPGRADES.GPU.powerPerGPU;
     
     document.getElementById('gpu-count').textContent = gpuCount;
     document.getElementById('gpu-power').textContent = UPGRADES.GPU.powerPerGPU;
@@ -418,26 +451,13 @@ function calculateIncomePerHour() {
     if (!farmData || !farmData.upgrades) return 0;
     
     const upgrades = farmData.upgrades;
-    
-    // Базовая мощность от видеокарт
     let basePower = (upgrades.gpu.count || 1) * UPGRADES.GPU.powerPerGPU;
-    
-    // Бонус от охлаждения (+1% за уровень)
     const coolingBonus = 1 + ((upgrades.cooling.level || 1) - 1) * UPGRADES.COOLING.incomeBonusPerLevel;
-    
-    // Бонус от ИИ оптимизации (+0.5% за уровень)
     const aiBonus = 1 + ((upgrades.ai.level || 1) - 1) * UPGRADES.AI.efficiencyPerLevel;
-    
-    // Бонус от облачного сервера (+2% за уровень)
     const cloudBonus = 1 + (upgrades.cloud.level || 0) * UPGRADES.CLOUD.powerBonusPerLevel;
-    
-    // Бонус от алгоритма (+3% за уровень)
     const algorithmBonus = 1 + ((upgrades.algorithm.level || 1) - 1) * UPGRADES.ALGORITHM.profitBonusPerLevel;
     
-    // Итоговый доход в час
     let incomePerHour = basePower * coolingBonus * aiBonus * cloudBonus * algorithmBonus;
-    
-    // Ограничиваем доход для баланса (максимум 100 очков в час)
     return Math.min(incomePerHour, 100);
 }
 
@@ -446,8 +466,6 @@ function updateFarmStats() {
     if (!farmData || !farmData.upgrades) return;
     
     const upgrades = farmData.upgrades;
-    
-    // Уровень фермы (среднее всех улучшений)
     const coolingLevel = upgrades.cooling.level || 1;
     const gpuCount = upgrades.gpu.count || 1;
     const energyLevel = upgrades.energy.level || 1;
@@ -459,7 +477,6 @@ function updateFarmStats() {
     document.getElementById('farm-level').textContent = averageLevel;
     document.getElementById('level-progress').style.width = `${(averageLevel / 50) * 100}%`;
     
-    // Мощность хэширования
     const hashPower = (upgrades.gpu.count || 1) * UPGRADES.GPU.powerPerGPU;
     const cloudBonus = 1 + (upgrades.cloud.level || 0) * UPGRADES.CLOUD.powerBonusPerLevel;
     const totalHashPower = hashPower * cloudBonus;
@@ -467,16 +484,13 @@ function updateFarmStats() {
     document.getElementById('hash-power').textContent = `${totalHashPower.toFixed(1)} GH/s`;
     document.getElementById('hash-desc').textContent = `Базовые: ${hashPower} GH/s + облако: +${((cloudBonus - 1) * 100).toFixed(1)}%`;
     
-    // Эффективность
     const powerConsumed = (upgrades.gpu.count || 1) * UPGRADES.GPU.powerConsumption;
     const powerLimit = (upgrades.energy.level || 1) * UPGRADES.ENERGY.powerLimitPerLevel;
     const efficiency = powerLimit > 0 ? (powerConsumed / powerLimit) * 100 : 0;
     
     document.getElementById('efficiency').textContent = `${efficiency.toFixed(1)}%`;
-    document.getElementById('efficiency-desc').textContent = 
-        `Потребление: ${powerConsumed} Вт / Лимит: ${powerLimit} Вт`;
+    document.getElementById('efficiency-desc').textContent = `Потребление: ${powerConsumed} Вт / Лимит: ${powerLimit} Вт`;
     
-    // Время работы
     if (farmData.createdAt) {
         const created = new Date(farmData.createdAt);
         const now = new Date();
@@ -484,13 +498,10 @@ function updateFarmStats() {
         document.getElementById('uptime').textContent = `${diffDays} дней`;
     }
     
-    // Обновляем доход в час
     const incomePerHour = calculateIncomePerHour();
     const incomePerDay = incomePerHour * 24;
-    
     document.getElementById('daily-income').textContent = incomePerDay.toFixed(1);
     
-    // Сохраняем обновленный доход
     if (farmData.income) {
         farmData.income.perHour = incomePerHour;
         farmData.income.lastUpdate = new Date().toISOString();
@@ -503,11 +514,8 @@ function updateFarmVisualization() {
     
     const gpuCount = farmData.upgrades.gpu.count || 1;
     const farmRack = document.getElementById('farm-rack');
-    
-    // Очищаем существующие слоты
     farmRack.innerHTML = '';
     
-    // Создаем слоты для GPU (максимум 5 для отображения)
     const maxDisplaySlots = 5;
     const slotsToShow = Math.min(gpuCount, maxDisplaySlots);
     
@@ -515,17 +523,14 @@ function updateFarmVisualization() {
         const slot = document.createElement('div');
         slot.className = 'gpu-slot';
         slot.dataset.slot = i + 1;
-        
         if (i < slotsToShow) {
             slot.classList.remove('empty');
         } else {
             slot.classList.add('empty');
         }
-        
         farmRack.appendChild(slot);
     }
     
-    // Если есть больше GPU чем отображается, показываем счетчик
     if (gpuCount > maxDisplaySlots) {
         const counter = document.createElement('div');
         counter.className = 'gpu-counter';
@@ -540,19 +545,16 @@ function updateFarmVisualization() {
         farmRack.appendChild(counter);
     }
     
-    // Обновляем статусы
     const coolingLevel = farmData.upgrades.cooling.level || 1;
     const energyLevel = farmData.upgrades.energy.level || 1;
     
     document.getElementById('cooling-status').textContent = 
         coolingLevel > 5 ? 'Оптимально' : coolingLevel > 2 ? 'Нормально' : 'Слабое';
-    
     document.getElementById('cooling-status').style.color = 
         coolingLevel > 5 ? '#00ff88' : coolingLevel > 2 ? '#ffff00' : '#ff4444';
     
     document.getElementById('power-status').textContent = 
         energyLevel > 3 ? 'Стабильно' : 'Нестабильно';
-    
     document.getElementById('power-status').style.color = 
         energyLevel > 3 ? '#00ff88' : '#ffaa00';
     
@@ -562,35 +564,12 @@ function updateFarmVisualization() {
 
 // ЗАПУСК ОБНОВЛЕНИЙ ФЕРМЫ
 function startFarmUpdates() {
-    // Обновляем каждую секунду
     updateInterval = setInterval(() => {
         updateFarmIncome();
         updateClaimProgress();
         updateNextPayoutTimer();
     }, 1000);
-    
-    // Первое обновление
     updateFarmIncome();
-}
-
-// ОБНОВЛЕНИЕ ДОХОДА ФЕРМЫ
-function updateFarmIncome() {
-    if (!farmData || !farmData.income) return;
-    
-    const now = new Date();
-    const lastUpdate = farmData.income.lastUpdate ? new Date(farmData.income.lastUpdate) : now;
-    const secondsPassed = (now - lastUpdate) / 1000;
-    
-    // Доход в секунду
-    const incomePerSecond = farmData.income.perHour / 3600;
-    const incomeToAdd = incomePerSecond * secondsPassed;
-    
-    // Добавляем накопленный доход
-    farmData.income.accumulated = (farmData.income.accumulated || 0) + incomeToAdd;
-    farmData.income.lastUpdate = now.toISOString();
-    
-    // Обновляем отображение доступного дохода
-    updateClaimableAmount();
 }
 
 // ОБНОВЛЕНИЕ ДОСТУПНОЙ СУММЫ ДЛЯ СБОРА
@@ -601,7 +580,7 @@ function updateClaimableAmount() {
     document.getElementById('claimable-amount').textContent = claimable.toFixed(2);
     
     const claimBtn = document.getElementById('claim-btn');
-    claimBtn.disabled = claimable < 0.01; // Минимум 0.01 очка для сбора
+    claimBtn.disabled = claimable < 0.01;
 }
 
 // ОБНОВЛЕНИЕ ПРОГРЕССА СБОРА
@@ -647,7 +626,7 @@ function updateNextPayoutTimer() {
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// УЛУЧШЕНИЕ ХАРАКТЕРИСТИК - ИСПРАВЛЕННАЯ ФУНКЦИЯ
+// УЛУЧШЕНИЕ ХАРАКТЕРИСТИК
 async function upgradeCharacteristic(upgradeType) {
     if (!farmData || !farmData.upgrades || !pointsData) return;
     
@@ -661,66 +640,48 @@ async function upgradeCharacteristic(upgradeType) {
     const cost = calculateUpgradeCost(upgrade, currentLevel);
     const userPoints = pointsData.total_points || 0;
     
-    // Проверка возможности улучшения
     if (userPoints < cost) {
         showError('Недостаточно новогодних очков');
         return;
     }
     
-    // Проверка максимального уровня
     const maxLevel = upgrade.maxLevel || upgrade.maxCount || 100;
     if (currentLevel >= maxLevel) {
         showError('Достигнут максимальный уровень');
         return;
     }
     
-    // Для GPU проверяем энергоснабжение
     if (upgrade.name === 'gpu' && !canAddGPU()) {
         showError('Недостаточно энергии. Улучшите энергоснабжение!');
         return;
     }
     
     try {
-        // Вычитаем очки
         const newPoints = userPoints - cost;
         
-        // Обновляем улучшение
         if (upgrade.name === 'gpu') {
             farmData.upgrades[upgrade.name].count = currentLevel + 1;
         } else {
             farmData.upgrades[upgrade.name].level = currentLevel + 1;
         }
         
-        // Обновляем очки в обоих местах
         pointsData.total_points = newPoints;
         
-        // Используем set вместо update для исправления ошибки с точками
-        // Создаем объект для обновления
-        const updates = {};
-        updates[`upgrades/${upgrade.name}`] = farmData.upgrades[upgrade.name];
-        
-        // Обновляем все данные одним запросом
         await database.ref('mining_farms/' + userId).update({
             upgrades: farmData.upgrades
         });
         
-        // Обновляем очки отдельно
         await database.ref('holiday_points/' + userId).update({
             total_points: newPoints
         });
         
-        // Пересчитываем доход
         farmData.income.perHour = calculateIncomePerHour();
         
-        // Обновляем UI
         updateAllDisplays();
         updateClaimProgress();
         
-        // Показываем уведомление
         const upgradeName = getUpgradeDisplayName(upgrade.name);
         showNotification(`✅ ${upgradeName} улучшена до уровня ${currentLevel + 1}!`);
-        
-        console.log(`✅ Улучшено: ${upgrade.name} до уровня ${currentLevel + 1}, потрачено: ${cost} очков`);
         
     } catch (error) {
         console.error('❌ Ошибка улучшения:', error);
@@ -752,7 +713,6 @@ async function claimIncome() {
         return;
     }
     
-    // Проверяем, можно ли собирать (раз в 24 часа)
     if (farmData.lastClaim) {
         const lastClaim = new Date(farmData.lastClaim);
         const now = new Date();
@@ -766,21 +726,15 @@ async function claimIncome() {
     }
     
     try {
-        // Округляем до 2 знаков
         const claimedAmount = parseFloat(claimable.toFixed(2));
-        
-        // Обновляем общее количество очков
         const currentPoints = pointsData.total_points || 0;
         const newPoints = currentPoints + claimedAmount;
         
         pointsData.total_points = newPoints;
-        
-        // Обновляем статистику фермы
         farmData.income.accumulated = 0;
         farmData.lastClaim = new Date().toISOString();
         farmData.totalEarned = (farmData.totalEarned || 0) + claimedAmount;
         
-        // Добавляем в историю
         const claimRecord = {
             date: new Date().toISOString(),
             amount: claimedAmount,
@@ -788,10 +742,8 @@ async function claimIncome() {
         };
         
         farmData.history.unshift(claimRecord);
-        // Ограничиваем историю 50 записями
         farmData.history = farmData.history.slice(0, 50);
         
-        // Сохраняем все изменения одним запросом
         await database.ref('mining_farms/' + userId).update({
             income: farmData.income,
             lastClaim: farmData.lastClaim,
@@ -799,19 +751,13 @@ async function claimIncome() {
             history: farmData.history
         });
         
-        // Обновляем очки отдельно
         await database.ref('holiday_points/' + userId).update({
             total_points: newPoints
         });
         
-        // Обновляем UI
         updateAllDisplays();
         updateIncomeHistory();
-        
-        // Показываем модальное окно с результатом
         showClaimModal(claimedAmount);
-        
-        console.log(`✅ Собран доход: ${claimedAmount} очков, всего: ${newPoints} очков`);
         
     } catch (error) {
         console.error('❌ Ошибка сбора дохода:', error);
@@ -823,41 +769,19 @@ async function claimIncome() {
 function showClaimModal(amount) {
     const modal = document.getElementById('claim-modal');
     const amountElement = document.getElementById('claimed-amount');
-    const claimTimeElement = document.getElementById('claim-time');
     const messageElement = document.getElementById('claim-message');
     
-    // Устанавливаем значения
     document.querySelector('#claimed-amount .points-number').textContent = amount.toFixed(2);
     
-    // Рассчитываем время с последнего сбора
-    if (farmData.history && farmData.history.length > 0) {
-        const lastClaim = new Date(farmData.history[0].date);
-        const now = new Date();
-        const hoursDiff = (now - lastClaim) / (1000 * 60 * 60);
-        
-        if (hoursDiff < 24) {
-            claimTimeElement.textContent = `${hoursDiff.toFixed(1)}ч`;
-        }
-    }
-    
-    // Устанавливаем сообщение
     let message = '';
-    if (amount < 10) {
-        message = 'Хорошее начало! Улучшайте ферму для большего дохода!';
-    } else if (amount < 50) {
-        message = 'Отличный результат! Ферма работает эффективно!';
-    } else if (amount < 100) {
-        message = 'Великолепно! Ваша ферма приносит большой доход!';
-    } else {
-        message = 'Потрясающе! Максимальная эффективность достигнута!';
-    }
+    if (amount < 10) message = 'Хорошее начало! Улучшайте ферму для большего дохода!';
+    else if (amount < 50) message = 'Отличный результат! Ферма работает эффективно!';
+    else if (amount < 100) message = 'Великолепно! Ваша ферма приносит большой доход!';
+    else message = 'Потрясающе! Максимальная эффективность достигнута!';
     
     messageElement.textContent = message;
-    
-    // Показываем модальное окно
     modal.style.display = 'flex';
     
-    // Закрытие модального окна
     document.getElementById('close-claim').addEventListener('click', function() {
         modal.style.opacity = '0';
         setTimeout(() => {
@@ -898,9 +822,6 @@ function updateIncomeHistory() {
             minute: '2-digit'
         });
         
-        let typeText = 'Доход с фермы';
-        let icon = '⚡';
-        
         return `
             <div class="income-item">
                 <div class="income-date">
@@ -908,7 +829,7 @@ function updateIncomeHistory() {
                     <small>${time}</small>
                 </div>
                 <div class="income-info">
-                    <div class="income-type">${icon} ${typeText}</div>
+                    <div class="income-type">⚡ Доход с фермы</div>
                 </div>
                 <div class="income-amount">+${record.amount.toFixed(2)}</div>
             </div>
@@ -918,7 +839,6 @@ function updateIncomeHistory() {
 
 // НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
 function setupEventListeners() {
-    // Кнопки улучшений
     document.getElementById('upgrade-cooling').addEventListener('click', () => upgradeCharacteristic('COOLING'));
     document.getElementById('upgrade-gpu').addEventListener('click', () => upgradeCharacteristic('GPU'));
     document.getElementById('upgrade-energy').addEventListener('click', () => upgradeCharacteristic('ENERGY'));
@@ -926,26 +846,21 @@ function setupEventListeners() {
     document.getElementById('upgrade-cloud').addEventListener('click', () => upgradeCharacteristic('CLOUD'));
     document.getElementById('upgrade-algorithm').addEventListener('click', () => upgradeCharacteristic('ALGORITHM'));
     
-    // Кнопка сбора дохода
     document.getElementById('claim-btn').addEventListener('click', claimIncome);
     
-    // Кнопка обновления баланса
     document.getElementById('refresh-balance').addEventListener('click', async () => {
         await loadPointsData();
         showNotification('Баланс обновлен!');
     });
     
-    // Кнопка обновления страницы
     document.getElementById('farm-refresh-btn').addEventListener('click', async () => {
         await loadFarmData();
         showNotification('Данные фермы обновлены!');
     });
     
-    // Кнопка помощи
     document.getElementById('farm-help-btn').addEventListener('click', () => {
         const modal = document.getElementById('help-modal');
         modal.style.display = 'flex';
-        
         document.getElementById('close-help').addEventListener('click', function() {
             modal.style.opacity = '0';
             setTimeout(() => {
@@ -955,7 +870,6 @@ function setupEventListeners() {
         });
     });
     
-    // Закрытие модальных окон по клику на фон
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -1001,52 +915,23 @@ function showNotification(message, type = 'success') {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
+            notification.parentNode.removeChild(notification);
         }, 300);
     }, 3000);
 }
 
 // ПОКАЗ ОШИБКИ
 function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 68, 68, 0.9);
-        border: 1px solid #ff4444;
-        border-radius: 10px;
-        padding: 15px 25px;
-        color: white;
-        font-family: 'Orbitron', sans-serif;
-        z-index: 1000;
-        animation: slideInRight 0.5s ease;
-        max-width: 300px;
-    `;
-    errorDiv.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 5px;">⚠️ Ошибка</div>
-        <div style="font-size: 14px;">${message}</div>
-    `;
-    
-    document.body.appendChild(errorDiv);
-    
-    setTimeout(() => {
-        errorDiv.style.opacity = '0';
-        errorDiv.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.parentNode.removeChild(errorDiv);
-            }
-        }, 5000);
-    }, 3000);
+    showNotification(message, 'error');
 }
 
-// ОСТАНОВКА ОБНОВЛЕНИЙ ПРИ ЗАКРЫТИИ СТРАНИЦЫ
+// ОЧИСТКА ПРИ ЗАКРЫТИИ
 window.addEventListener('beforeunload', () => {
-    if (updateInterval) {
-        clearInterval(updateInterval);
+    if (updateInterval) clearInterval(updateInterval);
+    if (autoSaveInterval) clearInterval(autoSaveInterval);
+    
+    // Последнее сохранение
+    if (farmData && farmData.income && farmData.income.accumulated > 0) {
+        saveAccumulatedIncome();
     }
 });
