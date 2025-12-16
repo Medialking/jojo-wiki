@@ -1,4 +1,4 @@
-// minesweeper.js - логика игры Сапер для казино
+// minesweeper.js - логика игры Сапер для казино (ИСПРАВЛЕННЫЙ)
 
 let userId = null;
 let userNickname = null;
@@ -34,12 +34,12 @@ const GAME_SETTINGS = {
         '7x7': { rows: 7, cols: 7, total: 49 }
     },
     multipliers: [1.5, 2.2, 3.5, 6.0, 10.0],
-    diamondProbability: 0.7, // 70% шанс найти алмаз
-    bombProbability: 0.15,   // 15% шанс на бомбу (регулируется)
-    houseEdge: 0.05,         // 5% преимущество казино
+    diamondProbability: 0.7,
+    bombProbability: 0.15,
+    houseEdge: 0.05,
     minBet: 50,
     maxBet: 1000,
-    cooldown: 3000           // 3 секунды между играми
+    cooldown: 3000
 };
 
 // Логи для админ-панели
@@ -67,6 +67,7 @@ window.onload = async function() {
 // СОЗДАНИЕ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
+    if (!particlesContainer) return;
     
     for (let i = 0; i < 30; i++) {
         const particle = document.createElement('div');
@@ -154,7 +155,6 @@ async function loadUserData() {
         if (casinoSnapshot.exists()) {
             casinoData = casinoSnapshot.val();
             
-            // Проверяем кулдаун
             if (casinoData.cooldown_until) {
                 const cooldownTime = new Date(casinoData.cooldown_until).getTime();
                 const now = Date.now();
@@ -166,10 +166,8 @@ async function loadUserData() {
                 }
             }
             
-            // Загружаем последние игры
             updateRecentGames();
         } else {
-            // Создаем новую запись
             casinoData = {
                 total_bets: 0,
                 total_won: 0,
@@ -202,13 +200,13 @@ async function loadUserData() {
 // ИНИЦИАЛИЗАЦИЯ ИГРОВОГО ПОЛЯ
 function initializeGameBoard() {
     const board = document.getElementById('game-board');
+    if (!board) return;
+    
     const gridSize = GAME_SETTINGS.gridSizes[gameState.gridSize];
     
-    // Очищаем поле
     board.innerHTML = '';
     board.className = `game-board size-${gridSize.rows}x${gridSize.cols}`;
     
-    // Создаем ячейки
     for (let i = 0; i < gridSize.total; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
@@ -227,7 +225,6 @@ function initializeGameBoard() {
         board.appendChild(cell);
     }
     
-    // Сбрасываем состояние игры
     resetGameState();
 }
 
@@ -243,26 +240,37 @@ function resetGameState() {
     gameState.cashoutEnabled = false;
     gameState.currentWin = 0;
     
-    // Обновляем UI
-    document.getElementById('diamonds-found').textContent = '0';
-    document.getElementById('total-diamonds').textContent = gameState.totalDiamonds;
-    document.getElementById('bombs-left').textContent = gameState.bombsCount;
-    document.getElementById('current-multiplier').textContent = '1.00x';
-    document.getElementById('current-win').textContent = '0';
-    document.getElementById('multiplier-progress').style.width = '0%';
-    document.getElementById('multiplier-text').textContent = '1.00x';
-    document.getElementById('game-status').textContent = 'Готов к игре';
+    // Обновляем UI если элементы существуют
+    safeUpdateElement('diamonds-found', '0');
+    safeUpdateElement('total-diamonds', gameState.totalDiamonds.toString());
+    safeUpdateElement('bombs-left', gameState.bombsCount.toString());
+    safeUpdateElement('current-multiplier', '1.00x');
+    safeUpdateElement('current-win', '0');
+    
+    const progressBar = document.getElementById('multiplier-progress');
+    if (progressBar) progressBar.style.width = '0%';
+    
+    safeUpdateElement('multiplier-text', '1.00x');
+    safeUpdateElement('game-status', 'Готов к игре');
     
     // Сбрасываем ячейки
     const cells = document.querySelectorAll('.cell');
     cells.forEach(cell => {
         cell.className = 'cell';
-        cell.querySelector('.cell-content').innerHTML = '?';
+        const content = cell.querySelector('.cell-content');
+        if (content) content.innerHTML = '?';
         cell.style.cursor = 'pointer';
     });
     
-    // Обновляем кнопки
     updateGameButtons();
+}
+
+// БЕЗОПАСНОЕ ОБНОВЛЕНИЕ ЭЛЕМЕНТА
+function safeUpdateElement(id, text) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.textContent = text;
+    }
 }
 
 // СОЗДАНИЕ НОВОЙ ИГРЫ
@@ -270,22 +278,17 @@ function createNewGame() {
     const gridSize = GAME_SETTINGS.gridSizes[gameState.gridSize];
     const totalCells = gridSize.total;
     
-    // Очищаем поле
     gameState.gameGrid.fill(null);
     
-    // УМНАЯ СИСТЕМА РАСПРЕДЕЛЕНИЯ
     addAdminLog('🎮 Создание новой игры', 'game');
     
     // 1. Распределяем алмазы
     let diamondsPlaced = 0;
     while (diamondsPlaced < gameState.totalDiamonds) {
         const randomIndex = Math.floor(Math.random() * totalCells);
-        
-        // Проверяем, не находится ли ячейка в начале игры (первые 3-5 ходов)
         const isEarlyGame = randomIndex < Math.min(8, Math.floor(totalCells * 0.15));
         
         if (!gameState.gameGrid[randomIndex]) {
-            // УМНАЯ СИСТЕМА: Первые алмазы чаще, чтобы игрок заинтересовался
             if (diamondsPlaced < 2 || Math.random() < GAME_SETTINGS.diamondProbability) {
                 gameState.gameGrid[randomIndex] = 'diamond';
                 diamondsPlaced++;
@@ -303,11 +306,10 @@ function createNewGame() {
         const randomIndex = Math.floor(Math.random() * totalCells);
         
         if (!gameState.gameGrid[randomIndex]) {
-            // УМНАЯ СИСТЕМА: Бомбы реже в начале, чаще после нескольких алмазов
             const isEarlyCell = randomIndex < Math.floor(totalCells * 0.3);
             const bombProbability = isEarlyCell ? 
-                GAME_SETTINGS.bombProbability * 0.5 : // 50% реже в начале
-                GAME_SETTINGS.bombProbability * 1.5;  // 50% чаще позже
+                GAME_SETTINGS.bombProbability * 0.5 :
+                GAME_SETTINGS.bombProbability * 1.5;
             
             if (Math.random() < bombProbability) {
                 gameState.gameGrid[randomIndex] = 'bomb';
@@ -325,7 +327,6 @@ function createNewGame() {
         }
     }
     
-    // Логируем распределение
     addAdminLog(`🎲 Игра создана: ${diamondsPlaced} алмазов, ${bombsPlaced} бомб`, 'game');
     addAdminLog(`📊 Всего ячеек: ${totalCells}, Вероятность алмаза: ${Math.round((diamondsPlaced/totalCells)*100)}%`, 'stats');
 }
@@ -337,51 +338,45 @@ function handleCellClick(index) {
     }
     
     const cell = document.querySelector(`.cell[data-index="${index}"]`);
+    if (!cell) return;
+    
     const cellType = gameState.gameGrid[index];
     
     gameState.revealedCells.push(index);
     cell.classList.add('revealed');
     
-    // Добавляем задержку для анимации
     setTimeout(() => {
         if (cellType === 'diamond') {
-            // Найден алмаз
             handleDiamondFound(index);
         } else if (cellType === 'bomb') {
-            // Найдена бомба
             handleBombFound(index);
         } else {
-            // Пустая ячейка
             handleEmptyCell(index);
         }
         
-        // Проверяем, можно ли забрать выигрыш
         updateCashoutButton();
-        
     }, 300);
 }
 
 // ОБРАБОТКА НАЙДЕННОГО АЛМАЗА
 function handleDiamondFound(index) {
     gameState.diamondsFound++;
-    
-    // Рассчитываем новый множитель
     updateMultiplier();
     
     const cell = document.querySelector(`.cell[data-index="${index}"]`);
-    cell.classList.add('diamond');
-    cell.querySelector('.cell-content').innerHTML = '<i class="fas fa-gem"></i>';
-    cell.style.cursor = 'default';
+    if (cell) {
+        cell.classList.add('diamond');
+        const content = cell.querySelector('.cell-content');
+        if (content) content.innerHTML = '<i class="fas fa-gem"></i>';
+        cell.style.cursor = 'default';
+    }
     
-    // Обновляем UI
-    document.getElementById('diamonds-found').textContent = gameState.diamondsFound;
-    document.getElementById('game-status').textContent = `Найден алмаз! (${gameState.diamondsFound}/${gameState.totalDiamonds})`;
-    document.getElementById('game-status').style.color = '#00ff00';
+    safeUpdateElement('diamonds-found', gameState.diamondsFound.toString());
+    safeUpdateElement('game-status', `Найден алмаз! (${gameState.diamondsFound}/${gameState.totalDiamonds})`);
     
-    // Звуковой эффект (если есть)
-    playSound('diamond');
+    const statusElement = document.getElementById('game-status');
+    if (statusElement) statusElement.style.color = '#00ff00';
     
-    // Проверяем, собраны ли все алмазы
     if (gameState.diamondsFound === gameState.totalDiamonds) {
         handleJackpot();
     }
@@ -392,30 +387,23 @@ function handleDiamondFound(index) {
 // ОБНОВЛЕНИЕ МНОЖИТЕЛЯ
 function updateMultiplier() {
     if (gameState.diamondsFound > 0 && gameState.diamondsFound <= GAME_SETTINGS.multipliers.length) {
-        // Базовый множитель
         let newMultiplier = GAME_SETTINGS.multipliers[gameState.diamondsFound - 1];
-        
-        // УМНАЯ СИСТЕМА: Регулируем множитель в пользу казино
         const houseAdjustment = 1 - GAME_SETTINGS.houseEdge;
         newMultiplier *= houseAdjustment;
         
-        // Добавляем небольшую случайность
-        const randomFactor = 0.95 + Math.random() * 0.1; // 0.95-1.05
+        const randomFactor = 0.95 + Math.random() * 0.1;
         newMultiplier *= randomFactor;
         
         gameState.currentMultiplier = parseFloat(newMultiplier.toFixed(2));
-        
-        // Рассчитываем текущий выигрыш
         gameState.currentWin = Math.floor(gameState.betAmount * gameState.currentMultiplier);
         
-        // Обновляем прогресс
         const progressPercent = (gameState.diamondsFound / gameState.totalDiamonds) * 100;
-        document.getElementById('multiplier-progress').style.width = `${progressPercent}%`;
-        document.getElementById('multiplier-text').textContent = `${gameState.currentMultiplier.toFixed(2)}x`;
+        const progressBar = document.getElementById('multiplier-progress');
+        if (progressBar) progressBar.style.width = `${progressPercent}%`;
         
-        // Обновляем UI
-        document.getElementById('current-multiplier').textContent = `${gameState.currentMultiplier.toFixed(2)}x`;
-        document.getElementById('current-win').textContent = gameState.currentWin;
+        safeUpdateElement('multiplier-text', `${gameState.currentMultiplier.toFixed(2)}x`);
+        safeUpdateElement('current-multiplier', `${gameState.currentMultiplier.toFixed(2)}x`);
+        safeUpdateElement('current-win', gameState.currentWin.toString());
         
         addAdminLog(`📈 Множитель обновлен: ${gameState.currentMultiplier.toFixed(2)}x`, 'multiplier');
     }
@@ -427,21 +415,19 @@ function handleBombFound(index) {
     gameState.isPlaying = false;
     
     const cell = document.querySelector(`.cell[data-index="${index}"]`);
-    cell.classList.add('bomb');
-    cell.querySelector('.cell-content').innerHTML = '<i class="fas fa-bomb"></i>';
-    cell.style.cursor = 'default';
+    if (cell) {
+        cell.classList.add('bomb');
+        const content = cell.querySelector('.cell-content');
+        if (content) content.innerHTML = '<i class="fas fa-bomb"></i>';
+        cell.style.cursor = 'default';
+    }
     
-    // Показываем все бомбы
     revealAllBombs();
     
-    // Обновляем UI
-    document.getElementById('game-status').textContent = '💣 БОМБА! Вы проиграли';
-    document.getElementById('game-status').style.color = '#ff0000';
+    safeUpdateElement('game-status', '💣 БОМБА! Вы проиграли');
+    const statusElement = document.getElementById('game-status');
+    if (statusElement) statusElement.style.color = '#ff0000';
     
-    // Звуковой эффект
-    playSound('bomb');
-    
-    // Завершаем игру с проигрышем
     setTimeout(() => {
         finishGame(false);
     }, 1500);
@@ -454,9 +440,12 @@ function revealAllBombs() {
     for (let i = 0; i < gameState.gameGrid.length; i++) {
         if (gameState.gameGrid[i] === 'bomb' && !gameState.revealedCells.includes(i)) {
             const cell = document.querySelector(`.cell[data-index="${i}"]`);
-            cell.classList.add('revealed', 'bomb');
-            cell.querySelector('.cell-content').innerHTML = '<i class="fas fa-bomb"></i>';
-            cell.style.cursor = 'default';
+            if (cell) {
+                cell.classList.add('revealed', 'bomb');
+                const content = cell.querySelector('.cell-content');
+                if (content) content.innerHTML = '<i class="fas fa-bomb"></i>';
+                cell.style.cursor = 'default';
+            }
         }
     }
 }
@@ -464,12 +453,16 @@ function revealAllBombs() {
 // ОБРАБОТКА ПУСТОЙ ЯЧЕЙКИ
 function handleEmptyCell(index) {
     const cell = document.querySelector(`.cell[data-index="${index}"]`);
-    cell.classList.add('empty');
-    cell.querySelector('.cell-content').innerHTML = '<i class="fas fa-circle"></i>';
-    cell.style.cursor = 'default';
+    if (cell) {
+        cell.classList.add('empty');
+        const content = cell.querySelector('.cell-content');
+        if (content) content.innerHTML = '<i class="fas fa-circle"></i>';
+        cell.style.cursor = 'default';
+    }
     
-    document.getElementById('game-status').textContent = 'Пустая ячейка';
-    document.getElementById('game-status').style.color = '#aaaaff';
+    safeUpdateElement('game-status', 'Пустая ячейка');
+    const statusElement = document.getElementById('game-status');
+    if (statusElement) statusElement.style.color = '#aaaaff';
     
     addAdminLog(`⬜ Пустая ячейка ${index + 1}`, 'empty');
 }
@@ -479,10 +472,10 @@ function handleJackpot() {
     gameState.gameOver = true;
     gameState.isPlaying = false;
     
-    document.getElementById('game-status').textContent = '🎉 ДЖЕКПОТ! Все алмазы найдены!';
-    document.getElementById('game-status').style.color = '#ffcc00';
+    safeUpdateElement('game-status', '🎉 ДЖЕКПОТ! Все алмазы найдены!');
+    const statusElement = document.getElementById('game-status');
+    if (statusElement) statusElement.style.color = '#ffcc00';
     
-    // Автоматически забираем выигрыш
     setTimeout(() => {
         cashout();
     }, 1000);
@@ -497,9 +490,6 @@ async function cashout() {
     }
     
     const winAmount = gameState.currentWin;
-    const isWin = winAmount > gameState.betAmount;
-    
-    // Завершаем игру с выигрышем
     finishGame(true, winAmount);
     
     addAdminLog(`💰 Игрок забрал выигрыш: ${winAmount} (x${gameState.currentMultiplier})`, 'cashout');
@@ -510,34 +500,30 @@ async function finishGame(isWin, winAmount = 0) {
     gameState.gameOver = true;
     gameState.isPlaying = false;
     
-    // Рассчитываем финальный результат
     const finalWin = isWin ? winAmount : 0;
     const balanceChange = isWin ? winAmount - gameState.betAmount : -gameState.betAmount;
     
-    // Обновляем баланс
-    await updatePointsBalance(balanceChange);
-    
-    // Сохраняем результат
-    await saveGameResult(isWin, finalWin);
-    
-    // Показываем результат
-    showResultModal(isWin, finalWin);
-    
-    // Устанавливаем кулдаун
-    setCooldown(GAME_SETTINGS.cooldown);
-    
-    // Обновляем список последних игр
-    updateRecentGames();
-    
-    // Логируем
-    const resultType = isWin ? 'Выигрыш' : 'Проигрыш';
-    addAdminLog(`🎮 Игра завершена: ${resultType} ${finalWin || 0} очков`, isWin ? 'win' : 'loss');
+    try {
+        await updatePointsBalance(balanceChange);
+        await saveGameResult(isWin, finalWin);
+        showResultModal(isWin, finalWin);
+        setCooldown(GAME_SETTINGS.cooldown);
+        updateRecentGames();
+        
+        const resultType = isWin ? 'Выигрыш' : 'Проигрыш';
+        addAdminLog(`🎮 Игра завершена: ${resultType} ${finalWin || 0} очков`, isWin ? 'win' : 'loss');
+    } catch (error) {
+        console.error('Ошибка при завершении игры:', error);
+        showError('Ошибка при завершении игры');
+    }
 }
 
 // ОБНОВЛЕНИЕ КНОПКИ ЗАБРАТЬ
 function updateCashoutButton() {
     const cashoutBtn = document.getElementById('cashout-btn');
     const cashoutAmount = document.getElementById('cashout-amount');
+    
+    if (!cashoutBtn || !cashoutAmount) return;
     
     if (gameState.diamondsFound > 0 && !gameState.gameOver) {
         gameState.cashoutEnabled = true;
@@ -558,14 +544,28 @@ function updateGameButtons() {
     const cashoutBtn = document.getElementById('cashout-btn');
     const nextCellBtn = document.getElementById('next-cell-btn');
     
+    if (!startBtn || !cashoutBtn || !nextCellBtn) return;
+    
     if (gameState.isPlaying) {
         startBtn.disabled = true;
-        startBtn.innerHTML = '<span class="bet-icon"><i class="fas fa-play"></i></span><span class="bet-text">Игра идет...</span>';
+        const betIcon = startBtn.querySelector('.bet-icon');
+        const betText = startBtn.querySelector('.bet-text');
+        if (betIcon && betText) {
+            betIcon.innerHTML = '<i class="fas fa-play"></i>';
+            betText.textContent = 'Игра идет...';
+        }
         
         nextCellBtn.disabled = false;
     } else {
         startBtn.disabled = !gameState.canPlay || gameState.balance < gameState.betAmount;
-        startBtn.innerHTML = `<span class="bet-icon"><i class="fas fa-play"></i></span><span class="bet-text">Начать игру</span><span class="bet-cost">-<span id="start-bet-amount">${gameState.betAmount}</span></span>`;
+        const betIcon = startBtn.querySelector('.bet-icon');
+        const betText = startBtn.querySelector('.bet-text');
+        const betCost = startBtn.querySelector('.bet-cost');
+        if (betIcon && betText && betCost) {
+            betIcon.innerHTML = '<i class="fas fa-play"></i>';
+            betText.textContent = 'Начать игру';
+            betCost.innerHTML = `-<span id="start-bet-amount">${gameState.betAmount}</span>`;
+        }
         
         nextCellBtn.disabled = true;
     }
@@ -577,34 +577,24 @@ function updateGameButtons() {
 async function startGame() {
     addAdminLog('🎮 Попытка начать игру', 'game');
     
-    // Проверки
     if (!canStartGame()) {
         return;
     }
     
     try {
-        // Блокируем кнопку
         gameState.isPlaying = true;
         gameState.canPlay = false;
         
-        // Снимаем ставку с баланса
         await updatePointsBalance(-gameState.betAmount);
-        
-        // Сбрасываем поле
         resetGameState();
-        
-        // Создаем новую игру
         createNewGame();
-        
-        // Включаем кулдаун
         setCooldown(GAME_SETTINGS.cooldown);
-        
-        // Обновляем UI
         updateGameButtons();
-        document.getElementById('game-status').textContent = 'Игра началась! Выбирайте клетки';
-        document.getElementById('game-status').style.color = '#00ff00';
         
-        // Увеличиваем счетчик игр
+        safeUpdateElement('game-status', 'Игра началась! Выбирайте клетки');
+        const statusElement = document.getElementById('game-status');
+        if (statusElement) statusElement.style.color = '#00ff00';
+        
         gameState.consecutiveGames++;
         
         addAdminLog(`🎮 Игра начата, ставка: ${gameState.betAmount}`, 'game');
@@ -614,7 +604,6 @@ async function startGame() {
         showError('Ошибка при начале игры');
         addAdminLog('❌ Ошибка при начале игры', 'error');
         
-        // Разблокируем
         gameState.isPlaying = false;
         gameState.canPlay = true;
         updateGameButtons();
@@ -623,31 +612,26 @@ async function startGame() {
 
 // ПРОВЕРКА ВОЗМОЖНОСТИ НАЧАТЬ ИГРУ
 function canStartGame() {
-    // Проверка 1: Достаточно ли баланса
     if (gameState.balance < gameState.betAmount) {
         showError('Недостаточно очков для ставки');
         return false;
     }
     
-    // Проверка 2: Минимальная ставка
     if (gameState.betAmount < GAME_SETTINGS.minBet) {
         showError(`Минимальная ставка - ${GAME_SETTINGS.minBet} очков`);
         return false;
     }
     
-    // Проверка 3: Максимальная ставка
     if (gameState.betAmount > GAME_SETTINGS.maxBet) {
         showError(`Максимальная ставка - ${GAME_SETTINGS.maxBet} очков`);
         return false;
     }
     
-    // Проверка 4: Активен ли кулдаун
     if (!gameState.canPlay) {
         showError('Подождите перед следующей игрой');
         return false;
     }
     
-    // Проверка 5: Не идет ли уже игра
     if (gameState.isPlaying) {
         showError('Дождитесь окончания текущей игры');
         return false;
@@ -680,7 +664,6 @@ async function updatePointsBalance(change) {
         
         addAdminLog(`💰 Баланс: ${change > 0 ? '+' : ''}${change}, всего: ${newTotal}`, 'balance');
         
-        // Обновляем UI
         updateUI();
         
     } catch (error) {
@@ -707,7 +690,6 @@ async function saveGameResult(isWin, winAmount) {
             grid_size: gameState.gridSize
         };
         
-        // Обновляем статистику казино
         const updates = {
             last_bet_time: new Date().toISOString(),
             cooldown_until: new Date(Date.now() + GAME_SETTINGS.cooldown).toISOString(),
@@ -715,7 +697,6 @@ async function saveGameResult(isWin, winAmount) {
             bet_history: [gameRecord, ...(casinoData.bet_history || [])]
         };
         
-        // Обновляем статистику сапера
         const minesweeperStats = casinoData.minesweeper_stats || {
             games_played: 0,
             total_wins: 0,
@@ -743,10 +724,8 @@ async function saveGameResult(isWin, winAmount) {
         
         updates.minesweeper_stats = minesweeperStats;
         
-        // Сохраняем в Firebase
         await database.ref('casino/' + userId).update(updates);
         
-        // Обновляем локальные данные
         casinoData = { ...casinoData, ...updates };
         
     } catch (error) {
@@ -758,6 +737,8 @@ async function saveGameResult(isWin, winAmount) {
 // ОБНОВЛЕНИЕ ПОСЛЕДНИХ ИГР
 function updateRecentGames() {
     const recentGames = document.getElementById('recent-games');
+    if (!recentGames) return;
+    
     const bets = casinoData.bet_history || [];
     const minesweeperGames = bets.filter(bet => bet.game === 'minesweeper').slice(0, 6);
     
@@ -793,81 +774,92 @@ function showResultModal(isWin, winAmount) {
     const modal = document.getElementById('result-modal');
     const winConfetti = document.getElementById('win-confetti');
     
-    // Настраиваем заголовок
-    document.getElementById('modal-title').textContent = isWin ? '🎉 Вы выиграли!' : '😔 Вы проиграли';
-    document.getElementById('modal-subtitle').textContent = isWin ? 'Поздравляем!' : 'Повезет в следующий раз!';
+    if (!modal) return;
     
-    // Настраиваем иконку
+    safeUpdateElement('modal-title', isWin ? '🎉 Вы выиграли!' : '😔 Вы проиграли');
+    safeUpdateElement('modal-subtitle', isWin ? 'Поздравляем!' : 'Повезет в следующий раз!');
+    
     const modalIcon = document.getElementById('modal-icon');
-    modalIcon.innerHTML = isWin ? 
-        '<i class="fas fa-trophy" style="font-size: 80px; color: gold;"></i>' :
-        '<i class="fas fa-bomb" style="font-size: 80px; color: #ff4444;"></i>';
+    if (modalIcon) {
+        modalIcon.innerHTML = isWin ? 
+            '<i class="fas fa-trophy" style="font-size: 80px; color: gold;"></i>' :
+            '<i class="fas fa-bomb" style="font-size: 80px; color: #ff4444;"></i>';
+    }
     
-    // Заполняем детали
-    document.getElementById('modal-bet').textContent = gameState.betAmount;
-    document.getElementById('modal-diamonds').textContent = `${gameState.diamondsFound}/${gameState.totalDiamonds}`;
-    document.getElementById('modal-multiplier').textContent = `${gameState.currentMultiplier.toFixed(2)}x`;
+    safeUpdateElement('modal-bet', gameState.betAmount.toString());
+    safeUpdateElement('modal-diamonds', `${gameState.diamondsFound}/${gameState.totalDiamonds}`);
+    safeUpdateElement('modal-multiplier', `${gameState.currentMultiplier.toFixed(2)}x`);
     
-    // Настраиваем сумму
     const amountLabel = document.getElementById('modal-amount-label');
     const amountValue = document.getElementById('modal-amount-value');
     
-    if (isWin) {
-        amountLabel.textContent = 'Вы выиграли:';
-        amountValue.textContent = `+${winAmount}`;
-        amountValue.style.color = '#00ff00';
-        
-        // Показываем конфетти
-        winConfetti.style.display = 'block';
-        createWinConfetti();
-    } else {
-        amountLabel.textContent = 'Вы проиграли:';
-        amountValue.textContent = `-${gameState.betAmount}`;
-        amountValue.style.color = '#ff0000';
-        winConfetti.style.display = 'none';
+    if (amountLabel && amountValue) {
+        if (isWin) {
+            amountLabel.textContent = 'Вы выиграли:';
+            amountValue.textContent = `+${winAmount}`;
+            amountValue.style.color = '#00ff00';
+            
+            if (winConfetti) {
+                winConfetti.style.display = 'block';
+                createWinConfetti();
+            }
+        } else {
+            amountLabel.textContent = 'Вы проиграли:';
+            amountValue.textContent = `-${gameState.betAmount}`;
+            amountValue.style.color = '#ff0000';
+            if (winConfetti) winConfetti.style.display = 'none';
+        }
     }
     
-    // Добавляем сообщение
     const message = document.getElementById('modal-message');
-    if (isWin) {
-        if (gameState.diamondsFound === gameState.totalDiamonds) {
-            message.textContent = 'Невероятно! Вы нашли ВСЕ алмазы!';
-        } else if (gameState.currentMultiplier >= 5) {
-            message.textContent = 'Отличный результат! Вы настоящий искатель сокровищ!';
+    if (message) {
+        if (isWin) {
+            if (gameState.diamondsFound === gameState.totalDiamonds) {
+                message.textContent = 'Невероятно! Вы нашли ВСЕ алмазы!';
+            } else if (gameState.currentMultiplier >= 5) {
+                message.textContent = 'Отличный результат! Вы настоящий искатель сокровищ!';
+            } else {
+                message.textContent = 'Хорошая игра! Возвращайтесь за новыми победами!';
+            }
         } else {
-            message.textContent = 'Хорошая игра! Возвращайтесь за новыми победами!';
-        }
-    } else {
-        if (gameState.diamondsFound === 0) {
-            message.textContent = 'Не повезло с первой же клеткой. Попробуйте еще раз!';
-        } else if (gameState.diamondsFound >= 3) {
-            message.textContent = 'Так близко! Вы нашли много алмазов, но бомба подвела.';
-        } else {
-            const messages = [
-                'Удача обязательно улыбнется в следующий раз!',
-                'Повезет в следующий раз!',
-                'Попробуйте еще раз - статистика на вашей стороне!'
-            ];
-            message.textContent = messages[Math.floor(Math.random() * messages.length)];
+            if (gameState.diamondsFound === 0) {
+                message.textContent = 'Не повезло с первой же клеткой. Попробуйте еще раз!';
+            } else if (gameState.diamondsFound >= 3) {
+                message.textContent = 'Так близко! Вы нашли много алмазов, но бомба подвела.';
+            } else {
+                const messages = [
+                    'Удача обязательно улыбнется в следующий раз!',
+                    'Повезет в следующий раз!',
+                    'Попробуйте еще раз - статистика на вашей стороне!'
+                ];
+                message.textContent = messages[Math.floor(Math.random() * messages.length)];
+            }
         }
     }
     
-    // Показываем модальное окно
     modal.style.display = 'flex';
     
-    // Настраиваем обработчики закрытия
-    document.getElementById('close-result').onclick = function() {
-        closeResultModal();
-    };
+    const closeResult = document.getElementById('close-result');
+    const playAgain = document.getElementById('play-again');
     
-    document.getElementById('play-again').onclick = function() {
-        closeResultModal();
-    };
+    if (closeResult) {
+        closeResult.onclick = function() {
+            closeResultModal();
+        };
+    }
+    
+    if (playAgain) {
+        playAgain.onclick = function() {
+            closeResultModal();
+        };
+    }
 }
 
 // СОЗДАНИЕ КОНФЕТТИ
 function createWinConfetti() {
     const container = document.getElementById('win-confetti');
+    if (!container) return;
+    
     container.innerHTML = '';
     
     for (let i = 0; i < 100; i++) {
@@ -891,18 +883,21 @@ function createWinConfetti() {
 // ЗАКРЫТИЕ МОДАЛЬНОГО ОКНА
 function closeResultModal() {
     const modal = document.getElementById('result-modal');
+    if (!modal) return;
+    
     modal.style.opacity = '0';
     
     setTimeout(() => {
         modal.style.display = 'none';
         modal.style.opacity = '1';
         
-        document.getElementById('win-confetti').style.display = 'none';
-        document.getElementById('win-confetti').innerHTML = '';
+        const winConfetti = document.getElementById('win-confetti');
+        if (winConfetti) {
+            winConfetti.style.display = 'none';
+            winConfetti.innerHTML = '';
+        }
         
-        // Переинициализируем поле
         initializeGameBoard();
-        
     }, 300);
 }
 
@@ -913,7 +908,8 @@ function setCooldown(duration) {
     
     const cooldownInfo = document.getElementById('cooldown-info');
     const cooldownTimer = document.getElementById('cooldown-timer');
-    cooldownInfo.style.display = 'flex';
+    
+    if (cooldownInfo) cooldownInfo.style.display = 'flex';
     
     startCooldownTimer();
 }
@@ -922,7 +918,6 @@ function setCooldown(duration) {
 function startCooldownTimer() {
     const cooldownInfo = document.getElementById('cooldown-info');
     const cooldownTimer = document.getElementById('cooldown-timer');
-    const startBtn = document.getElementById('start-game-btn');
     
     const updateTimer = () => {
         if (!gameState.cooldownEnd) return;
@@ -934,14 +929,14 @@ function startCooldownTimer() {
             gameState.canPlay = true;
             gameState.cooldownEnd = null;
             
-            cooldownInfo.style.display = 'none';
+            if (cooldownInfo) cooldownInfo.style.display = 'none';
             
             updateGameButtons();
             return;
         }
         
         const seconds = Math.ceil(timeLeft / 1000);
-        cooldownTimer.textContent = `${seconds}с`;
+        if (cooldownTimer) cooldownTimer.textContent = `${seconds}с`;
         
         setTimeout(updateTimer, 1000);
     };
@@ -965,47 +960,28 @@ function checkCooldown() {
 
 // ОБНОВЛЕНИЕ UI
 function updateUI() {
-    // Проверяем, существует ли элемент перед обновлением
-    const balanceElement = document.getElementById('current-balance');
-    if (balanceElement) {
-        balanceElement.textContent = gameState.balance;
+    try {
+        safeUpdateElement('current-balance', gameState.balance.toString());
+        
+        const betInput = document.getElementById('bet-input');
+        if (betInput) betInput.value = gameState.betAmount;
+        
+        safeUpdateElement('current-bet', gameState.betAmount.toString());
+        safeUpdateElement('start-bet-amount', gameState.betAmount.toString());
+        
+        const maxMultiplier = GAME_SETTINGS.multipliers[GAME_SETTINGS.multipliers.length - 1];
+        const maxWin = Math.floor(gameState.betAmount * maxMultiplier);
+        safeUpdateElement('max-win', maxWin.toString());
+        
+        updateGameButtons();
+    } catch (error) {
+        console.error('Ошибка в updateUI:', error);
     }
-    
-    const betInput = document.getElementById('bet-input');
-    if (betInput) {
-        betInput.value = gameState.betAmount;
-    }
-    
-    const currentBetElement = document.getElementById('current-bet');
-    if (currentBetElement) {
-        currentBetElement.textContent = gameState.betAmount;
-    }
-    
-    const startBetAmountElement = document.getElementById('start-bet-amount');
-    if (startBetAmountElement) {
-        startBetAmountElement.textContent = gameState.betAmount;
-    }
-    
-    // Рассчитываем максимальный выигрыш
-    const maxMultiplier = GAME_SETTINGS.multipliers[GAME_SETTINGS.multipliers.length - 1];
-    const maxWin = Math.floor(gameState.betAmount * maxMultiplier);
-    
-    const maxWinElement = document.getElementById('max-win');
-    if (maxWinElement) {
-        maxWinElement.textContent = maxWin;
-    }
-    
-    updateGameButtons();
 }
 
 // ВОСПРОИЗВЕДЕНИЕ ЗВУКА
 function playSound(type) {
     // Можно добавить звуковые эффекты позже
-    if (type === 'diamond') {
-        // Звук алмаза
-    } else if (type === 'bomb') {
-        // Звук бомбы
-    }
 }
 
 // МИГРАЦИЯ available_points
@@ -1033,75 +1009,87 @@ async function migrateAvailablePointsToTotal() {
 
 // НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
 function setupEventListeners() {
-    // Клик по ячейкам
-    document.getElementById('game-board').addEventListener('click', function(e) {
-        const cell = e.target.closest('.cell');
-        if (cell && !cell.classList.contains('revealed')) {
-            const index = parseInt(cell.dataset.index);
-            handleCellClick(index);
-        }
-    });
-    
-    // Начать игру
-    document.getElementById('start-game-btn').addEventListener('click', startGame);
-    
-    // Забрать выигрыш
-    document.getElementById('cashout-btn').addEventListener('click', cashout);
-    
-    // Следующая ячейка (рандомная)
-    document.getElementById('next-cell-btn').addEventListener('click', function() {
-        if (!gameState.isPlaying || gameState.gameOver) return;
-        
-        const gridSize = GAME_SETTINGS.gridSizes[gameState.gridSize];
-        const totalCells = gridSize.total;
-        const unrevealedCells = [];
-        
-        for (let i = 0; i < totalCells; i++) {
-            if (!gameState.revealedCells.includes(i)) {
-                unrevealedCells.push(i);
+    const gameBoard = document.getElementById('game-board');
+    if (gameBoard) {
+        gameBoard.addEventListener('click', function(e) {
+            const cell = e.target.closest('.cell');
+            if (cell && !cell.classList.contains('revealed')) {
+                const index = parseInt(cell.dataset.index);
+                handleCellClick(index);
             }
-        }
-        
-        if (unrevealedCells.length > 0) {
-            const randomIndex = unrevealedCells[Math.floor(Math.random() * unrevealedCells.length)];
-            handleCellClick(randomIndex);
-        }
-    });
+        });
+    }
     
-    // Изменение суммы ставки
+    const startBtn = document.getElementById('start-game-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', startGame);
+    }
+    
+    const cashoutBtn = document.getElementById('cashout-btn');
+    if (cashoutBtn) {
+        cashoutBtn.addEventListener('click', cashout);
+    }
+    
+    const nextCellBtn = document.getElementById('next-cell-btn');
+    if (nextCellBtn) {
+        nextCellBtn.addEventListener('click', function() {
+            if (!gameState.isPlaying || gameState.gameOver) return;
+            
+            const gridSize = GAME_SETTINGS.gridSizes[gameState.gridSize];
+            const totalCells = gridSize.total;
+            const unrevealedCells = [];
+            
+            for (let i = 0; i < totalCells; i++) {
+                if (!gameState.revealedCells.includes(i)) {
+                    unrevealedCells.push(i);
+                }
+            }
+            
+            if (unrevealedCells.length > 0) {
+                const randomIndex = unrevealedCells[Math.floor(Math.random() * unrevealedCells.length)];
+                handleCellClick(randomIndex);
+            }
+        });
+    }
+    
     const betInput = document.getElementById('bet-input');
-    
-    betInput.addEventListener('input', function() {
-        let value = parseInt(this.value) || GAME_SETTINGS.minBet;
-        
-        if (value < GAME_SETTINGS.minBet) value = GAME_SETTINGS.minBet;
-        if (value > GAME_SETTINGS.maxBet) value = GAME_SETTINGS.maxBet;
-        if (value > gameState.balance) value = Math.min(gameState.balance, GAME_SETTINGS.maxBet);
-        
-        this.value = value;
-        gameState.betAmount = value;
-        
-        updateUI();
-    });
-    
-    // Кнопки изменения ставки
-    document.getElementById('decrease-bet').addEventListener('click', function() {
-        if (gameState.betAmount > GAME_SETTINGS.minBet) {
-            gameState.betAmount = Math.max(GAME_SETTINGS.minBet, gameState.betAmount - 50);
-            betInput.value = gameState.betAmount;
+    if (betInput) {
+        betInput.addEventListener('input', function() {
+            let value = parseInt(this.value) || GAME_SETTINGS.minBet;
+            
+            if (value < GAME_SETTINGS.minBet) value = GAME_SETTINGS.minBet;
+            if (value > GAME_SETTINGS.maxBet) value = GAME_SETTINGS.maxBet;
+            if (value > gameState.balance) value = Math.min(gameState.balance, GAME_SETTINGS.maxBet);
+            
+            this.value = value;
+            gameState.betAmount = value;
+            
             updateUI();
-        }
-    });
+        });
+    }
     
-    document.getElementById('increase-bet').addEventListener('click', function() {
-        if (gameState.betAmount < GAME_SETTINGS.maxBet && gameState.betAmount < gameState.balance) {
-            gameState.betAmount = Math.min(GAME_SETTINGS.maxBet, gameState.balance, gameState.betAmount + 50);
-            betInput.value = gameState.betAmount;
-            updateUI();
-        }
-    });
+    const decreaseBtn = document.getElementById('decrease-bet');
+    if (decreaseBtn) {
+        decreaseBtn.addEventListener('click', function() {
+            if (gameState.betAmount > GAME_SETTINGS.minBet) {
+                gameState.betAmount = Math.max(GAME_SETTINGS.minBet, gameState.betAmount - 50);
+                if (betInput) betInput.value = gameState.betAmount;
+                updateUI();
+            }
+        });
+    }
     
-    // Быстрые ставки
+    const increaseBtn = document.getElementById('increase-bet');
+    if (increaseBtn) {
+        increaseBtn.addEventListener('click', function() {
+            if (gameState.betAmount < GAME_SETTINGS.maxBet && gameState.betAmount < gameState.balance) {
+                gameState.betAmount = Math.min(GAME_SETTINGS.maxBet, gameState.balance, gameState.betAmount + 50);
+                if (betInput) betInput.value = gameState.betAmount;
+                updateUI();
+            }
+        });
+    }
+    
     document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             if (gameState.isPlaying) return;
@@ -1110,7 +1098,7 @@ function setupEventListeners() {
             
             if (amount <= gameState.balance) {
                 gameState.betAmount = amount;
-                betInput.value = amount;
+                if (betInput) betInput.value = amount;
                 updateUI();
                 
                 document.querySelectorAll('.preset-btn').forEach(b => {
@@ -1123,78 +1111,100 @@ function setupEventListeners() {
         });
     });
     
-    // Настройки игры
-    document.getElementById('grid-size').addEventListener('change', function() {
-        gameState.gridSize = this.value;
-        initializeGameBoard();
-    });
+    const gridSizeSelect = document.getElementById('grid-size');
+    if (gridSizeSelect) {
+        gridSizeSelect.addEventListener('change', function() {
+            gameState.gridSize = this.value;
+            initializeGameBoard();
+        });
+    }
     
-    document.getElementById('bomb-count').addEventListener('change', function() {
-        gameState.bombsCount = parseInt(this.value);
-        document.getElementById('bombs-left').textContent = gameState.bombsCount;
-    });
+    const bombCountSelect = document.getElementById('bomb-count');
+    if (bombCountSelect) {
+        bombCountSelect.addEventListener('change', function() {
+            gameState.bombsCount = parseInt(this.value);
+            safeUpdateElement('bombs-left', gameState.bombsCount.toString());
+        });
+    }
     
-    document.getElementById('diamond-count').addEventListener('change', function() {
-        gameState.totalDiamonds = parseInt(this.value);
-        document.getElementById('total-diamonds').textContent = gameState.totalDiamonds;
-    });
+    const diamondCountSelect = document.getElementById('diamond-count');
+    if (diamondCountSelect) {
+        diamondCountSelect.addEventListener('change', function() {
+            gameState.totalDiamonds = parseInt(this.value);
+            safeUpdateElement('total-diamonds', gameState.totalDiamonds.toString());
+        });
+    }
     
-    // Авто-вывод
-    document.getElementById('auto-cashout-btn').addEventListener('click', function() {
-        gameState.autoCashoutMultiplier += 0.5;
-        if (gameState.autoCashoutMultiplier > 5) {
-            gameState.autoCashoutMultiplier = 1.5;
-        }
-        document.getElementById('auto-cashout-value').textContent = `${gameState.autoCashoutMultiplier.toFixed(1)}x`;
-    });
+    const autoCashoutBtn = document.getElementById('auto-cashout-btn');
+    if (autoCashoutBtn) {
+        autoCashoutBtn.addEventListener('click', function() {
+            gameState.autoCashoutMultiplier += 0.5;
+            if (gameState.autoCashoutMultiplier > 5) {
+                gameState.autoCashoutMultiplier = 1.5;
+            }
+            const autoCashoutValue = document.getElementById('auto-cashout-value');
+            if (autoCashoutValue) autoCashoutValue.textContent = `${gameState.autoCashoutMultiplier.toFixed(1)}x`;
+        });
+    }
     
-    // Повторить ставку
-    document.getElementById('quick-bet-btn').addEventListener('click', function() {
-        // Сохраняем текущую ставку для повторения
-        const lastBet = gameState.betAmount;
-        if (lastBet <= gameState.balance) {
-            gameState.betAmount = lastBet;
-            betInput.value = lastBet;
-            updateUI();
-        }
-    });
+    const quickBetBtn = document.getElementById('quick-bet-btn');
+    if (quickBetBtn) {
+        quickBetBtn.addEventListener('click', function() {
+            const lastBet = gameState.betAmount;
+            if (lastBet <= gameState.balance) {
+                gameState.betAmount = lastBet;
+                if (betInput) betInput.value = lastBet;
+                updateUI();
+            }
+        });
+    }
     
-    // Кнопка помощи
-    document.getElementById('help-btn').addEventListener('click', function() {
-        showNotification('Нажимайте на клетки чтобы найти алмазы. Забирайте выигрыш до того как наткнетесь на бомбу!', 'info');
-    });
+    const helpBtn = document.getElementById('help-btn');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', function() {
+            showNotification('Нажимайте на клетки чтобы найти алмазы. Забирайте выигрыш до того как наткнетесь на бомбу!', 'info');
+        });
+    }
     
-    // Кнопка звука
-    document.getElementById('sound-toggle').addEventListener('click', function() {
-        const icon = this.querySelector('i');
-        if (icon.classList.contains('fa-volume-up')) {
-            icon.className = 'fas fa-volume-mute';
-            showNotification('Звук отключен', 'info');
-        } else {
-            icon.className = 'fas fa-volume-up';
-            showNotification('Звук включен', 'info');
-        }
-    });
+    const soundToggle = document.getElementById('sound-toggle');
+    if (soundToggle) {
+        soundToggle.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-volume-up')) {
+                icon.className = 'fas fa-volume-mute';
+                showNotification('Звук отключен', 'info');
+            } else {
+                icon.className = 'fas fa-volume-up';
+                showNotification('Звук включен', 'info');
+            }
+        });
+    }
     
-    // Защита от ввода
-    betInput.addEventListener('keydown', function(e) {
-        if ([46, 8, 9, 27, 13].indexOf(e.keyCode) !== -1 ||
-            (e.keyCode === 65 && e.ctrlKey === true) ||
-            (e.keyCode === 67 && e.ctrlKey === true) ||
-            (e.keyCode === 86 && e.ctrlKey === true) ||
-            (e.keyCode === 88 && e.ctrlKey === true) ||
-            (e.keyCode >= 35 && e.keyCode <= 39)) {
-            return;
-        }
-        
-        if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
-            e.preventDefault();
-        }
-    });
+    if (betInput) {
+        betInput.addEventListener('keydown', function(e) {
+            if ([46, 8, 9, 27, 13].indexOf(e.keyCode) !== -1 ||
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true) ||
+                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                return;
+            }
+            
+            if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+    }
 }
 
 // ПОКАЗ УВЕДОМЛЕНИЯ
 function showNotification(message, type = 'info') {
+    if (!document.body) {
+        console.log('Notification skipped - document.body not ready');
+        return;
+    }
+    
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.style.cssText = `
