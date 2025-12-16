@@ -1043,6 +1043,152 @@
     background: linear-gradient(90deg, #6200ff, #ff00ff);
 }
 
+/* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ГРАФИКА */
+.graph-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.grid-label {
+    position: absolute;
+    left: 10px;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+    font-family: 'Michroma', monospace;
+}
+
+.multiplier-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #00ff00;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px #00ff00;
+    z-index: 10;
+}
+
+.crash-point {
+    position: absolute;
+    right: 10px;
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: 'Michroma', monospace;
+    border: 1px solid rgba(255, 68, 68, 0.4);
+    transform: translateY(-50%);
+}
+
+/* АНИМАЦИИ */
+@keyframes countUp {
+    from { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    to { transform: scale(1); }
+}
+
+@keyframes crashAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* СТАТУС ИГРОКА */
+.player-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.status-indicator.waiting {
+    background: #ff9900;
+    animation: pulse 1s infinite;
+}
+
+.status-indicator.playing {
+    background: #00ff00;
+    animation: pulse 0.5s infinite;
+}
+
+.status-indicator.cashed {
+    background: #0088ff;
+}
+
+.status-indicator.crashed {
+    background: #ff0000;
+}
+
+/* ТАЙМЕР */
+.timer-display {
+    font-family: 'Michroma', monospace;
+    font-size: 18px;
+    color: #ffcc00;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.timer-danger {
+    color: #ff4444;
+    animation: pulse 0.5s infinite;
+}
+
+/* ЗВУКИ */
+.sound-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.sound-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.sound-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
 /* АДАПТИВНОСТЬ */
 @media (max-width: 1200px) {
     .multiplier-buttons {
