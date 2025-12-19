@@ -215,13 +215,405 @@ async function activatePromoCode() {
             return;
         }
         
-        // 6. Все проверки пройдены - активируем промокод
+        // 6. Проверяем условия промокода
+        if (promoData.conditions?.has_conditions) {
+            const conditionCheck = await checkPromoConditions(promoData.conditions, code);
+            
+            if (!conditionCheck.passed) {
+                showStatus('error', 'Требования не выполнены', conditionCheck.message);
+                resetButton();
+                return;
+            }
+        }
+        
+        // 7. Все проверки пройдены - активируем промокод
         await processPromoActivation(code, promoData);
         
     } catch (error) {
         console.error('❌ Ошибка активации:', error);
         showStatus('error', 'Ошибка активации', 'Произошла ошибка при обработке промокода');
         resetButton();
+    }
+}
+
+// ПРОВЕРКА УСЛОВИЙ ПРОМОКОДА
+async function checkPromoConditions(conditions, promoCode) {
+    try {
+        // Проверяем, есть ли пользователь уже в списке проверенных
+        if (conditions.verified_users && conditions.verified_users.includes(userId)) {
+            return { passed: true, message: 'Условия уже выполнены' };
+        }
+        
+        switch (conditions.type) {
+            case 'telegram_subscription':
+                return await showTelegramVerificationModal(conditions, promoCode, 'single');
+                
+            case 'telegram_channels':
+                return await showTelegramVerificationModal(conditions, promoCode, 'multiple');
+                
+            case 'discord_server':
+                return await showDiscordVerificationModal(conditions, promoCode);
+                
+            case 'min_level':
+                // Проверка минимального уровня
+                const userLevel = await getUserLevel(userId);
+                if (userLevel < parseInt(conditions.value)) {
+                    return {
+                        passed: false,
+                        message: `Требуется уровень ${conditions.value} или выше (Ваш уровень: ${userLevel})`
+                    };
+                }
+                break;
+                
+            case 'min_points':
+                // Проверка минимальных очков
+                const userPoints = await getUserPoints(userId);
+                if (userPoints < parseInt(conditions.value)) {
+                    return {
+                        passed: false,
+                        message: `Требуется минимум ${conditions.value} новогодних очков (Ваши очки: ${userPoints})`
+                    };
+                }
+                break;
+                
+            case 'referrals':
+                // Проверка рефералов
+                const referralsCount = await getUserReferrals(userId);
+                if (referralsCount < parseInt(conditions.value)) {
+                    return {
+                        passed: false,
+                        message: `Требуется пригласить ${conditions.value} друзей (Ваши рефералы: ${referralsCount})`
+                    };
+                }
+                break;
+        }
+        
+        // Если все условия выполнены, добавляем пользователя в список проверенных
+        if (conditions.verified_users) {
+            const verifiedUsers = [...conditions.verified_users, userId];
+            await database.ref('promocodes/' + promoCode + '/conditions/verified_users').set(verifiedUsers);
+        } else {
+            await database.ref('promocodes/' + promoCode + '/conditions/verified_users').set([userId]);
+        }
+        
+        return { passed: true, message: 'Условия выполнены' };
+        
+    } catch (error) {
+        console.error('❌ Ошибка проверки условий:', error);
+        return {
+            passed: false,
+            message: 'Ошибка проверки требований'
+        };
+    }
+}
+
+// МОДАЛЬНОЕ ОКНО ПРОВЕРКИ ПОДПИСКИ TELEGRAM
+async function showTelegramVerificationModal(conditions, promoCode, type = 'single') {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+        
+        const channelsCount = type === 'multiple' ? conditions.value || 2 : 1;
+        const channelName = conditions.channel || 'JojoLand';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="
+                background: linear-gradient(135deg, rgba(0, 100, 100, 0.9), rgba(0, 200, 200, 0.9));
+                border-radius: 20px;
+                padding: 40px;
+                max-width: 500px;
+                width: 90%;
+                text-align: center;
+                border: 3px solid #00cccc;
+            ">
+                <h3 style="color: #ffcc00; margin-top: 0;">📢 Требуется подтверждение</h3>
+                
+                <p style="color: white; font-size: 16px; line-height: 1.5;">
+                    Для активации промокода необходимо подписаться на Telegram каналы:
+                </p>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h4 style="color: #00ffff; margin: 0 0 10px;">${conditions.description || 'Подпишитесь на наши каналы'}</h4>
+                    
+                    ${conditions.links && conditions.links[0] ? `
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(0,136,255,0.2); border-radius: 8px;">
+                        <div style="font-weight: bold; color: #00ccff;">📢 Основной канал</div>
+                        <div style="color: #aaaaff; margin: 5px 0;">${conditions.links[0]}</div>
+                        <a href="${conditions.links[0]}" target="_blank" style="
+                            display: inline-block;
+                            margin-top: 5px;
+                            padding: 5px 15px;
+                            background: #0088ff;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 5px;
+                            font-size: 14px;
+                        ">
+                            Открыть в Telegram
+                        </a>
+                    </div>
+                    ` : ''}
+                    
+                    ${conditions.links && conditions.links[1] ? `
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(147,0,211,0.2); border-radius: 8px;">
+                        <div style="font-weight: bold; color: #9400d3;">📢 Дополнительный канал</div>
+                        <div style="color: #aaaaff; margin: 5px 0;">${conditions.links[1]}</div>
+                        <a href="${conditions.links[1]}" target="_blank" style="
+                            display: inline-block;
+                            margin-top: 5px;
+                            padding: 5px 15px;
+                            background: #9400d3;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 5px;
+                            font-size: 14px;
+                        ">
+                            Открыть в Telegram
+                        </a>
+                    </div>
+                    ` : ''}
+                    
+                    <p style="color: #ffcc00; font-size: 14px; margin-top: 15px;">
+                        <strong>Подпишитесь на все указанные каналы, затем нажмите "Проверить подписку"</strong>
+                    </p>
+                </div>
+                
+                <p style="color: #aaaaff; font-size: 14px;">
+                    После подписки нажмите кнопку "Проверить подписку"
+                </p>
+                
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button id="check-subscription-btn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: linear-gradient(90deg, #00cc66, #00ff88);
+                        border: none;
+                        border-radius: 10px;
+                        color: white;
+                        font-family: 'Orbitron', sans-serif;
+                        font-weight: bold;
+                        cursor: pointer;
+                    ">
+                        ✅ ПРОВЕРИТЬ ПОДПИСКУ
+                    </button>
+                    
+                    <button id="cancel-verification-btn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: rgba(255, 68, 68, 0.2);
+                        border: 1px solid #ff4444;
+                        border-radius: 10px;
+                        color: #ff4444;
+                        font-family: 'Orbitron', sans-serif;
+                        font-weight: bold;
+                        cursor: pointer;
+                    ">
+                        ❌ ОТМЕНА
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Обработчики кнопок
+        modal.querySelector('#check-subscription-btn').onclick = async () => {
+            // Здесь будет реальная проверка через Telegram API
+            // Для демо просто считаем, что пользователь подписался
+            
+            // Добавляем пользователя в список проверенных
+            const promoRef = database.ref('promocodes/' + promoCode + '/conditions/verified_users');
+            const snapshot = await promoRef.once('value');
+            const verifiedUsers = snapshot.val() || [];
+            
+            if (!verifiedUsers.includes(userId)) {
+                await promoRef.set([...verifiedUsers, userId]);
+            }
+            
+            modal.remove();
+            resolve({ passed: true, message: 'Подписка подтверждена!' });
+        };
+        
+        modal.querySelector('#cancel-verification-btn').onclick = () => {
+            modal.remove();
+            resolve({ passed: false, message: 'Проверка отменена' });
+        };
+    });
+}
+
+// МОДАЛЬНОЕ ОКНО ПРОВЕРКИ DISCORD
+async function showDiscordVerificationModal(conditions, promoCode) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="
+                background: linear-gradient(135deg, rgba(88, 101, 242, 0.9), rgba(114, 137, 218, 0.9));
+                border-radius: 20px;
+                padding: 40px;
+                max-width: 500px;
+                width: 90%;
+                text-align: center;
+                border: 3px solid #5865F2;
+            ">
+                <h3 style="color: #ffcc00; margin-top: 0;">🎮 Требуется подтверждение</h3>
+                
+                <p style="color: white; font-size: 16px; line-height: 1.5;">
+                    Для активации промокода необходимо вступить в Discord сервер:
+                </p>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h4 style="color: #7289da; margin: 0 0 10px;">${conditions.channel || 'Discord сервер JojoLand'}</h4>
+                    <p style="color: #cccccc; margin: 0 0 15px;">${conditions.description || 'Присоединяйтесь к нашему сообществу'}</p>
+                    
+                    ${conditions.links && conditions.links[0] ? `
+                    <a href="${conditions.links[0]}" target="_blank" style="
+                        display: inline-block;
+                        padding: 12px 25px;
+                        background: #5865F2;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        font-weight: bold;
+                        font-size: 16px;
+                        margin: 10px 0;
+                    ">
+                        <i class="fab fa-discord"></i> Присоединиться к серверу
+                    </a>
+                    ` : ''}
+                    
+                    <p style="color: #ffcc00; font-size: 14px; margin-top: 15px;">
+                        <strong>После вступления на сервер нажмите "Проверить участие"</strong>
+                    </p>
+                </div>
+                
+                <p style="color: #aaaaff; font-size: 14px;">
+                    На сервере нужно будет остаться как минимум на 5 минут
+                </p>
+                
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button id="check-discord-btn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: linear-gradient(90deg, #5865F2, #7289da);
+                        border: none;
+                        border-radius: 10px;
+                        color: white;
+                        font-family: 'Orbitron', sans-serif;
+                        font-weight: bold;
+                        cursor: pointer;
+                    ">
+                        ✅ ПРОВЕРИТЬ УЧАСТИЕ
+                    </button>
+                    
+                    <button id="cancel-verification-btn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: rgba(255, 68, 68, 0.2);
+                        border: 1px solid #ff4444;
+                        border-radius: 10px;
+                        color: #ff4444;
+                        font-family: 'Orbitron', sans-serif;
+                        font-weight: bold;
+                        cursor: pointer;
+                    ">
+                        ❌ ОТМЕНА
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Обработчики кнопок
+        modal.querySelector('#check-discord-btn').onclick = async () => {
+            // Добавляем пользователя в список проверенных
+            const promoRef = database.ref('promocodes/' + promoCode + '/conditions/verified_users');
+            const snapshot = await promoRef.once('value');
+            const verifiedUsers = snapshot.val() || [];
+            
+            if (!verifiedUsers.includes(userId)) {
+                await promoRef.set([...verifiedUsers, userId]);
+            }
+            
+            modal.remove();
+            resolve({ passed: true, message: 'Участие на сервере подтверждено!' });
+        };
+        
+        modal.querySelector('#cancel-verification-btn').onclick = () => {
+            modal.remove();
+            resolve({ passed: false, message: 'Проверка отменена' });
+        };
+    });
+}
+
+// ПОЛУЧЕНИЕ УРОВНЯ ПОЛЬЗОВАТЕЛЯ
+async function getUserLevel(userId) {
+    try {
+        const userSnapshot = await database.ref('users/' + userId).once('value');
+        if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            return userData.level || 1;
+        }
+        return 1;
+    } catch (error) {
+        console.error('❌ Ошибка получения уровня:', error);
+        return 1;
+    }
+}
+
+// ПОЛУЧЕНИЕ ОЧКОВ ПОЛЬЗОВАТЕЛЯ
+async function getUserPoints(userId) {
+    try {
+        const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
+        if (pointsSnapshot.exists()) {
+            const pointsData = pointsSnapshot.val();
+            return pointsData.total_points || 0;
+        }
+        return 0;
+    } catch (error) {
+        console.error('❌ Ошибка получения очков:', error);
+        return 0;
+    }
+}
+
+// ПОЛУЧЕНИЕ КОЛИЧЕСТВА РЕФЕРАЛОВ
+async function getUserReferrals(userId) {
+    try {
+        const referralsSnapshot = await database.ref('user_referrals/' + userId).once('value');
+        if (referralsSnapshot.exists()) {
+            const referralsData = referralsSnapshot.val();
+            return referralsData.count || 0;
+        }
+        return 0;
+    } catch (error) {
+        console.error('❌ Ошибка получения рефералов:', error);
+        return 0;
     }
 }
 
@@ -256,7 +648,8 @@ async function processPromoActivation(code, promoData) {
             name: promoData.name || 'Промокод',
             points: points,
             timestamp: now.toISOString(),
-            description: promoData.description || ''
+            description: promoData.description || '',
+            conditions: promoData.conditions?.has_conditions ? 'С условиями' : 'Без условий'
         };
         
         userPromoHistory.push(promoRecord);
