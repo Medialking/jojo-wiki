@@ -1,4 +1,4 @@
-// settings.js - Исправленная версия
+// settings.js - Исправленная версия с рабочим EmailJS
 
 // Конфигурация Firebase
 const firebaseConfig = {
@@ -197,11 +197,96 @@ async function changePassword(currentPassword, newPassword, confirmPassword) {
     }
 }
 
+// ==================== EMAILJS КОНФИГУРАЦИЯ ====================
+
+const EMAILJS_CONFIG = {
+    serviceId: 'jojo_server',
+    templateId: 'template_elaqg7b',
+    userId: 'IHvmQp5Ke1gev_kzt'
+};
+
+// ==================== ОТПРАВКА EMAIL ====================
+
+async function sendVerificationEmail(email, code, nickname) {
+    console.log('Попытка отправки верификационного email...');
+    console.log('Получатель:', email);
+    console.log('Код:', code);
+    console.log('Имя:', nickname);
+    
+    try {
+        // Проверка email
+        if (!email || !email.includes('@')) {
+            console.error('Некорректный email:', email);
+            return false;
+        }
+        
+        // Проверка EmailJS
+        if (typeof emailjs === 'undefined') {
+            console.log('EmailJS не загружен, тестовый режим');
+            return false;
+        }
+        
+        // Инициализация EmailJS
+        try {
+            await emailjs.init(EMAILJS_CONFIG.userId);
+            console.log('EmailJS инициализирован');
+        } catch (initError) {
+            console.log('EmailJS уже инициализирован или ошибка:', initError);
+        }
+        
+        // Параметры для вашего шаблона
+        // В вашем шаблоне используются: {{to_name}} и {{verification_code}}
+        const templateParams = {
+            to_name: nickname || 'Игрок',
+            verification_code: code,
+            // EmailJS автоматически подставит to_email из вызова
+        };
+        
+        console.log('Отправка с параметрами:', templateParams);
+        
+        // Отправка через EmailJS
+        const response = await emailjs.send(
+            EMAILJS_CONFIG.serviceId,
+            EMAILJS_CONFIG.templateId,
+            templateParams
+        );
+        
+        console.log('✅ Email успешно отправлен! Статус:', response.status);
+        console.log('Ответ:', response.text);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Ошибка отправки email:', {
+            status: error.status,
+            text: error.text,
+            details: error
+        });
+        
+        // Детальный анализ ошибки
+        if (error.status === 400) {
+            console.error('Ошибка 400: Проверьте параметры шаблона');
+        } else if (error.status === 422) {
+            console.error('Ошибка 422: Проблема с email адресом или шаблоном');
+            console.error('Проверьте:');
+            console.error('1. Email адрес:', email);
+            console.error('2. Настройки шаблона в EmailJS');
+            console.error('3. Настройки Email Service в EmailJS');
+        } else if (error.status === 401) {
+            console.error('Ошибка 401: Проблема с авторизацией EmailJS');
+            console.error('Проверьте User ID и настройки доступа');
+        }
+        
+        return false;
+    }
+}
+
 // ==================== ПРИВЯЗКА И ПОДТВЕРЖДЕНИЕ EMAIL ====================
 
 async function linkEmail(email) {
     const userId = localStorage.getItem('jojoland_userId');
     const nickname = localStorage.getItem('jojoland_nickname');
+    
+    console.log('Начало привязки email для пользователя:', userId, nickname);
     
     // Валидация email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -217,7 +302,8 @@ async function linkEmail(email) {
         
         snapshot.forEach((childSnapshot) => {
             const userData = childSnapshot.val();
-            if (userData.email && userData.email.toLowerCase() === email.toLowerCase() && 
+            if (userData.email && 
+                userData.email.toLowerCase() === email.toLowerCase() && 
                 childSnapshot.key !== userId) {
                 emailExists = true;
             }
@@ -230,6 +316,7 @@ async function linkEmail(email) {
         
         // Генерируем код подтверждения
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log('Сгенерирован код:', verificationCode);
         
         // Сохраняем email с кодом подтверждения
         await database.ref('users/' + userId).update({
@@ -238,6 +325,8 @@ async function linkEmail(email) {
             emailVerificationCode: verificationCode,
             emailVerificationSentAt: new Date().toISOString()
         });
+        
+        console.log('Данные сохранены в Firebase, отправляем email...');
         
         // Отправляем email с кодом подтверждения
         const emailSent = await sendVerificationEmail(email, verificationCode, nickname);
@@ -249,24 +338,76 @@ async function linkEmail(email) {
             document.getElementById('email-verification-section').style.display = 'block';
             document.getElementById('verification-code').focus();
             
-            // Сохраняем email в localStorage для использования в verifyEmail
+            // Сохраняем email в localStorage
             localStorage.setItem('temp_email', email);
+            
+            // Запускаем таймер для кода
+            startVerificationTimer();
         } else {
-            // Если не удалось отправить, показываем код в уведомлении (для тестирования)
-            showNotification(`Тестовый код: ${verificationCode} (в продакшене отправляется на email)`, 'info');
+            // Режим тестирования - показываем код в уведомлении
+            console.log('Режим тестирования - показываем код в уведомлении');
+            showNotification(
+                `<strong>Тестовый режим</strong><br>` +
+                `Код подтверждения для ${email}:<br>` +
+                `<div style="font-size: 24px; font-weight: bold; margin: 10px 0; color: #6200ff;">${verificationCode}</div>` +
+                `В реальном приложении код будет отправлен на email.`,
+                'info'
+            );
             
             document.getElementById('email-verification-section').style.display = 'block';
             document.getElementById('verification-code').focus();
             localStorage.setItem('temp_email', email);
+            startVerificationTimer();
         }
         
         return true;
         
     } catch (error) {
         console.error('Ошибка привязки email:', error);
-        showNotification('Ошибка привязки email', 'error');
+        showNotification('Ошибка привязки email: ' + error.message, 'error');
         return false;
     }
+}
+
+// Таймер для кода подтверждения
+function startVerificationTimer() {
+    const timerElement = document.getElementById('verification-timer');
+    const codeInput = document.getElementById('verification-code');
+    const verifyBtn = document.getElementById('verify-email-btn');
+    
+    if (!timerElement) return;
+    
+    let seconds = 300; // 5 минут
+    timerElement.style.display = 'block';
+    
+    const timer = setInterval(() => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        timerElement.textContent = `Код действителен: ${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        
+        if (seconds <= 0) {
+            clearInterval(timer);
+            timerElement.textContent = 'Код истек';
+            timerElement.style.color = '#ff4444';
+            codeInput.disabled = true;
+            verifyBtn.disabled = true;
+            
+            // Очищаем код в Firebase через 5 минут
+            setTimeout(async () => {
+                const userId = localStorage.getItem('jojoland_userId');
+                try {
+                    await database.ref('users/' + userId).update({
+                        emailVerificationCode: null
+                    });
+                    console.log('Код подтверждения очищен по истечении времени');
+                } catch (error) {
+                    console.error('Ошибка очистки кода:', error);
+                }
+            }, 300000); // 5 минут
+        }
+        
+        seconds--;
+    }, 1000);
 }
 
 async function verifyEmail(code) {
@@ -288,7 +429,7 @@ async function verifyEmail(code) {
         const userData = snapshot.val();
         
         if (!userData.emailVerificationCode) {
-            showNotification('Код подтверждения не найден', 'error');
+            showNotification('Код подтверждения не найден или истек', 'error');
             return false;
         }
         
@@ -297,12 +438,12 @@ async function verifyEmail(code) {
             return false;
         }
         
-        // Проверяем время (код действителен 24 часа)
+        // Проверяем время (код действителен 5 минут)
         const sentAt = new Date(userData.emailVerificationSentAt);
         const now = new Date();
-        const hoursDiff = (now - sentAt) / (1000 * 60 * 60);
+        const minutesDiff = (now - sentAt) / (1000 * 60);
         
-        if (hoursDiff > 24) {
+        if (minutesDiff > 5) {
             showNotification('Код подтверждения истек', 'error');
             return false;
         }
@@ -321,6 +462,12 @@ async function verifyEmail(code) {
         
         // Обновляем UI
         updateEmailUI(userData.email || email, true);
+        
+        // Скрываем таймер
+        const timerElement = document.getElementById('verification-timer');
+        if (timerElement) {
+            timerElement.style.display = 'none';
+        }
         
         return true;
         
@@ -342,7 +489,8 @@ async function removeEmail() {
         await database.ref('users/' + userId).update({
             email: null,
             emailVerified: false,
-            emailVerifiedAt: null
+            emailVerifiedAt: null,
+            emailVerificationCode: null
         });
         
         showNotification('Email успешно отвязан', 'success');
@@ -356,54 +504,8 @@ async function removeEmail() {
     }
 }
 
-// ==================== ОТПРАВКА EMAIL ЧРЕЗ EMAILJS ====================
+// ==================== ОТПРАВКА УВЕДОМЛЕНИЙ ====================
 
-// EmailJS конфигурация (нужно зарегистрироваться на https://www.emailjs.com/)
-const EMAILJS_CONFIG = {
-    serviceId: 'jojo_server', // Замените на ваш Service ID
-    templateId: 'template_elaqg7b', // Замените на ваш Template ID
-    userId: 'IHvmQp5Ke1gev_kzt' // Замените на ваш Public Key
-};
-
-// Отправка кода подтверждения
-async function sendVerificationEmail(email, code, nickname) {
-    try {
-        // Проверяем, подключен ли EmailJS
-        if (typeof emailjs === 'undefined') {
-            console.log('EmailJS не подключен, тестовый режим');
-            return false;
-        }
-        
-        // Инициализируем EmailJS
-        emailjs.init(EMAILJS_CONFIG.userId);
-        
-        // Параметры письма
-        const templateParams = {
-            to_email: email,
-            from_name: 'JojoLand',
-            to_name: nickname || 'Игрок',
-            verification_code: code,
-            subject: 'Подтверждение email - JojoLand',
-            message: `Ваш код подтверждения: ${code}. Код действителен 24 часа.`
-        };
-        
-        // Отправляем письмо
-        const response = await emailjs.send(
-            EMAILJS_CONFIG.serviceId,
-            EMAILJS_CONFIG.templateId,
-            templateParams
-        );
-        
-        console.log('Email отправлен:', response);
-        return true;
-        
-    } catch (error) {
-        console.error('Ошибка отправки email:', error);
-        return false;
-    }
-}
-
-// Отправка уведомлений
 async function sendEmailNotification(userId, type, data = {}) {
     try {
         // Получаем email пользователя
@@ -426,14 +528,6 @@ async function sendEmailNotification(userId, type, data = {}) {
             'email_change': {
                 subject: 'Изменение email - JojoLand',
                 message: `Email вашего аккаунта ${userData.nickname} был изменен.`
-            },
-            'login': {
-                subject: 'Новый вход в аккаунт - JojoLand',
-                message: `В ваш аккаунт ${userData.nickname} выполнен вход с нового устройства. Если это были не вы, смените пароль.`
-            },
-            'security_alert': {
-                subject: 'Предупреждение безопасности - JojoLand',
-                message: `Обнаружена подозрительная активность в вашем аккаунте ${userData.nickname}.`
             }
         };
         
@@ -444,28 +538,28 @@ async function sendEmailNotification(userId, type, data = {}) {
         
         // Если EmailJS доступен, отправляем письмо
         if (typeof emailjs !== 'undefined') {
-            emailjs.init(EMAILJS_CONFIG.userId);
-            
-            const templateParams = {
-                to_email: userData.email,
-                from_name: 'JojoLand Security',
-                to_name: userData.nickname,
-                subject: template.subject,
-                message: template.message
-            };
-            
-            await emailjs.send(
-                EMAILJS_CONFIG.serviceId,
-                EMAILJS_CONFIG.templateId,
-                templateParams
-            );
-            
-            console.log(`Email уведомление отправлено на ${userData.email}`);
+            try {
+                await emailjs.init(EMAILJS_CONFIG.userId);
+                
+                await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.templateId,
+                    {
+                        to_name: userData.nickname,
+                        verification_code: 'УВЕДОМЛЕНИЕ',
+                        subject: template.subject,
+                        message: template.message
+                    }
+                );
+                
+                console.log(`Email уведомление отправлено на ${userData.email}`);
+            } catch (emailError) {
+                console.error('Ошибка отправки уведомления:', emailError);
+            }
         }
         
         // Сохраняем в лог
         await database.ref('email_logs/' + userId).push({
-            email: userData.email,
             type: type,
             timestamp: new Date().toISOString(),
             sent: true,
@@ -519,7 +613,6 @@ async function updateNotificationSettings(settings) {
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 
 async function getClientIP() {
-    // Получаем IP через сторонний сервис
     try {
         const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
@@ -535,32 +628,37 @@ function updateEmailUI(email, verified) {
     const linkEmailSection = document.getElementById('link-email-section');
     const verifiedEmailSection = document.getElementById('verified-email-section');
     const emailVerificationSection = document.getElementById('email-verification-section');
+    const verificationTimer = document.getElementById('verification-timer');
     
     if (email && verified) {
         emailDisplay.textContent = email;
         emailStatus.textContent = 'Подтвержден';
-        emailStatus.className = 'card-status';
+        emailStatus.className = 'card-status verified';
         
         linkEmailSection.style.display = 'none';
         verifiedEmailSection.style.display = 'block';
         emailVerificationSection.style.display = 'none';
+        if (verificationTimer) verificationTimer.style.display = 'none';
     } else if (email && !verified) {
         // Email есть, но не подтвержден
-        emailDisplay.textContent = email + ' (ожидает подтверждения)';
+        emailDisplay.textContent = email;
         emailStatus.textContent = 'Ожидает подтверждения';
         emailStatus.className = 'card-status partial';
         
         linkEmailSection.style.display = 'none';
         verifiedEmailSection.style.display = 'block';
         emailVerificationSection.style.display = 'block';
+        if (verificationTimer) verificationTimer.style.display = 'block';
     } else {
         // Нет email
+        emailDisplay.textContent = 'Не указан';
         emailStatus.textContent = 'Не привязан';
         emailStatus.className = 'card-status disabled';
         
         linkEmailSection.style.display = 'block';
         verifiedEmailSection.style.display = 'none';
         emailVerificationSection.style.display = 'none';
+        if (verificationTimer) verificationTimer.style.display = 'none';
     }
 }
 
@@ -662,12 +760,10 @@ function setupEventListeners() {
             
             const success = await changePassword(currentPassword, newPassword, confirmPassword);
             if (success) {
-                // Очищаем поля
                 document.getElementById('current-password').value = '';
                 document.getElementById('new-password').value = '';
                 document.getElementById('confirm-password').value = '';
                 
-                // Сбрасываем индикатор силы пароля
                 const strengthContainer = document.getElementById('password-strength');
                 strengthContainer.className = 'password-strength';
                 strengthContainer.querySelector('.strength-fill').style.width = '0%';
@@ -694,6 +790,10 @@ function setupEventListeners() {
     if (linkEmailBtn) {
         linkEmailBtn.addEventListener('click', async () => {
             const email = document.getElementById('email-input').value.trim();
+            if (!email) {
+                showNotification('Введите email адрес', 'error');
+                return;
+            }
             await linkEmail(email);
         });
     }
@@ -773,6 +873,27 @@ function setupEventListeners() {
             }
         });
     }
+    
+    // Тестирование EmailJS
+    const testEmailBtn = document.getElementById('test-email-btn');
+    if (testEmailBtn) {
+        testEmailBtn.addEventListener('click', async () => {
+            const email = prompt('Введите email для тестирования EmailJS:', 'test@example.com');
+            if (email) {
+                const code = '123456';
+                const nickname = 'Тестовый пользователь';
+                
+                showNotification('Тестирование EmailJS...', 'info');
+                const result = await sendVerificationEmail(email, code, nickname);
+                
+                if (result) {
+                    showNotification('Тестовый email отправлен успешно!', 'success');
+                } else {
+                    showNotification('Не удалось отправить тестовый email', 'error');
+                }
+            }
+        });
+    }
 }
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
@@ -800,17 +921,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 1;
             }
         }
+        
+        .card-status.verified {
+            color: #00cc66;
+            background: rgba(0, 204, 102, 0.1);
+        }
+        
+        .card-status.partial {
+            color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        
+        .card-status.disabled {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+        
+        #verification-timer {
+            color: #ff9800;
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
     `;
     document.head.appendChild(style);
     
-    // Подключаем EmailJS (если не подключен)
+    // Подключаем EmailJS
     if (typeof emailjs === 'undefined') {
+        console.log('Загружаем EmailJS...');
         const emailjsScript = document.createElement('script');
         emailjsScript.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
         emailjsScript.onload = function() {
-            console.log('EmailJS загружен');
+            console.log('EmailJS загружен, User ID:', EMAILJS_CONFIG.userId);
+            // EmailJS инициализируется при первом вызове send
         };
         document.head.appendChild(emailjsScript);
+    } else {
+        console.log('EmailJS уже загружен');
     }
     
     // Настраиваем обработчики событий
