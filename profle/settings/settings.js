@@ -234,12 +234,12 @@ async function sendVerificationEmail(email, code, nickname) {
             console.log('EmailJS уже инициализирован или ошибка:', initError);
         }
         
-        // Параметры для вашего шаблона
-        // В вашем шаблоне используются: {{to_name}} и {{verification_code}}
+        // ВАЖНО: EmailJS требует явно указать to_email
+        // Ваш шаблон использует {{to_name}} и {{verification_code}}
         const templateParams = {
-            to_name: nickname || 'Игрок',
-            verification_code: code,
-            // EmailJS автоматически подставит to_email из вызова
+            to_email: email.trim(),           // ОБЯЗАТЕЛЬНОЕ поле для EmailJS
+            to_name: nickname || 'Игрок',     // {{to_name}} в шаблоне
+            verification_code: code           // {{verification_code}} в шаблоне
         };
         
         console.log('Отправка с параметрами:', templateParams);
@@ -262,18 +262,31 @@ async function sendVerificationEmail(email, code, nickname) {
             details: error
         });
         
-        // Детальный анализ ошибки
-        if (error.status === 400) {
-            console.error('Ошибка 400: Проверьте параметры шаблона');
-        } else if (error.status === 422) {
-            console.error('Ошибка 422: Проблема с email адресом или шаблоном');
-            console.error('Проверьте:');
-            console.error('1. Email адрес:', email);
-            console.error('2. Настройки шаблона в EmailJS');
-            console.error('3. Настройки Email Service в EmailJS');
-        } else if (error.status === 401) {
-            console.error('Ошибка 401: Проблема с авторизацией EmailJS');
-            console.error('Проверьте User ID и настройки доступа');
+        // Попробуем альтернативный вариант параметров
+        if (error.status === 422) {
+            console.log('Пробуем альтернативный набор параметров...');
+            
+            try {
+                // Альтернативный вариант
+                const altTemplateParams = {
+                    email: email.trim(),        // Возможно шаблон ожидает просто "email"
+                    name: nickname || 'Игрок',
+                    code: code
+                };
+                
+                const altResponse = await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.templateId,
+                    altTemplateParams
+                );
+                
+                console.log('✅ Email отправлен с альтернативными параметрами!');
+                return true;
+                
+            } catch (altError) {
+                console.error('❌ Альтернативный вариант тоже не сработал:', altError.text);
+                return false;
+            }
         }
         
         return false;
