@@ -759,6 +759,9 @@ async function verifyEmailLoginCode(code) {
 // Отправка email с кодом для входа
 async function sendLoginEmail(email, code, nickname) {
     console.log('🚀 Отправка email для входа...');
+    console.log('📧 Получатель:', email);
+    console.log('🔢 Код:', code);
+    console.log('👤 Имя:', nickname);
     
     if (typeof emailjs === 'undefined') {
         console.log('⚠️ EmailJS не загружен, тестовый режим');
@@ -770,26 +773,67 @@ async function sendLoginEmail(email, code, nickname) {
         emailjs.init(EMAILJS_CONFIG.userId);
         
         const templateParams = {
+            nickname: nickname || 'Игрок',
             email: email,
-            to_name: nickname || 'Игрок',
-            verification_code: code,
-            login_code: code,
-            message: `Код для входа в аккаунт ${nickname}: ${code}. Код действителен 5 минут.`
+            code: code,
+            site_url: 'https://ваш-сайт.ru'
         };
         
         console.log('📤 Отправка с параметрами:', templateParams);
         
+        // Используем новый шаблон для входа
         const response = await emailjs.send(
             EMAILJS_CONFIG.serviceId,
-            EMAILJS_CONFIG.templateId,
+            EMAILJS_CONFIG.loginTemplateId, // новый шаблон
             templateParams
         );
         
         console.log('✅ Email успешно отправлен! Статус:', response.status);
+        console.log('📨 Ответ сервера:', response.text);
+        
+        // Показываем уведомление об успешной отправке
+        showNotification('📧 Код для входа отправлен на ваш email', 'success');
+        
         return true;
         
     } catch (error) {
-        console.error('❌ Ошибка отправки email:', error);
+        console.error('❌ Ошибка отправки email:', {
+            status: error.status,
+            text: error.text,
+            fullError: error
+        });
+        
+        // Тестовый режим - показываем код
+        console.log('🧪 Режим тестирования - показываем код в уведомлении');
+        
+        // Красивое уведомление с кодом
+        const notificationHTML = `
+            <div style="text-align: center;">
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #6200ff;">
+                    🧪 Тестовый режим
+                </div>
+                <div style="margin-bottom: 15px;">
+                    Для входа в аккаунт <strong>${nickname || 'Игрок'}</strong>
+                </div>
+                <div style="background: linear-gradient(90deg, #6200ff, #ff00ff); 
+                            color: white; 
+                            padding: 15px; 
+                            border-radius: 10px; 
+                            margin: 15px 0;
+                            font-family: 'Courier New', monospace;">
+                    <div style="font-size: 14px; margin-bottom: 5px;">Код для входа:</div>
+                    <div style="font-size: 28px; font-weight: bold; letter-spacing: 3px;">
+                        ${code}
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    В реальном приложении этот код был бы отправлен на email
+                </div>
+            </div>
+        `;
+        
+        showNotification(notificationHTML, 'info');
+        
         return false;
     }
 }
