@@ -1459,6 +1459,478 @@ footer {
 }
 
 /* =========================================== */
+/* СТИЛИ ДЛЯ ВХОДА ЧЕРЕЗ EMAIL */
+/* =========================================== */
+
+/* Секция входа через email */
+.email-login-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.switch-login-type {
+    margin: 10px 0 20px;
+}
+
+.switch-login-type-btn {
+    background: none;
+    border: none;
+    color: #00ccff;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+    font-family: 'Orbitron', sans-serif;
+    padding: 5px;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.switch-login-type-btn:hover {
+    color: #00ffcc;
+    transform: translateY(-2px);
+}
+
+/* Форма входа через email */
+#login-email-form .input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+#login-email {
+    width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid #00b4d8;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+#login-email:focus {
+    outline: none;
+    border-color: #48cae4;
+    box-shadow: 0 0 20px rgba(72, 202, 228, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+#login-email::placeholder {
+    color: #8888cc;
+}
+
+/* Поле для кода */
+#login-code {
+    width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid #00cc66;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    letter-spacing: 5px;
+    text-align: center;
+    transition: all 0.3s;
+    box-sizing: border-box;
+    text-transform: uppercase;
+}
+
+#login-code:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+#login-code::placeholder {
+    color: #8888cc;
+    letter-spacing: normal;
+    font-size: 14px;
+    text-transform: none;
+}
+
+/* Таймер для кода */
+#login-code-timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 10px 0 20px;
+    padding: 10px;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #ff9800;
+    animation: pulseWarning 2s infinite;
+}
+
+@keyframes pulseWarning {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+/* Кнопка для email-входа */
+#login-email-btn {
+    background: linear-gradient(90deg, #00b4d8, #0096c7);
+}
+
+#login-email-btn:hover:not(:disabled) {
+    box-shadow: 0 10px 25px rgba(0, 180, 216, 0.5);
+}
+
+/* Иконка email */
+.email-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Стили для уведомлений с кодом */
+.code-notification {
+    background: linear-gradient(135deg, #6200ff, #ff00ff);
+    border: 2px solid #ff00ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.code-display {
+    font-family: 'Courier New', monospace;
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 8px;
+    color: white;
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Индикатор отправки email */
+.email-sending {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #aaaaff;
+    margin-top: 10px;
+}
+
+.email-sending::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid #00ccff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Сообщение об успешной отправке */
+.email-sent-message {
+    background: rgba(0, 204, 102, 0.1);
+    border: 1px solid #00cc66;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: center;
+    color: #aaffcc;
+    font-size: 14px;
+}
+
+.email-sent-message strong {
+    color: #00ff88;
+}
+
+/* Стили для формы в настройках (привязка email) */
+#email-verification-section {
+    background: rgba(0, 180, 216, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    border: 1px solid rgba(0, 180, 216, 0.3);
+}
+
+#verification-code {
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    letter-spacing: 3px;
+    text-align: center;
+}
+
+#verification-timer {
+    background: rgba(255, 152, 0, 0.1);
+    border-left: 3px solid #ff9800;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* Кнопка подтверждения email */
+#verify-email-btn {
+    background: linear-gradient(90deg, #00cc66, #00ff88);
+}
+
+#verify-email-btn:hover:not(:disabled) {
+    box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
+}
+
+/* Отображение привязанного email */
+.email-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(0, 204, 102, 0.1);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(0, 204, 102, 0.3);
+}
+
+.email-text {
+    font-size: 18px;
+    color: white;
+    font-weight: bold;
+}
+
+.email-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 204, 102, 0.3);
+    color: #00ff88;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+/* Адаптивность для email формы */
+@media (max-width: 768px) {
+    #login-code {
+        font-size: 18px;
+        letter-spacing: 3px;
+        padding: 12px 15px;
+    }
+    
+    .code-display {
+        font-size: 24px;
+        letter-spacing: 5px;
+        padding: 10px;
+    }
+    
+    .switch-login-type-btn {
+        font-size: 13px;
+    }
+    
+    .email-icon {
+        font-size: 20px;
+    }
+    
+    .email-text {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    #login-code {
+        font-size: 16px;
+        letter-spacing: 2px;
+        padding: 10px;
+    }
+    
+    .code-display {
+        font-size: 20px;
+        letter-spacing: 3px;
+    }
+    
+    .switch-login-type-btn span {
+        display: none;
+    }
+    
+    .switch-login-type-btn::before {
+        content: '📧';
+        font-size: 18px;
+    }
+    
+    #switch-to-nickname-login::before {
+        content: '👤';
+    }
+    
+    .email-display {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .email-status-badge {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}
+
+/* Анимация появления кода */
+@keyframes codeAppear {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.code-appear {
+    animation: codeAppear 0.5s ease-out;
+}
+
+/* Стили для иконок состояния email */
+.email-status-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.email-status-icon.verified {
+    color: #00cc66;
+    animation: pulseVerified 2s infinite;
+}
+
+@keyframes pulseVerified {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.email-status-icon.pending {
+    color: #ff9800;
+    animation: spin 2s linear infinite;
+}
+
+.email-status-icon.unverified {
+    color: #ff4444;
+}
+
+/* Тултипы для email */
+.email-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.email-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+    border: 1px solid #6200ff;
+    margin-bottom: 5px;
+}
+
+/* Прогресс бар для таймера */
+.timer-progress {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.timer-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00cc66, #ff9800);
+    width: 100%;
+    transition: width 1s linear;
+}
+
+/* Сообщение об ошибке email */
+.email-error {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    color: #ffaaaa;
+    text-align: center;
+    font-size: 14px;
+}
+
+.email-error::before {
+    content: '⚠️ ';
+    margin-right: 8px;
+}
+
+/* Успешное сообщение email */
+.email-success {
+    background: rgba(0, 204, 102, 0.1);
+    border: 1px solid #00cc66;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    color: #aaffcc;
+    text-align: center;
+    font-size: 14px;
+}
+
+.email-success::before {
+    content: '✅ ';
+    margin-right: 8px;
+}
+
+/* Стили для кнопки повторной отправки кода */
+.resend-code-btn {
+    background: none;
+    border: 1px solid #00b4d8;
+    color: #00b4d8;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.resend-code-btn:hover:not(:disabled) {
+    background: rgba(0, 180, 216, 0.2);
+    transform: translateY(-2px);
+}
+
+.resend-code-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =========================================== */
 /* АДАПТИВНОСТЬ */
 /* =========================================== */
 
