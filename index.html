@@ -56,6 +56,31 @@
         .form-container.active {
             display: block;
         }
+        
+        /* Стили для входа через email */
+        .email-login-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .switch-login-type {
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .switch-login-type-btn {
+            background: none;
+            border: none;
+            color: #aaaaff;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+        
+        .switch-login-type-btn:hover {
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -75,7 +100,7 @@
             <button class="auth-tab" data-tab="register">Регистрация</button>
         </div>
         
-        <!-- ФОРМА ВХОДА -->
+        <!-- ФОРМА ВХОДА (стандартный вход по нику) -->
         <div id="login-form" class="form-container active">
             <div class="modal-header">
                 <h2>Вход в аккаунт</h2>
@@ -111,8 +136,70 @@
                 <button id="login-btn" class="submit-btn">
                     Войти в аккаунт
                 </button>
+                
+                <div class="switch-login-type">
+                    <button id="switch-to-email-login" class="switch-login-type-btn">
+                        📧 Войти через email
+                    </button>
+                </div>
+                
                 <p class="modal-note">
                     Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- ФОРМА ВХОДА ЧЕРЕЗ EMAIL -->
+        <div id="login-email-form" class="form-container">
+            <div class="modal-header">
+                <h2>Вход через email</h2>
+                <p>Введите email для получения кода</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="login-email">Email адрес:</label>
+                    <input 
+                        type="email" 
+                        id="login-email" 
+                        placeholder="Введите привязанный email"
+                        autocomplete="email"
+                    >
+                </div>
+                
+                <div id="login-code-section" style="display: none;">
+                    <div class="input-group">
+                        <label for="login-code">Код из email:</label>
+                        <input 
+                            type="text" 
+                            id="login-code" 
+                            placeholder="Введите 6-значный код"
+                            maxlength="6"
+                            autocomplete="one-time-code"
+                        >
+                    </div>
+                    
+                    <div id="login-code-timer" style="color: #ff9800; font-size: 14px; margin-bottom: 10px;">
+                        ⏳ Код действителен: 5:00
+                    </div>
+                </div>
+                
+                <div class="error-message" id="login-email-error"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="login-email-btn" class="submit-btn">
+                    📧 Получить код
+                </button>
+                
+                <div class="switch-login-type">
+                    <button id="switch-to-nickname-login" class="switch-login-type-btn">
+                        👤 Войти по никнейму
+                    </button>
+                </div>
+                
+                <p class="modal-note">
+                    Нет аккаунта? <a href="#" id="switch-to-register2">Зарегистрироваться</a>
                 </p>
             </div>
         </div>
@@ -338,6 +425,7 @@
 <!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <script>
 // Инициализация Firebase
@@ -353,6 +441,13 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
+
+// EmailJS конфигурация
+const EMAILJS_CONFIG = {
+    serviceId: 'jojo_server',
+    templateId: 'template_elaqg7b',
+    userId: 'A8kpGOp5ovcEi40iA'
+};
 
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
@@ -467,7 +562,240 @@ async function isNicknameUnique(nickname) {
     }
 }
 
-// АВТОРИЗАЦИЯ (вход)
+// Проверка существования email
+async function checkEmailExists(email) {
+    try {
+        const snapshot = await database.ref('users').once('value');
+        let userData = null;
+        let userId = null;
+        
+        snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            if (data.email && 
+                data.email.toLowerCase() === email.toLowerCase() &&
+                data.emailVerified === true) {
+                userData = data;
+                userId = childSnapshot.key;
+            }
+        });
+        
+        return { exists: !!userData, userData: userData, userId: userId };
+    } catch (error) {
+        console.error('Ошибка проверки email:', error);
+        return { exists: false };
+    }
+}
+
+// ==================== ВХОД ЧЕРЕЗ EMAIL ====================
+
+// Отправка кода для входа через email
+async function sendEmailLoginCode(email) {
+    console.log('📧 Отправка кода для входа на:', email);
+    
+    // Проверяем существование email
+    const emailCheck = await checkEmailExists(email);
+    if (!emailCheck.exists) {
+        return { success: false, error: 'Email не привязан к аккаунту' };
+    }
+    
+    // Генерируем 6-значный код
+    const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const userId = emailCheck.userId;
+    
+    console.log('🔑 Сгенерирован код для входа:', loginCode);
+    console.log('👤 Пользователь:', emailCheck.userData.nickname);
+    
+    try {
+        // Сохраняем код в Firebase (действителен 5 минут)
+        await database.ref('email_login_codes/' + userId).set({
+            code: loginCode,
+            email: email,
+            created: new Date().toISOString(),
+            expires: new Date(Date.now() + 5 * 60000).toISOString(),
+            used: false
+        });
+        
+        // Отправляем email с кодом
+        const emailSent = await sendLoginEmail(email, loginCode, emailCheck.userData.nickname);
+        
+        if (emailSent) {
+            console.log('✅ Email с кодом отправлен');
+            
+            // Сохраняем email в localStorage для подтверждения
+            localStorage.setItem('pending_email_login', email);
+            localStorage.setItem('pending_user_id', userId);
+            
+            return { 
+                success: true, 
+                message: 'Код отправлен на email',
+                userId: userId
+            };
+        } else {
+            // Тестовый режим - показываем код
+            console.log('🧪 Тестовый режим - показываем код:', loginCode);
+            
+            // Показываем код в уведомлении
+            const notificationHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #6200ff;">
+                        🧪 Тестовый режим
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        Для входа в аккаунт <strong>${emailCheck.userData.nickname}</strong>
+                    </div>
+                    <div style="background: linear-gradient(90deg, #6200ff, #ff00ff); 
+                                color: white; 
+                                padding: 15px; 
+                                border-radius: 10px; 
+                                margin: 15px 0;
+                                font-family: 'Courier New', monospace;">
+                        <div style="font-size: 14px; margin-bottom: 5px;">Код для входа:</div>
+                        <div style="font-size: 28px; font-weight: bold; letter-spacing: 3px;">
+                            ${loginCode}
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        В реальном приложении этот код был бы отправлен на email
+                    </div>
+                </div>
+            `;
+            
+            showNotification(notificationHTML, 'info');
+            
+            localStorage.setItem('pending_email_login', email);
+            localStorage.setItem('pending_user_id', userId);
+            
+            return { 
+                success: true, 
+                message: 'Код показан в уведомлении (тестовый режим)',
+                userId: userId,
+                testCode: loginCode
+            };
+        }
+        
+    } catch (error) {
+        console.error('Ошибка отправки кода:', error);
+        return { success: false, error: 'Ошибка отправки кода' };
+    }
+}
+
+// Проверка кода для входа через email
+async function verifyEmailLoginCode(code) {
+    const userId = localStorage.getItem('pending_user_id');
+    const email = localStorage.getItem('pending_email_login');
+    
+    if (!userId || !email) {
+        return { success: false, error: 'Сессия истекла' };
+    }
+    
+    try {
+        // Получаем сохраненный код
+        const snapshot = await database.ref('email_login_codes/' + userId).once('value');
+        if (!snapshot.exists()) {
+            return { success: false, error: 'Код не найден или истек' };
+        }
+        
+        const codeData = snapshot.val();
+        
+        // Проверяем время действия (5 минут)
+        const expires = new Date(codeData.expires);
+        if (new Date() > expires) {
+            // Удаляем просроченный код
+            await database.ref('email_login_codes/' + userId).remove();
+            return { success: false, error: 'Код истек' };
+        }
+        
+        // Проверяем код
+        if (codeData.code !== code) {
+            return { success: false, error: 'Неверный код' };
+        }
+        
+        if (codeData.used === true) {
+            return { success: false, error: 'Код уже использован' };
+        }
+        
+        // Помечаем код как использованный
+        await database.ref('email_login_codes/' + userId).update({
+            used: true,
+            usedAt: new Date().toISOString()
+        });
+        
+        // Получаем данные пользователя
+        const userSnapshot = await database.ref('users/' + userId).once('value');
+        const userData = userSnapshot.val();
+        
+        // Сохраняем данные в localStorage
+        localStorage.setItem('jojoland_nickname', userData.nickname);
+        localStorage.setItem('jojoland_userId', userId);
+        localStorage.setItem('jojoland_loggedIn', 'true');
+        
+        // Очищаем временные данные
+        localStorage.removeItem('pending_email_login');
+        localStorage.removeItem('pending_user_id');
+        
+        // Обновляем последний визит
+        await updateLastVisit(userId, userData);
+        
+        // Записываем в историю входов
+        await database.ref('login_history/' + userId).push({
+            type: 'email_login',
+            timestamp: new Date().toISOString(),
+            success: true,
+            ip: await getClientIP()
+        });
+        
+        return { 
+            success: true, 
+            userData: userData, 
+            userId: userId 
+        };
+        
+    } catch (error) {
+        console.error('Ошибка проверки кода:', error);
+        return { success: false, error: 'Ошибка сервера' };
+    }
+}
+
+// Отправка email с кодом для входа
+async function sendLoginEmail(email, code, nickname) {
+    console.log('🚀 Отправка email для входа...');
+    
+    if (typeof emailjs === 'undefined') {
+        console.log('⚠️ EmailJS не загружен, тестовый режим');
+        return false;
+    }
+    
+    try {
+        // Инициализация EmailJS
+        emailjs.init(EMAILJS_CONFIG.userId);
+        
+        const templateParams = {
+            email: email,
+            to_name: nickname || 'Игрок',
+            verification_code: code,
+            login_code: code,
+            message: `Код для входа в аккаунт ${nickname}: ${code}. Код действителен 5 минут.`
+        };
+        
+        console.log('📤 Отправка с параметрами:', templateParams);
+        
+        const response = await emailjs.send(
+            EMAILJS_CONFIG.serviceId,
+            EMAILJS_CONFIG.templateId,
+            templateParams
+        );
+        
+        console.log('✅ Email успешно отправлен! Статус:', response.status);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Ошибка отправки email:', error);
+        return false;
+    }
+}
+
+// ==================== АВТОРИЗАЦИЯ (вход по нику) ====================
+
 async function loginUser(nickname, password) {
     try {
         const snapshot = await database.ref('users').once('value');
@@ -503,6 +831,14 @@ async function loginUser(nickname, password) {
         // Обновляем последний визит
         await updateLastVisit(foundUserId, foundUserData);
         
+        // Записываем в историю входов
+        await database.ref('login_history/' + foundUserId).push({
+            type: 'password_login',
+            timestamp: new Date().toISOString(),
+            success: true,
+            ip: await getClientIP()
+        });
+        
         return { success: true, userData: foundUserData, userId: foundUserId };
     } catch (error) {
         console.error('Ошибка входа:', error);
@@ -510,7 +846,8 @@ async function loginUser(nickname, password) {
     }
 }
 
-// РЕГИСТРАЦИЯ
+// ==================== РЕГИСТРАЦИЯ ====================
+
 async function registerUser(nickname, password) {
     try {
         // Генерируем уникальный 6-значный ID
@@ -579,6 +916,8 @@ async function registerUser(nickname, password) {
     }
 }
 
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+
 // Обновляем последний визит
 async function updateLastVisit(userId, userData) {
     try {
@@ -588,6 +927,74 @@ async function updateLastVisit(userId, userData) {
         });
     } catch (error) {
         console.error('Ошибка обновления визита:', error);
+    }
+}
+
+// Показ уведомления
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    
+    const colors = {
+        success: { bg: '#00cc66', border: '#00ff88' },
+        error: { bg: '#ff4444', border: '#ff6b6b' },
+        warning: { bg: '#ff9800', border: '#ffb347' },
+        info: { bg: '#00b4d8', border: '#48cae4' }
+    };
+    
+    const color = colors[type] || colors.success;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(90deg, ${color.bg}, ${color.border});
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        max-width: 300px;
+        font-family: 'Orbitron', sans-serif;
+        border: 2px solid ${color.border};
+    `;
+    
+    // Проверяем, является ли сообщение HTML
+    if (typeof message === 'string' && message.includes('<')) {
+        notification.innerHTML = message;
+    } else {
+        notification.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 5px;">
+                ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                ${type === 'success' ? 'Успешно!' : type === 'error' ? 'Ошибка!' : type === 'warning' ? 'Внимание!' : 'Информация'}
+            </div>
+            <div style="font-size: 14px;">
+                ${message}
+            </div>
+        `;
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+async function getClientIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        return 'Неизвестно';
     }
 }
 
@@ -744,11 +1151,12 @@ function setupAuthTabs() {
             // Очищаем ошибки
             document.getElementById('login-error').textContent = '';
             document.getElementById('reg-error').textContent = '';
+            document.getElementById('login-email-error').textContent = '';
             
             // Очищаем поля
             if (tabName === 'login') {
                 document.getElementById('login-nickname').focus();
-            } else {
+            } else if (tabName === 'register') {
                 document.getElementById('reg-nickname').focus();
             }
         });
@@ -760,15 +1168,60 @@ function setupAuthTabs() {
         document.querySelector('[data-tab="register"]').click();
     });
     
+    document.getElementById('switch-to-register2').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('[data-tab="register"]').click();
+    });
+    
     document.getElementById('switch-to-login').addEventListener('click', function(e) {
         e.preventDefault();
         document.querySelector('[data-tab="login"]').click();
     });
 }
 
+// Переключение между входом по нику и email
+function setupLoginTypeSwitchers() {
+    const toEmailBtn = document.getElementById('switch-to-email-login');
+    const toNicknameBtn = document.getElementById('switch-to-nickname-login');
+    
+    toEmailBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Скрываем форму входа по нику
+        document.getElementById('login-form').classList.remove('active');
+        document.getElementById('login-form').style.display = 'none';
+        
+        // Показываем форму входа по email
+        document.getElementById('login-email-form').classList.add('active');
+        document.getElementById('login-email-form').style.display = 'block';
+        
+        // Очищаем поля
+        document.getElementById('login-email').focus();
+        document.getElementById('login-email-error').textContent = '';
+        document.getElementById('login-code-section').style.display = 'none';
+        document.getElementById('login-email-btn').textContent = '📧 Получить код';
+    });
+    
+    toNicknameBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Скрываем форму входа по email
+        document.getElementById('login-email-form').classList.remove('active');
+        document.getElementById('login-email-form').style.display = 'none';
+        
+        // Показываем форму входа по нику
+        document.getElementById('login-form').classList.add('active');
+        document.getElementById('login-form').style.display = 'block';
+        
+        // Очищаем поля
+        document.getElementById('login-nickname').focus();
+        document.getElementById('login-error').textContent = '';
+    });
+}
+
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 
-// Обработка входа
+// Обработка входа по нику
 function setupLoginHandler() {
     const loginBtn = document.getElementById('login-btn');
     const nicknameInput = document.getElementById('login-nickname');
@@ -828,6 +1281,142 @@ function setupLoginHandler() {
     passwordInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') loginBtn.click();
     });
+}
+
+// Обработка входа через email
+function setupEmailLoginHandler() {
+    const emailLoginBtn = document.getElementById('login-email-btn');
+    const emailInput = document.getElementById('login-email');
+    const codeInput = document.getElementById('login-code');
+    
+    emailLoginBtn.addEventListener('click', async function() {
+        const email = emailInput.value.trim();
+        const code = codeInput ? codeInput.value.trim() : '';
+        const errorMsg = document.getElementById('login-email-error');
+        const codeSection = document.getElementById('login-code-section');
+        
+        // Валидация email
+        if (!email) {
+            errorMsg.textContent = 'Введите email адрес';
+            emailInput.focus();
+            return;
+        }
+        
+        // Проверяем формат email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            errorMsg.textContent = 'Введите корректный email';
+            emailInput.focus();
+            return;
+        }
+        
+        // Если код еще не запрошен
+        if (codeSection.style.display === 'none') {
+            // Показываем загрузку
+            emailLoginBtn.disabled = true;
+            emailLoginBtn.textContent = 'Отправка...';
+            
+            // Отправляем код на email
+            const result = await sendEmailLoginCode(email);
+            
+            if (result.success) {
+                // Показываем поле для ввода кода
+                codeSection.style.display = 'block';
+                if (codeInput) codeInput.focus();
+                
+                // Запускаем таймер
+                startLoginCodeTimer();
+                
+                emailLoginBtn.textContent = '✅ Войти';
+                emailLoginBtn.disabled = false;
+                
+                if (result.testCode) {
+                    // В тестовом режиме подставляем код
+                    codeInput.value = result.testCode;
+                }
+            } else {
+                emailLoginBtn.textContent = '📧 Получить код';
+                emailLoginBtn.disabled = false;
+                errorMsg.textContent = result.error;
+            }
+        } else {
+            // Проверяем код
+            if (!code || code.length !== 6) {
+                errorMsg.textContent = 'Введите 6-значный код';
+                codeInput.focus();
+                return;
+            }
+            
+            // Показываем загрузку
+            emailLoginBtn.disabled = true;
+            emailLoginBtn.textContent = 'Проверка...';
+            
+            // Проверяем код
+            const result = await verifyEmailLoginCode(code);
+            
+            if (result.success) {
+                emailLoginBtn.textContent = '✓ Успешно!';
+                emailLoginBtn.style.background = 'linear-gradient(90deg, #00cc66, #00ff88)';
+                
+                // Закрываем модальное окно через 1 секунду
+                setTimeout(() => {
+                    document.getElementById('auth-modal').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('auth-modal').style.display = 'none';
+                        updateHeaderForLoggedInUser(result.userData.nickname);
+                        showWelcomeNotification(result.userData.nickname, false);
+                    }, 300);
+                }, 1000);
+            } else {
+                emailLoginBtn.textContent = '✅ Войти';
+                emailLoginBtn.disabled = false;
+                errorMsg.textContent = result.error;
+                emailLoginBtn.style.background = 'linear-gradient(90deg, #6200ff, #ff00ff)';
+            }
+        }
+    });
+    
+    // Обработка Enter в форме email
+    emailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') emailLoginBtn.click();
+    });
+    
+    if (codeInput) {
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') emailLoginBtn.click();
+        });
+    }
+}
+
+// Таймер для кода входа
+function startLoginCodeTimer() {
+    const timerElement = document.getElementById('login-code-timer');
+    const codeInput = document.getElementById('login-code');
+    const loginBtn = document.getElementById('login-email-btn');
+    
+    if (!timerElement) return;
+    
+    let seconds = 300; // 5 минут
+    
+    const timer = setInterval(() => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        timerElement.textContent = `⏳ Код действителен: ${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        timerElement.style.color = seconds < 60 ? '#ff4444' : '#ff9800';
+        
+        if (seconds <= 0) {
+            clearInterval(timer);
+            timerElement.textContent = '❌ Код истек';
+            timerElement.style.color = '#ff4444';
+            if (codeInput) codeInput.disabled = true;
+            if (loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.textContent = '❌ Код истек';
+            }
+        }
+        
+        seconds--;
+    }, 1000);
 }
 
 // Обработка регистрации
@@ -903,6 +1492,8 @@ function updateHeaderForLoggedInUser(nickname) {
                 localStorage.removeItem('jojoland_nickname');
                 localStorage.removeItem('jojoland_userId');
                 localStorage.removeItem('jojoland_loggedIn');
+                localStorage.removeItem('pending_email_login');
+                localStorage.removeItem('pending_user_id');
                 window.location.reload();
             }
         });
@@ -985,7 +1576,9 @@ window.onload = async function() {
             // Настраиваем всё
             setupAuthTabs();
             setupPasswordToggles();
+            setupLoginTypeSwitchers();
             setupLoginHandler();
+            setupEmailLoginHandler();
             setupRegisterHandler();
             
             // Настраиваем валидацию формы регистрации в реальном времени
