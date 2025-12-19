@@ -360,9 +360,9 @@ async function removeEmail() {
 
 // EmailJS конфигурация (нужно зарегистрироваться на https://www.emailjs.com/)
 const EMAILJS_CONFIG = {
-    serviceId: 'service_gmail', // Замените на ваш Service ID
-    templateId: 'template_jojoland', // Замените на ваш Template ID
-    userId: 'YOUR_USER_ID' // Замените на ваш Public Key
+    serviceId: 'jojo_server', // Замените на ваш Service ID
+    templateId: 'template_elaqg7b', // Замените на ваш Template ID
+    userId: 'IHvmQp5Ke1gev_kzt' // Замените на ваш Public Key
 };
 
 // Отправка кода подтверждения
