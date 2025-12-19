@@ -115,13 +115,13 @@
             <div class="settings-card notifications">
                 <div class="card-header">
                     <div class="card-icon">📧</div>
-                    <h3 class="card-title">Уведомления на почту</h3>
+                    <h3 class="card-title">Привязка email</h3>
                     <div id="email-status" class="card-status disabled">Не привязан</div>
                 </div>
                 
                 <p class="card-description">
-                    Привяжите email для получения уведомлений о входе в аккаунт, 
-                    смене пароля и других важных событиях.
+                    Привяжите email для возможности входа через email. После привязки вы сможете 
+                    входить в аккаунт, введя email и одноразовый пароль из SMS.
                 </p>
                 
                 <!-- Секция для привязки email -->
@@ -176,8 +176,8 @@
                     </div>
                     
                     <p class="form-hint">
-                        ✅ На этот email будут отправляться уведомления о входе в аккаунт, 
-                        смене пароля и других важных событиях.
+                        ✅ Теперь вы можете входить в аккаунт, введя этот email. 
+                        На email будет отправлен одноразовый пароль для входа.
                     </p>
                 </div>
             </div>
@@ -277,81 +277,6 @@
                     🗑️ Очистить историю
                 </button>
             </div>
-        </div>
-
-        <!-- Настройки уведомлений -->
-        <div class="settings-card notifications" style="margin-top: 30px;">
-            <div class="card-header">
-                <div class="card-icon">🔔</div>
-                <h3 class="card-title">Настройки уведомлений</h3>
-                <div class="card-status">Активно</div>
-            </div>
-            
-            <p class="card-description">
-                Выберите, о каких событиях вы хотите получать уведомления.
-            </p>
-            
-            <div class="privacy-options">
-                <div class="privacy-option">
-                    <div class="privacy-option-header">
-                        <div class="privacy-icon">🚪</div>
-                        <div class="privacy-title">Уведомления о входе в аккаунт</div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="notify-login" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <p class="privacy-description">
-                        Получать уведомления при каждом входе в аккаунт.
-                    </p>
-                </div>
-                
-                <div class="privacy-option">
-                    <div class="privacy-option-header">
-                        <div class="privacy-icon">🔑</div>
-                        <div class="privacy-title">Уведомления о смене пароля</div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="notify-password-change" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <p class="privacy-description">
-                        Получать уведомления при изменении пароля.
-                    </p>
-                </div>
-                
-                <div class="privacy-option">
-                    <div class="privacy-option-header">
-                        <div class="privacy-icon">📧</div>
-                        <div class="privacy-title">Уведомления об изменении email</div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="notify-email-change" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <p class="privacy-description">
-                        Получать уведомления при изменении или привязке email.
-                    </p>
-                </div>
-                
-                <div class="privacy-option">
-                    <div class="privacy-option-header">
-                        <div class="privacy-icon">⚠️</div>
-                        <div class="privacy-title">Предупреждения о безопасности</div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="notify-security-alerts" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <p class="privacy-description">
-                        Получать уведомления о подозрительной активности.
-                    </p>
-                </div>
-            </div>
-            
-            <button id="save-notifications-btn" class="btn">
-                💾 Сохранить настройки
-            </button>
         </div>
 
         <!-- Кнопки действий -->
