@@ -170,13 +170,20 @@ async function sendEmailCode(email, code, nickname, templateType = 'verification
         // Инициализация EmailJS
         emailjs.init(EMAILJS_CONFIG.userId);
         
-        // Параметры для шаблона
-        const templateParams = {
-            nickname: nickname || 'Игрок',
-            email: email,
-            code: code,
-            site_url: window.location.origin || 'https://jojoland.ru'
-        };
+        // Обновите templateParams в функции sendEmailCode:
+const templateParams = {
+    nickname: nickname || 'Игрок',
+    email: email,
+    code: code,
+    site_url: window.location.origin || 'https://jojoland.ru',
+    timestamp: new Date().toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+};
         
         console.log(`📤 Отправка с шаблоном ${templateType}:`, templateParams);
         
