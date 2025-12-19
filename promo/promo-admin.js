@@ -182,6 +182,31 @@ function updatePromoList() {
             }
         }
         
+        // Определяем текст условия
+        let conditionText = 'Без условий';
+        if (promo.conditions?.has_conditions) {
+            switch(promo.conditions.type) {
+                case 'telegram_subscription':
+                    conditionText = 'Подписка на Telegram';
+                    break;
+                case 'telegram_channels':
+                    conditionText = `Подписка на ${promo.conditions.value || 2} канала`;
+                    break;
+                case 'discord_server':
+                    conditionText = 'Discord сервер';
+                    break;
+                case 'min_level':
+                    conditionText = `Уровень ${promo.conditions.value}`;
+                    break;
+                case 'min_points':
+                    conditionText = `${promo.conditions.value} очков`;
+                    break;
+                case 'referrals':
+                    conditionText = `${promo.conditions.value} рефералов`;
+                    break;
+            }
+        }
+        
         return `
             <div class="promo-item">
                 <div class="promo-item-header">
@@ -205,6 +230,11 @@ function updatePromoList() {
                     <div class="detail-item">
                         <strong>Активаций:</strong>
                         ${promo.activations || 0} / ${promo.max_activations}
+                    </div>
+                    
+                    <div class="detail-item">
+                        <strong>Условие:</strong>
+                        ${conditionText}
                     </div>
                     
                     <div class="detail-item">
@@ -254,6 +284,17 @@ function updateStats() {
     document.getElementById('total-activations').textContent = totalActivations;
     document.getElementById('total-points-given').textContent = totalPoints;
     
+    // Подсчитываем уникальных игроков
+    let uniquePlayers = new Set();
+    codes.forEach(code => {
+        const promo = allPromoCodes[code];
+        if (promo.activated_by) {
+            promo.activated_by.forEach(userId => uniquePlayers.add(userId));
+        }
+    });
+    
+    document.getElementById('unique-players').textContent = uniquePlayers.size;
+    
     // Обновляем бейдж
     document.getElementById('promo-stats').textContent = 
         `${activePromos} активных / ${codes.length} всего`;
@@ -269,13 +310,6 @@ async function loadActivationStats() {
             .once('value');
             
         updateRecentActivations(snapshot.val());
-        
-        // Подсчитываем уникальных игроков
-        const usersSnapshot = await database.ref('user_promocodes').once('value');
-        if (usersSnapshot.exists()) {
-            const users = Object.keys(usersSnapshot.val());
-            document.getElementById('unique-players').textContent = users.length;
-        }
         
     } catch (error) {
         console.error('❌ Ошибка загрузки статистики:', error);
@@ -337,6 +371,15 @@ async function createPromoCode() {
     const timeInput = document.getElementById('expiration-time');
     const activeToggle = document.getElementById('active-toggle');
     
+    // Получаем значения условий
+    const conditionsToggle = document.getElementById('conditions-toggle');
+    const conditionType = document.getElementById('condition-type').value;
+    const conditionValue = document.getElementById('condition-value').value;
+    const conditionLink = document.getElementById('condition-link').value;
+    const conditionLink2 = document.getElementById('condition-link2').value;
+    const conditionChannel = document.getElementById('condition-channel').value;
+    const conditionDescription = document.getElementById('condition-description').value;
+    
     // Получаем значения
     const name = nameInput.value.trim().toUpperCase();
     const points = parseInt(pointsInput.value);
@@ -344,6 +387,7 @@ async function createPromoCode() {
     const description = descInput.value.trim();
     const hasExpiration = expirationToggle.checked;
     const isActive = activeToggle.checked;
+    const hasConditions = conditionsToggle.checked && conditionType !== 'none';
     
     // Валидация
     if (!name) {
@@ -386,6 +430,23 @@ async function createPromoCode() {
         activated_by: []
     };
     
+    // Добавляем условия если включено
+    if (hasConditions) {
+        promoData.conditions = {
+            has_conditions: true,
+            type: conditionType,
+            value: conditionValue,
+            links: [conditionLink, conditionLink2].filter(link => link.trim()),
+            channel: conditionChannel,
+            description: conditionDescription,
+            verified_users: [] // Список пользователей, выполнивших условие
+        };
+    } else {
+        promoData.conditions = {
+            has_conditions: false
+        };
+    }
+    
     // Добавляем срок действия если включено
     if (hasExpiration) {
         const expirationDate = new Date(dateInput.value + 'T' + timeInput.value);
@@ -409,13 +470,22 @@ async function createPromoCode() {
         maxInput.value = '100';
         descInput.value = 'Новогодний промокод 2026!';
         
+        // Очищаем условия
+        conditionsToggle.checked = false;
+        document.getElementById('conditions-container').style.display = 'none';
+        document.getElementById('condition-value').value = '';
+        document.getElementById('condition-link').value = '';
+        document.getElementById('condition-link2').value = '';
+        document.getElementById('condition-channel').value = '';
+        document.getElementById('condition-description').value = '';
+        
         // Показываем уведомление
         showNotification(`Промокод "${name}" успешно создан!`, 'success');
         
         // Создаем эффект успеха
         createConfetti(name);
         
-        console.log(`✅ Промокод создан: ${name}, очков: ${points}`);
+        console.log(`✅ Промокод создан: ${name}, очков: ${points}, условия: ${hasConditions}`);
         
     } catch (error) {
         console.error('❌ Ошибка создания промокода:', error);
@@ -455,6 +525,7 @@ function editPromoCode(code) {
     // Создаем форму редактирования
     const modalContent = document.getElementById('edit-modal-content');
     const expiresAt = promo.expires_at ? new Date(promo.expires_at) : null;
+    const conditions = promo.conditions || { has_conditions: false };
     
     // Добавляем 3 часа для перевода в МСК
     if (expiresAt) {
@@ -502,6 +573,82 @@ function editPromoCode(code) {
             </div>
             
             <div class="switch-group">
+                <span class="switch-label">Требования для активации</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="edit-conditions-toggle" ${conditions.has_conditions ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div id="edit-conditions-fields" style="display: ${conditions.has_conditions ? 'block' : 'none'};">
+                <div class="form-group">
+                    <label class="form-label" for="edit-condition-type">Тип требования</label>
+                    <select id="edit-condition-type" class="form-input">
+                        <option value="none" ${conditions.type === 'none' ? 'selected' : ''}>Без условий</option>
+                        <option value="telegram_subscription" ${conditions.type === 'telegram_subscription' ? 'selected' : ''}>Подписка на Telegram канал</option>
+                        <option value="telegram_channels" ${conditions.type === 'telegram_channels' ? 'selected' : ''}>Подписка на несколько каналов</option>
+                        <option value="discord_server" ${conditions.type === 'discord_server' ? 'selected' : ''}>Вступление в Discord сервер</option>
+                        <option value="min_level" ${conditions.type === 'min_level' ? 'selected' : ''}>Минимальный уровень</option>
+                        <option value="min_points" ${conditions.type === 'min_points' ? 'selected' : ''}>Минимальные очки</option>
+                        <option value="referrals" ${conditions.type === 'referrals' ? 'selected' : ''}>Рефералы</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit-condition-value">Значение</label>
+                    <input 
+                        type="text" 
+                        id="edit-condition-value" 
+                        class="form-input" 
+                        value="${conditions.value || ''}"
+                        placeholder="Кол-во/ID канала/Ник и т.д."
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit-condition-link">Ссылка 1</label>
+                    <input 
+                        type="url" 
+                        id="edit-condition-link" 
+                        class="form-input" 
+                        value="${conditions.links?.[0] || ''}"
+                        placeholder="https://t.me/jojoland"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit-condition-link2">Ссылка 2</label>
+                    <input 
+                        type="url" 
+                        id="edit-condition-link2" 
+                        class="form-input" 
+                        value="${conditions.links?.[1] || ''}"
+                        placeholder="https://t.me/admin_channel"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit-condition-channel">Название канала/условия</label>
+                    <input 
+                        type="text" 
+                        id="edit-condition-channel" 
+                        class="form-input" 
+                        value="${conditions.channel || ''}"
+                        placeholder="@JojoLand"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="edit-condition-description">Описание для игроков</label>
+                    <textarea 
+                        id="edit-condition-description" 
+                        class="form-input" 
+                        rows="2"
+                    >${conditions.description || ''}</textarea>
+                </div>
+            </div>
+            
+            <div class="switch-group">
                 <span class="switch-label">Срок действия</span>
                 <label class="toggle-switch">
                     <input type="checkbox" id="edit-expiration-toggle" ${promo.expires_at ? 'checked' : ''}>
@@ -542,7 +689,7 @@ function editPromoCode(code) {
             </div>
             
             <div class="input-group">
-                <label class="input-label" for="edit-description">Описание</label>
+                <label class="input-label" for="edit-description">Описание промокода</label>
                 <textarea 
                     id="edit-description" 
                     class="form-input" 
@@ -564,18 +711,30 @@ function editPromoCode(code) {
                 ${promo.last_activated ? new Date(promo.last_activated).toLocaleDateString('ru-RU') : 'Никогда'}
             </div>
             ` : ''}
+            
+            ${conditions.has_conditions ? `
+            <div class="detail-item">
+                <strong>Выполнили условие:</strong> ${conditions.verified_users?.length || 0} пользователей
+            </div>
+            ` : ''}
         </div>
     `;
     
     // Показываем модальное окно
     document.getElementById('edit-modal').style.display = 'flex';
     
-    // Настраиваем переключатель срока действия
+    // Настраиваем переключатели
     const expirationToggle = document.getElementById('edit-expiration-toggle');
     const expirationFields = document.getElementById('edit-expiration-fields');
+    const conditionsToggle = document.getElementById('edit-conditions-toggle');
+    const conditionsFields = document.getElementById('edit-conditions-fields');
     
     expirationToggle.addEventListener('change', function() {
         expirationFields.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    conditionsToggle.addEventListener('change', function() {
+        conditionsFields.style.display = this.checked ? 'block' : 'none';
     });
 }
 
@@ -588,6 +747,15 @@ async function savePromoEdit() {
     const description = document.getElementById('edit-description').value.trim();
     const hasExpiration = document.getElementById('edit-expiration-toggle').checked;
     const isActive = document.getElementById('edit-active-toggle').checked;
+    const hasConditions = document.getElementById('edit-conditions-toggle').checked;
+    
+    // Получаем значения условий
+    const conditionType = document.getElementById('edit-condition-type').value;
+    const conditionValue = document.getElementById('edit-condition-value').value;
+    const conditionLink = document.getElementById('edit-condition-link').value;
+    const conditionLink2 = document.getElementById('edit-condition-link2').value;
+    const conditionChannel = document.getElementById('edit-condition-channel').value;
+    const conditionDescription = document.getElementById('edit-condition-description').value;
     
     // Валидация
     if (points < 1 || points > 1000) {
@@ -609,6 +777,23 @@ async function savePromoEdit() {
         updated_at: new Date().toISOString(),
         updated_by: userId
     };
+    
+    // Добавляем условия если включено
+    if (hasConditions) {
+        updates.conditions = {
+            has_conditions: true,
+            type: conditionType,
+            value: conditionValue,
+            links: [conditionLink, conditionLink2].filter(link => link.trim()),
+            channel: conditionChannel,
+            description: conditionDescription,
+            verified_users: allPromoCodes[currentEditCode].conditions?.verified_users || []
+        };
+    } else {
+        updates.conditions = {
+            has_conditions: false
+        };
+    }
     
     // Добавляем срок действия если включено
     if (hasExpiration) {
@@ -726,6 +911,14 @@ function setupEventListeners() {
     
     expirationToggle.addEventListener('change', function() {
         expirationFields.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Переключатель условий
+    const conditionsToggle = document.getElementById('conditions-toggle');
+    const conditionsContainer = document.getElementById('conditions-container');
+    
+    conditionsToggle.addEventListener('change', function() {
+        conditionsContainer.style.display = this.checked ? 'block' : 'none';
     });
     
     // Кнопки модального окна
