@@ -56,31 +56,6 @@
         .form-container.active {
             display: block;
         }
-        
-        /* Стили для входа через email */
-        .email-login-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .switch-login-type {
-            text-align: center;
-            margin: 10px 0;
-        }
-        
-        .switch-login-type-btn {
-            background: none;
-            border: none;
-            color: #aaaaff;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: underline;
-        }
-        
-        .switch-login-type-btn:hover {
-            color: white;
-        }
     </style>
 </head>
 <body>
@@ -100,7 +75,7 @@
             <button class="auth-tab" data-tab="register">Регистрация</button>
         </div>
         
-        <!-- ФОРМА ВХОДА (стандартный вход по нику) -->
+        <!-- ФОРМА ВХОДА -->
         <div id="login-form" class="form-container active">
             <div class="modal-header">
                 <h2>Вход в аккаунт</h2>
@@ -130,18 +105,19 @@
                 </div>
                 
                 <div class="error-message" id="login-error"></div>
+                
+                <!-- Кнопка перехода к входу через email -->
+                <div class="switch-login-type">
+                    <button id="switch-to-email-login" class="switch-login-type-btn">
+                        <span class="email-icon">📧</span> Войти через email
+                    </button>
+                </div>
             </div>
             
             <div class="modal-footer">
                 <button id="login-btn" class="submit-btn">
                     Войти в аккаунт
                 </button>
-                
-                <div class="switch-login-type">
-                    <button id="switch-to-email-login" class="switch-login-type-btn">
-                        📧 Войти через email
-                    </button>
-                </div>
                 
                 <p class="modal-note">
                     Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a>
@@ -185,18 +161,19 @@
                 </div>
                 
                 <div class="error-message" id="login-email-error"></div>
+                
+                <!-- Кнопка возврата к обычному входу -->
+                <div class="switch-login-type">
+                    <button id="switch-to-nickname-login" class="switch-login-type-btn">
+                        <span class="nickname-icon">👤</span> Войти по никнейму
+                    </button>
+                </div>
             </div>
             
             <div class="modal-footer">
                 <button id="login-email-btn" class="submit-btn">
                     📧 Получить код
                 </button>
-                
-                <div class="switch-login-type">
-                    <button id="switch-to-nickname-login" class="switch-login-type-btn">
-                        👤 Войти по никнейму
-                    </button>
-                </div>
                 
                 <p class="modal-note">
                     Нет аккаунта? <a href="#" id="switch-to-register2">Зарегистрироваться</a>
@@ -315,64 +292,63 @@
     </div>
 
     <!-- ГЛАВНЫЕ КНОПКИ -->
-<div class="button-grid">
-    <a href="https://t.me/+18-ycRRnOTgxZTgy" class="main-btn tgk-btn">
-        <div class="btn-icon">📌</div>
-        <div class="btn-content">
-            <h3>TGK чат</h3>
-            <p>Основной чат для игроков</p>
-        </div>
-    </a>
-    
-    <a href="https://t.me/Jojolandpe" class="main-btn tg-btn">
-        <div class="btn-icon">💬</div>
-        <div class="btn-content">
-            <h3>Telegram группа</h3>
-            <p>Официальный Telegram-канал</p>
-        </div>
-    </a>
-    
-    <a href="http://pay.jojoland.ru/" class="main-btn donate-btn">
-        <div class="btn-icon">💎</div>
-        <div class="btn-content">
-            <h3>Донат сайт</h3>
-            <p>Покупка привилегий</p>
-        </div>
-    </a>
-    
-    <a href="points.html" class="main-btn points-btn">
-        <div class="btn-icon">🎁</div>
-        <div class="btn-content">
-            <h3>Новогодние очки</h3>
-            <p>Собери праздничные очки</p>
-        </div>
-    </a>
+    <div class="button-grid">
+        <a href="https://t.me/+18-ycRRnOTgxZTgy" class="main-btn tgk-btn">
+            <div class="btn-icon">📌</div>
+            <div class="btn-content">
+                <h3>TGK чат</h3>
+                <p>Основной чат для игроков</p>
+            </div>
+        </a>
+        
+        <a href="https://t.me/Jojolandpe" class="main-btn tg-btn">
+            <div class="btn-icon">💬</div>
+            <div class="btn-content">
+                <h3>Telegram группа</h3>
+                <p>Официальный Telegram-канал</p>
+            </div>
+        </a>
+        
+        <a href="http://pay.jojoland.ru/" class="main-btn donate-btn">
+            <div class="btn-icon">💎</div>
+            <div class="btn-content">
+                <h3>Донат сайт</h3>
+                <p>Покупка привилегий</p>
+            </div>
+        </a>
+        
+        <a href="points.html" class="main-btn points-btn">
+            <div class="btn-icon">🎁</div>
+            <div class="btn-content">
+                <h3>Новогодние очки</h3>
+                <p>Собери праздничные очки</p>
+            </div>
+        </a>
 
-    <a href="casino/casino.html" class="main-btn casino-btn">
-        <div class="btn-icon">🎰</div>
-        <div class="btn-content">
-            <h3>Казино</h3>
-            <p>Испытайте удачу в играх</p>
-        </div>
-    </a>
-    
-    <!-- ЕСЛИ ЕСТЬ КНОПКА ИГРОКОВ, ТОЖЕ ДОБАВИТЬ СЮДА -->
-    <a href="players.html" class="main-btn players-btn">
-        <div class="btn-icon">👥</div>
-        <div class="btn-content">
-            <h3>Игроки</h3>
-            <p>Список всех игроков сервера</p>
-        </div>
-    </a>
+        <a href="casino/casino.html" class="main-btn casino-btn">
+            <div class="btn-icon">🎰</div>
+            <div class="btn-content">
+                <h3>Казино</h3>
+                <p>Испытайте удачу в играх</p>
+            </div>
+        </a>
+        
+        <a href="players.html" class="main-btn players-btn">
+            <div class="btn-icon">👥</div>
+            <div class="btn-content">
+                <h3>Игроки</h3>
+                <p>Список всех игроков сервера</p>
+            </div>
+        </a>
 
-    <a href="promo/promo-user.html" class="main-btn players-btn">
-        <div class="btn-icon">🎟️</div>
-        <div class="btn-content">
-            <h3>Промокод</h3>
-            <p>Вод Промокодов</p>
-        </div>
-    </a>
-</div> <!-- Закрываем button-grid -->
+        <a href="promo/promo-user.html" class="main-btn players-btn">
+            <div class="btn-icon">🎟️</div>
+            <div class="btn-content">
+                <h3>Промокод</h3>
+                <p>Вод Промокодов</p>
+            </div>
+        </a>
+    </div>
 
     <!-- БЫСТРЫЕ ССЫЛКИ -->
     <div class="quick-links">
@@ -428,7 +404,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <script>
-// Инициализация Firebase
+// ==================== КОНФИГУРАЦИЯ ====================
+
+// Firebase конфигурация
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
     authDomain: "jojoland-chat.firebasestorage.app",
@@ -439,15 +417,28 @@ const firebaseConfig = {
     appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
 };
 
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
 // EmailJS конфигурация
 const EMAILJS_CONFIG = {
     serviceId: 'jojo_server',
-    templateId: 'template_elaqg7b',
-    userId: 'A8kpGOp5ovcEi40iA'
+    userId: 'A8kpGOp5ovcEi40iA',
+    
+    // Все шаблоны
+    templates: {
+        verification: 'template_elaqg7b',           // Для подтверждения email
+        login: 'template_z6q3aqf',              // Для кодов входа через email
+        // password_change: 'template_password_change', // Для смены пароля
+        // email_change: 'template_email_change',       // Для изменения email
+        // security: 'template_security'               // Для предупреждений безопасности
+    }
 };
+
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+
+// Инициализация Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
 
 // СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
@@ -474,11 +465,19 @@ function createParticles() {
     }
 }
 
-// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С АККАУНТАМИ ====================
+// Хэширование пароля
+function hashPassword(password) {
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
 
 // Генерация случайного 6-значного цифрового ID
 function generateRandomId() {
-    // Генерируем случайное число от 100000 до 999999 (всегда 6 цифр)
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
@@ -511,9 +510,7 @@ async function generateUniqueId() {
         console.log(`🔄 Попытка ${attempts}: ID ${newId} уже занят, пробую снова...`);
     }
     
-    // Если не удалось найти уникальный ID за 10 попыток
-    console.error('⚠️ Не удалось сгенерировать уникальный ID за 10 попыток');
-    return generateRandomId(); // Возвращаем последний сгенерированный
+    return generateRandomId();
 }
 
 // Проверка валидности ника
@@ -528,17 +525,6 @@ function isValidNickname(nickname) {
 // Проверка валидности пароля
 function isValidPassword(password) {
     return password.length >= 6;
-}
-
-// Хэширование пароля
-function hashPassword(password) {
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-        const char = password.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return hash.toString(16);
 }
 
 // Проверка уникальности ника
@@ -586,6 +572,130 @@ async function checkEmailExists(email) {
     }
 }
 
+// ==================== EMAILJS ФУНКЦИИ ====================
+
+/**
+ * Универсальная функция отправки email через EmailJS
+ * @param {string} email - Email получателя
+ * @param {string} code - Код для подтверждения
+ * @param {string} nickname - Никнейм пользователя
+ * @param {string} templateType - Тип шаблона ('verification' или 'login')
+ * @returns {Promise<boolean>} - Успешность отправки
+ */
+async function sendEmailCode(email, code, nickname, templateType = 'verification') {
+    console.log(`📧 Отправка email (${templateType})...`);
+    console.log('Получатель:', email);
+    console.log('Код:', code);
+    console.log('Имя:', nickname);
+    
+    // Проверка EmailJS
+    if (typeof emailjs === 'undefined') {
+        console.log('⚠️ EmailJS не загружен, тестовый режим');
+        return false;
+    }
+    
+    // Проверка наличия шаблона
+    const templateId = EMAILJS_CONFIG.templates[templateType];
+    if (!templateId) {
+        console.error(`❌ Шаблон ${templateType} не найден в конфигурации`);
+        return false;
+    }
+    
+    try {
+        // Инициализация EmailJS
+        emailjs.init(EMAILJS_CONFIG.userId);
+        
+        // Параметры для шаблона
+        const templateParams = {
+            nickname: nickname || 'Игрок',
+            email: email,
+            code: code,
+            site_url: window.location.origin || 'https://medialking.github.io/jojo-wiki/index.html'
+        };
+        
+        console.log(`📤 Отправка с шаблоном ${templateType}:`, templateParams);
+        
+        // Отправка email
+        const response = await emailjs.send(
+            EMAILJS_CONFIG.serviceId,
+            templateId,
+            templateParams
+        );
+        
+        console.log(`✅ Email (${templateType}) успешно отправлен! Статус:`, response.status);
+        
+        // Сообщение об успехе
+        const messages = {
+            verification: '📧 Код подтверждения отправлен на ваш email',
+            login: '📧 Код для входа отправлен на ваш email'
+        };
+        
+        showNotification(messages[templateType] || '📧 Email отправлен', 'success');
+        return true;
+        
+    } catch (error) {
+        console.error(`❌ Ошибка отправки email (${templateType}):`, {
+            status: error.status,
+            text: error.text,
+            fullError: error
+        });
+        
+        // Тестовый режим - показываем код в уведомлении
+        return sendEmailTestMode(email, code, nickname, templateType);
+    }
+}
+
+/**
+ * Режим тестирования (когда EmailJS не работает)
+ */
+function sendEmailTestMode(email, code, nickname, templateType) {
+    const templates = {
+        verification: {
+            title: 'Код подтверждения email',
+            color: '#6200ff',
+            gradient: 'linear-gradient(90deg, #6200ff, #ff00ff)',
+            purpose: `Для подтверждения email: <strong>${email}</strong>`
+        },
+        login: {
+            title: 'Код для входа через email',
+            color: '#00b4d8',
+            gradient: 'linear-gradient(90deg, #00b4d8, #0096c7)',
+            purpose: `Для входа в аккаунт <strong>${nickname || 'Игрок'}</strong>`
+        }
+    };
+    
+    const template = templates[templateType] || templates.verification;
+    
+    const notificationHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; 
+                color: ${template.color};">
+                🧪 Тестовый режим
+            </div>
+            <div style="margin-bottom: 15px;">
+                ${template.purpose}
+            </div>
+            <div style="background: ${template.gradient}; 
+                color: white; 
+                padding: 15px; 
+                border-radius: 10px; 
+                margin: 15px 0;
+                font-family: 'Courier New', monospace;">
+                <div style="font-size: 14px; margin-bottom: 5px;">${template.title}:</div>
+                <div style="font-size: 28px; font-weight: bold; letter-spacing: 3px;">
+                    ${code}
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+                В реальном приложении этот код был бы отправлен на email
+            </div>
+        </div>
+    `;
+    
+    showNotification(notificationHTML, 'info');
+    return false;
+}
+
 // ==================== ВХОД ЧЕРЕЗ EMAIL ====================
 
 // Отправка кода для входа через email
@@ -615,13 +725,13 @@ async function sendEmailLoginCode(email) {
             used: false
         });
         
-        // Отправляем email с кодом
-        const emailSent = await sendLoginEmail(email, loginCode, emailCheck.userData.nickname);
+        // Отправляем email с кодом (используем шаблон 'login')
+        const emailSent = await sendEmailCode(email, loginCode, emailCheck.userData.nickname, 'login');
         
         if (emailSent) {
             console.log('✅ Email с кодом отправлен');
             
-            // Сохраняем email в localStorage для подтверждения
+            // Сохраняем данные в localStorage для подтверждения
             localStorage.setItem('pending_email_login', email);
             localStorage.setItem('pending_user_id', userId);
             
@@ -631,37 +741,7 @@ async function sendEmailLoginCode(email) {
                 userId: userId
             };
         } else {
-            // Тестовый режим - показываем код
-            console.log('🧪 Тестовый режим - показываем код:', loginCode);
-            
-            // Показываем код в уведомлении
-            const notificationHTML = `
-                <div style="text-align: center;">
-                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #6200ff;">
-                        🧪 Тестовый режим
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        Для входа в аккаунт <strong>${emailCheck.userData.nickname}</strong>
-                    </div>
-                    <div style="background: linear-gradient(90deg, #6200ff, #ff00ff); 
-                                color: white; 
-                                padding: 15px; 
-                                border-radius: 10px; 
-                                margin: 15px 0;
-                                font-family: 'Courier New', monospace;">
-                        <div style="font-size: 14px; margin-bottom: 5px;">Код для входа:</div>
-                        <div style="font-size: 28px; font-weight: bold; letter-spacing: 3px;">
-                            ${loginCode}
-                        </div>
-                    </div>
-                    <div style="font-size: 12px; color: #666;">
-                        В реальном приложении этот код был бы отправлен на email
-                    </div>
-                </div>
-            `;
-            
-            showNotification(notificationHTML, 'info');
-            
+            // В тестовом режиме все равно продолжаем
             localStorage.setItem('pending_email_login', email);
             localStorage.setItem('pending_user_id', userId);
             
@@ -753,88 +833,6 @@ async function verifyEmailLoginCode(code) {
     } catch (error) {
         console.error('Ошибка проверки кода:', error);
         return { success: false, error: 'Ошибка сервера' };
-    }
-}
-
-// Отправка email с кодом для входа
-async function sendLoginEmail(email, code, nickname) {
-    console.log('🚀 Отправка email для входа...');
-    console.log('📧 Получатель:', email);
-    console.log('🔢 Код:', code);
-    console.log('👤 Имя:', nickname);
-    
-    if (typeof emailjs === 'undefined') {
-        console.log('⚠️ EmailJS не загружен, тестовый режим');
-        return false;
-    }
-    
-    try {
-        // Инициализация EmailJS
-        emailjs.init(EMAILJS_CONFIG.userId);
-        
-        const templateParams = {
-            nickname: nickname || 'Игрок',
-            email: email,
-            code: code,
-            site_url: 'https://ваш-сайт.ru'
-        };
-        
-        console.log('📤 Отправка с параметрами:', templateParams);
-        
-        // Используем новый шаблон для входа
-        const response = await emailjs.send(
-            EMAILJS_CONFIG.serviceId,
-            EMAILJS_CONFIG.loginTemplateId, // новый шаблон
-            templateParams
-        );
-        
-        console.log('✅ Email успешно отправлен! Статус:', response.status);
-        console.log('📨 Ответ сервера:', response.text);
-        
-        // Показываем уведомление об успешной отправке
-        showNotification('📧 Код для входа отправлен на ваш email', 'success');
-        
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Ошибка отправки email:', {
-            status: error.status,
-            text: error.text,
-            fullError: error
-        });
-        
-        // Тестовый режим - показываем код
-        console.log('🧪 Режим тестирования - показываем код в уведомлении');
-        
-        // Красивое уведомление с кодом
-        const notificationHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #6200ff;">
-                    🧪 Тестовый режим
-                </div>
-                <div style="margin-bottom: 15px;">
-                    Для входа в аккаунт <strong>${nickname || 'Игрок'}</strong>
-                </div>
-                <div style="background: linear-gradient(90deg, #6200ff, #ff00ff); 
-                            color: white; 
-                            padding: 15px; 
-                            border-radius: 10px; 
-                            margin: 15px 0;
-                            font-family: 'Courier New', monospace;">
-                    <div style="font-size: 14px; margin-bottom: 5px;">Код для входа:</div>
-                    <div style="font-size: 28px; font-weight: bold; letter-spacing: 3px;">
-                        ${code}
-                    </div>
-                </div>
-                <div style="font-size: 12px; color: #666;">
-                    В реальном приложении этот код был бы отправлен на email
-                </div>
-            </div>
-        `;
-        
-        showNotification(notificationHTML, 'info');
-        
-        return false;
     }
 }
 
