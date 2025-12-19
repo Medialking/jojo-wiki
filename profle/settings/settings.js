@@ -1,4 +1,4 @@
-// settings.js - Версия с одним шаблоном для всех уведомлений
+// settings.js - Полностью исправленная версия
 
 // Конфигурация Firebase
 const firebaseConfig = {
@@ -118,373 +118,6 @@ function showNotification(message, type = 'success') {
     }, 5000);
 }
 
-// ==================== EMAILJS КОНФИГУРАЦИЯ ====================
-
-const EMAILJS_CONFIG = {
-    serviceId: 'jojo_server',
-    templateId: 'template_elaqg7b',  // Единственный шаблон
-    userId: 'A8kpGOp5ovcEi40iA'
-};
-
-// ==================== ОТПРАВКА EMAIL ====================
-
-// Отправка кода подтверждения email
-async function sendVerificationEmail(email, code, nickname) {
-    console.log('🚀 Отправка кода подтверждения...');
-    console.log('📧 Получатель:', email);
-    console.log('🔢 Код:', code);
-    console.log('👤 Имя:', nickname);
-    
-    // Проверка email
-    if (!email || typeof email !== 'string') {
-        console.error('❌ Email пустой или не строка');
-        return false;
-    }
-    
-    const cleanEmail = email.trim();
-    if (!cleanEmail.includes('@')) {
-        console.error('❌ Некорректный email:', cleanEmail);
-        return false;
-    }
-    
-    // Проверка EmailJS
-    if (typeof emailjs === 'undefined') {
-        console.log('⚠️ EmailJS не загружен, тестовый режим');
-        return false;
-    }
-    
-    try {
-        // Инициализация EmailJS
-        console.log('🔄 Инициализируем EmailJS...');
-        emailjs.init(EMAILJS_CONFIG.userId);
-        
-        // Ждем инициализацию
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        console.log('✅ EmailJS инициализирован');
-        
-        // Параметры для шаблона подтверждения
-        const templateParams = {
-            email: cleanEmail,                // Email получателя
-            to_name: nickname || 'Игрок',     // Имя получателя
-            verification_code: code,          // Код подтверждения
-            email_type: 'verification',       // Тип письма
-            subject: 'Подтверждение email - JojoLand',
-            title: 'Подтверждение email адреса',
-            message: `
-                <p>Для завершения привязки email введите следующий код подтверждения:</p>
-                <div style="text-align: center; margin: 25px 0;">
-                    <div style="font-size: 36px; font-weight: bold; color: #6200ff; letter-spacing: 5px; font-family: monospace;">
-                        ${code}
-                    </div>
-                    <div style="color: #666; font-size: 14px; margin-top: 10px;">
-                        Код действителен 24 часа
-                    </div>
-                </div>
-                <p>Если вы не запрашивали подтверждение email, просто проигнорируйте это письмо.</p>
-            `,
-            color: '#6200ff',
-            icon: '🔐'
-        };
-        
-        console.log('📤 Отправка с параметрами:', templateParams);
-        
-        // Отправка через EmailJS
-        const response = await emailjs.send(
-            EMAILJS_CONFIG.serviceId,
-            EMAILJS_CONFIG.templateId,
-            templateParams
-        );
-        
-        console.log('✅ Email успешно отправлен! Статус:', response.status);
-        console.log('📨 Ответ сервера:', response.text);
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Ошибка отправки email:', {
-            status: error.status,
-            text: error.text,
-            fullError: error
-        });
-        
-        // Детальный анализ ошибки
-        if (error.status === 422) {
-            console.error('🔍 Диагностика ошибки 422:');
-            console.error('1. Проверьте шаблон в EmailJS');
-            console.error('2. Убедитесь что шаблон опубликован');
-            console.error('3. Проверьте Email Service настройки');
-        }
-        
-        return false;
-    }
-}
-
-// Отправка email уведомлений разных типов через один шаблон
-async function sendEmailNotification(userId, type, data = {}) {
-    console.log(`📨 Отправка уведомления типа: ${type}`);
-    
-    try {
-        // Получаем email пользователя
-        const snapshot = await database.ref('users/' + userId).once('value');
-        if (!snapshot.exists()) {
-            console.log('❌ Пользователь не найден');
-            return false;
-        }
-        
-        const userData = snapshot.val();
-        if (!userData.email || !userData.emailVerified) {
-            console.log('❌ Email не подтвержден или отсутствует');
-            return false;
-        }
-        
-        // Проверяем настройки уведомлений
-        const notifications = userData.notifications || {};
-        if (notifications[type] === false) {
-            console.log('🔕 Уведомления этого типа отключены пользователем');
-            return false;
-        }
-        
-        // Проверка EmailJS
-        if (typeof emailjs === 'undefined') {
-            console.log('⚠️ EmailJS не загружен');
-            return false;
-        }
-        
-        // Инициализация EmailJS
-        emailjs.init(EMAILJS_CONFIG.userId);
-        
-        // Определяем контент в зависимости от типа уведомления
-        let templateParams = {
-            email: userData.email,
-            to_name: userData.nickname
-        };
-        
-        // Настраиваем параметры для каждого типа уведомления
-        switch(type) {
-            case 'password_change':
-                Object.assign(templateParams, {
-                    email_type: 'password_change',
-                    subject: 'Смена пароля - JojoLand',
-                    title: '🔐 Пароль вашего аккаунта был изменен',
-                    color: '#ff416c',
-                    icon: '🔐',
-                    message: `
-                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                            <strong>⚠️ Если это были не вы, немедленно свяжитесь с поддержкой.</strong>
-                        </div>
-                        
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                            <h3 style="color: #333; margin-bottom: 15px;">📋 Детали изменения:</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <div><strong>Дата и время:</strong></div>
-                                <div>${new Date().toLocaleString('ru-RU')}</div>
-                                
-                                <div><strong>IP адрес:</strong></div>
-                                <div>${data.ip || await getClientIP()}</div>
-                                
-                                <div><strong>Тип действия:</strong></div>
-                                <div style="color: #dc3545; font-weight: bold;">Смена пароля</div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 25px;">
-                            <h4 style="color: #28a745;">✅ Рекомендуемые действия:</h4>
-                            <ul style="padding-left: 20px;">
-                                <li>Если вы меняли пароль - больше ничего делать не нужно</li>
-                                <li>Если это были не вы - немедленно свяжитесь с поддержкой</li>
-                                <li>Используйте сложные пароли с цифрами и символами</li>
-                            </ul>
-                        </div>
-                    `
-                });
-                break;
-                
-            case 'email_change':
-                Object.assign(templateParams, {
-                    email_type: 'email_change',
-                    subject: 'Изменение email - JojoLand',
-                    title: '📧 Email адрес вашего аккаунта был обновлен',
-                    color: '#6200ff',
-                    icon: '📧',
-                    message: `
-                        <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                            <strong>✅ Email адрес успешно обновлен!</strong>
-                        </div>
-                        
-                        <div style="text-align: center; margin: 25px 0; padding: 20px; background: linear-gradient(90deg, #6200ff, #ff00ff); color: white; border-radius: 10px;">
-                            <div style="font-size: 14px; margin-bottom: 5px;">Новый email адрес:</div>
-                            <div style="font-size: 18px; font-weight: bold;">${data.newEmail || userData.email}</div>
-                        </div>
-                        
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                            <h3 style="color: #333; margin-bottom: 15px;">📋 Информация об изменении:</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <div><strong>Дата изменения:</strong></div>
-                                <div>${new Date().toLocaleString('ru-RU')}</div>
-                                
-                                <div><strong>Аккаунт:</strong></div>
-                                <div>${userData.nickname}</div>
-                            </div>
-                        </div>
-                        
-                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <h4 style="color: #856404;">⚠️ Важная информация:</h4>
-                            <ul style="padding-left: 20px; color: #856404;">
-                                <li>Все будущие уведомления будут приходить на новый email</li>
-                                <li>Старый email адрес больше не будет получать уведомления</li>
-                                <li>Если вы не меняли email - немедленно свяжитесь с поддержкой</li>
-                            </ul>
-                        </div>
-                    `
-                });
-                break;
-                
-            case 'login':
-                Object.assign(templateParams, {
-                    email_type: 'login',
-                    subject: 'Новый вход в аккаунт - JojoLand',
-                    title: '🔑 Обнаружен новый вход в ваш аккаунт',
-                    color: '#00b09b',
-                    icon: '🔑',
-                    message: `
-                        <div style="text-align: center; margin: 20px 0; font-size: 48px;">
-                            ${data.device && data.device.includes('mobile') ? '📱' : '💻'}
-                        </div>
-                        
-                        <div style="background: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                            <h3 style="color: #0056b3; margin-bottom: 10px;">🔄 Информация о входе:</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <div><strong>Время входа:</strong></div>
-                                <div>${new Date().toLocaleString('ru-RU')}</div>
-                                
-                                <div><strong>IP адрес:</strong></div>
-                                <div>${data.ip || await getClientIP()}</div>
-                                
-                                <div><strong>Устройство:</strong></div>
-                                <div>${data.device || 'Неизвестное устройство'}</div>
-                                
-                                <div><strong>Местоположение:</strong></div>
-                                <div>${data.location || 'Неизвестное местоположение'}</div>
-                            </div>
-                        </div>
-                        
-                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <h4 style="color: #856404;">⚠️ Если это были не вы:</h4>
-                            <ul style="padding-left: 20px; color: #856404;">
-                                <li>Немедленно смените пароль вашего аккаунта</li>
-                                <li>Включите двухфакторную аутентификацию</li>
-                                <li>Проверьте историю входов в настройках аккаунта</li>
-                                <li>Свяжитесь с поддержкой JojoLand</li>
-                            </ul>
-                        </div>
-                        
-                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <h4 style="color: #155724;">✅ Это были вы?</h4>
-                            <p style="color: #155724;">Если вы узнаете это устройство и местоположение, больше ничего делать не нужно. Будьте уверены, мы продолжаем защищать ваш аккаунт.</p>
-                        </div>
-                    `
-                });
-                break;
-                
-            case 'security_alert':
-                Object.assign(templateParams, {
-                    email_type: 'security_alert',
-                    subject: data.subject || 'Предупреждение безопасности - JojoLand',
-                    title: `🚨 ${data.alertType || 'Предупреждение безопасности'}`,
-                    color: '#dc3545',
-                    icon: '🚨',
-                    message: `
-                        <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                            <h3 style="color: #721c24; margin-bottom: 10px;">${data.alertType || 'Подозрительная активность'}</h3>
-                            <p style="color: #721c24; font-size: 16px; line-height: 1.5;">
-                                ${data.description || 'Обнаружена подозрительная активность в вашем аккаунте.'}
-                            </p>
-                            <div style="margin-top: 15px; color: #856404;">
-                                <strong>Время обнаружения:</strong> ${new Date().toLocaleString('ru-RU')}
-                            </div>
-                        </div>
-                        
-                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <h4 style="color: #856404;">🛡️ Необходимые действия:</h4>
-                            <div style="color: #856404; padding-left: 20px;">
-                                ${data.action || 'Проверьте активность вашего аккаунта и смените пароль при необходимости.'}
-                            </div>
-                        </div>
-                        
-                        <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <h4 style="color: #0056b3;">📋 Дополнительная информация:</h4>
-                            <ul style="color: #333; padding-left: 20px;">
-                                <li>Это уведомление отправлено системой мониторинга безопасности</li>
-                                <li>Мы постоянно отслеживаем активность вашего аккаунта</li>
-                                <li>Для вашей безопасности рекомендуем включить двухфакторную аутентификацию</li>
-                            </ul>
-                        </div>
-                        
-                        <div style="text-align: center; margin: 30px 0;">
-                            <div style="display: inline-block; background: #dc3545; color: white; padding: 12px 30px; border-radius: 25px; font-weight: bold; margin: 5px;">
-                                🚨 Проверить активность аккаунта
-                            </div>
-                        </div>
-                    `
-                });
-                break;
-                
-            default:
-                // Общий шаблон
-                Object.assign(templateParams, {
-                    email_type: 'general',
-                    subject: 'Уведомление - JojoLand',
-                    title: '📢 Уведомление от JojoLand',
-                    color: '#00b4d8',
-                    icon: '📢',
-                    message: `
-                        <div style="background: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                            <p style="color: #333; font-size: 16px; line-height: 1.5;">
-                                ${data.message || 'Новое уведомление от JojoLand.'}
-                            </p>
-                        </div>
-                        
-                        <div style="color: #666; font-size: 14px; margin-top: 20px;">
-                            <strong>Дата отправки:</strong> ${new Date().toLocaleString('ru-RU')}
-                        </div>
-                    `
-                });
-        }
-        
-        console.log('📤 Отправка с параметрами:', templateParams);
-        
-        // Отправляем письмо
-        const response = await emailjs.send(
-            EMAILJS_CONFIG.serviceId,
-            EMAILJS_CONFIG.templateId,
-            templateParams
-        );
-        
-        console.log(`✅ Уведомление типа "${type}" отправлено на ${userData.email}`);
-        console.log('📊 Статус:', response.status);
-        
-        // Сохраняем в лог
-        await database.ref('email_logs/' + userId).push({
-            type: type,
-            timestamp: new Date().toISOString(),
-            sent: true,
-            recipient: userData.email,
-            status: response.status
-        });
-        
-        return true;
-        
-    } catch (error) {
-        console.error(`❌ Ошибка отправки уведомления типа "${type}":`, {
-            status: error.status,
-            text: error.text,
-            details: error
-        });
-        
-        return false;
-    }
-}
-
 // ==================== ИЗМЕНЕНИЕ ПАРОЛЯ ====================
 
 async function changePassword(currentPassword, newPassword, confirmPassword) {
@@ -539,29 +172,114 @@ async function changePassword(currentPassword, newPassword, confirmPassword) {
         });
         
         // Записываем в историю смен паролей
-        const userIp = await getClientIP();
         await database.ref('security_logs/' + userId).push({
             type: 'password_change',
             timestamp: new Date().toISOString(),
-            ip: userIp
+            ip: await getClientIP()
         });
         
-        showNotification('✅ Пароль успешно изменен!', 'success');
+        showNotification('Пароль успешно изменен!', 'success');
         
         // Отправляем уведомление на почту (если привязана)
         if (userData.email && userData.emailVerified) {
             await sendEmailNotification(userId, 'password_change', {
                 nickname: nickname,
-                email: userData.email,
-                ip: userIp
+                email: userData.email
             });
         }
         
         return true;
         
     } catch (error) {
-        console.error('❌ Ошибка изменения пароля:', error);
+        console.error('Ошибка изменения пароля:', error);
         showNotification('Ошибка сервера', 'error');
+        return false;
+    }
+}
+
+// ==================== EMAILJS КОНФИГУРАЦИЯ ====================
+
+const EMAILJS_CONFIG = {
+    serviceId: 'jojo_server',
+    templateId: 'template_elaqg7b',
+    userId: 'A8kpGOp5ovcEi40iA'
+};
+
+// ==================== ОТПРАВКА EMAIL ====================
+
+async function sendVerificationEmail(email, code, nickname) {
+    console.log('🚀 Начинаем отправку email...');
+    console.log('📧 Получатель:', email);
+    console.log('🔢 Код:', code);
+    console.log('👤 Имя:', nickname);
+    
+    // Проверка email
+    if (!email || typeof email !== 'string') {
+        console.error('❌ Email пустой или не строка');
+        return false;
+    }
+    
+    const cleanEmail = email.trim();
+    if (!cleanEmail.includes('@')) {
+        console.error('❌ Некорректный email:', cleanEmail);
+        return false;
+    }
+    
+    // Проверка EmailJS
+    if (typeof emailjs === 'undefined') {
+        console.log('⚠️ EmailJS не загружен, тестовый режим');
+        return false;
+    }
+    
+    try {
+        // Инициализация EmailJS
+        console.log('🔄 Инициализируем EmailJS...');
+        emailjs.init(EMAILJS_CONFIG.userId);
+        
+        // Ждем инициализацию
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        console.log('✅ EmailJS инициализирован');
+        
+        // ВАЖНО: EmailJS требует определенные имена переменных
+        // На основе вашего шаблона, пробуем:
+        const templateParams = {
+            email: cleanEmail,                // Основной email получателя
+            to_name: nickname || 'Игрок',     // Имя получателя
+            verification_code: code,          // Код подтверждения
+            user_email: cleanEmail,           // Дополнительный email
+            reply_to: cleanEmail              // Email для ответа
+        };
+        
+        console.log('📤 Отправка с параметрами:', templateParams);
+        
+        // Отправка через EmailJS
+        const response = await emailjs.send(
+            EMAILJS_CONFIG.serviceId,
+            EMAILJS_CONFIG.templateId,
+            templateParams
+        );
+        
+        console.log('✅ Email успешно отправлен! Статус:', response.status);
+        console.log('📨 Ответ сервера:', response.text);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Ошибка отправки email:', {
+            status: error.status,
+            text: error.text,
+            fullError: error
+        });
+        
+        // Детальный анализ ошибки
+        if (error.status === 422) {
+            console.error('🔍 Диагностика ошибки 422:');
+            console.error('1. Проверьте шаблон в EmailJS');
+            console.error('2. Убедитесь что шаблон опубликован');
+            console.error('3. Проверьте Email Service настройки');
+            console.error('4. Убедитесь что в шаблоне используются правильные переменные');
+        }
+        
         return false;
     }
 }
@@ -670,7 +388,7 @@ async function linkEmail(email) {
         return true;
         
     } catch (error) {
-        console.error('❌ Ошибка привязки email:', error);
+        console.error('Ошибка привязки email:', error);
         showNotification('Ошибка привязки email: ' + error.message, 'error');
         return false;
     }
@@ -764,15 +482,10 @@ async function verifyEmail(code) {
             timerElement.style.display = 'none';
         }
         
-        // Отправляем уведомление об успешной привязке email
-        await sendEmailNotification(userId, 'email_change', {
-            newEmail: userData.email || email
-        });
-        
         return true;
         
     } catch (error) {
-        console.error('❌ Ошибка подтверждения email:', error);
+        console.error('Ошибка подтверждения email:', error);
         showNotification('Ошибка подтверждения email', 'error');
         return false;
     }
@@ -786,10 +499,6 @@ async function removeEmail() {
     const userId = localStorage.getItem('jojoland_userId');
     
     try {
-        const snapshot = await database.ref('users/' + userId).once('value');
-        const userData = snapshot.val();
-        const currentEmail = userData.email;
-        
         await database.ref('users/' + userId).update({
             email: null,
             emailVerified: false,
@@ -799,20 +508,83 @@ async function removeEmail() {
         
         showNotification('✅ Email успешно отвязан', 'success');
         
-        // Отправляем уведомление об отвязке email
-        if (currentEmail && userData.emailVerified) {
-            await sendEmailNotification(userId, 'email_change', {
-                newEmail: 'Не привязан',
-                description: 'Email адрес был отвязан от вашего аккаунта'
-            });
-        }
-        
         // Обновляем UI
         updateEmailUI('', false);
         
     } catch (error) {
-        console.error('❌ Ошибка отвязки email:', error);
+        console.error('Ошибка отвязки email:', error);
         showNotification('Ошибка сервера', 'error');
+    }
+}
+
+// ==================== ОТПРАВКА УВЕДОМЛЕНИЙ ====================
+
+async function sendEmailNotification(userId, type, data = {}) {
+    try {
+        // Получаем email пользователя
+        const snapshot = await database.ref('users/' + userId).once('value');
+        if (!snapshot.exists()) return false;
+        
+        const userData = snapshot.val();
+        if (!userData.email || !userData.emailVerified) return false;
+        
+        // Проверяем настройки уведомлений
+        const notifications = userData.notifications || {};
+        if (notifications[type] === false) return false;
+        
+        // Готовим письмо в зависимости от типа
+        const templates = {
+            'password_change': {
+                subject: 'Смена пароля - JojoLand',
+                message: `Пароль для вашего аккаунта ${userData.nickname} был изменен. Если это были не вы, немедленно свяжитесь с поддержкой.`
+            },
+            'email_change': {
+                subject: 'Изменение email - JojoLand',
+                message: `Email вашего аккаунта ${userData.nickname} был изменен.`
+            }
+        };
+        
+        const template = templates[type] || {
+            subject: 'Уведомление - JojoLand',
+            message: 'У вас новое уведомление.'
+        };
+        
+        // Если EmailJS доступен, отправляем письмо
+        if (typeof emailjs !== 'undefined') {
+            try {
+                emailjs.init(EMAILJS_CONFIG.userId);
+                
+                await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.templateId,
+                    {
+                        email: userData.email,
+                        to_name: userData.nickname,
+                        verification_code: 'УВЕДОМЛЕНИЕ',
+                        subject: template.subject,
+                        message: template.message
+                    }
+                );
+                
+                console.log(`📨 Email уведомление отправлено на ${userData.email}`);
+            } catch (emailError) {
+                console.error('Ошибка отправки уведомления:', emailError);
+            }
+        }
+        
+        // Сохраняем в лог
+        await database.ref('email_logs/' + userId).push({
+            type: type,
+            timestamp: new Date().toISOString(),
+            sent: true,
+            message: template.message
+        });
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Ошибка отправки уведомления:', error);
+        return false;
     }
 }
 
@@ -860,7 +632,6 @@ async function getClientIP() {
         const data = await response.json();
         return data.ip;
     } catch (error) {
-        console.log('Не удалось получить IP:', error);
         return 'Неизвестно';
     }
 }
@@ -943,7 +714,7 @@ async function loadUserSettings() {
         await loadLoginHistory(userId);
         
     } catch (error) {
-        console.error('❌ Ошибка загрузки настроек:', error);
+        console.error('Ошибка загрузки настроек:', error);
         showNotification('Ошибка загрузки настроек', 'error');
     }
 }
@@ -986,7 +757,7 @@ async function loadLoginHistory(userId) {
         historyContainer.innerHTML = html;
         
     } catch (error) {
-        console.error('❌ Ошибка загрузки истории:', error);
+        console.error('Ошибка загрузки истории:', error);
     }
 }
 
@@ -1117,79 +888,26 @@ function setupEventListeners() {
         });
     }
     
-    // Добавляем кнопку для тестирования уведомлений
-    addTestButton();
-}
-
-// Добавление кнопки для тестирования
-function addTestButton() {
-    // Кнопка тестирования всех уведомлений
-    const testBtn = document.createElement('button');
-    testBtn.id = 'test-notifications-btn';
-    testBtn.textContent = '🧪 Тест уведомлений';
-    testBtn.style.cssText = `
-        position: fixed;
-        bottom: 120px;
-        right: 20px;
-        background: linear-gradient(90deg, #6200ff, #ff00ff);
-        color: white;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 25px;
-        cursor: pointer;
-        z-index: 9997;
-        font-family: 'Orbitron', sans-serif;
-        font-weight: bold;
-        box-shadow: 0 4px 15px rgba(98, 0, 255, 0.3);
-        transition: all 0.3s ease;
-    `;
-    testBtn.onmouseenter = () => {
-        testBtn.style.transform = 'translateY(-2px)';
-        testBtn.style.boxShadow = '0 6px 20px rgba(98, 0, 255, 0.4)';
-    };
-    testBtn.onmouseleave = () => {
-        testBtn.style.transform = 'translateY(0)';
-        testBtn.style.boxShadow = '0 4px 15px rgba(98, 0, 255, 0.3)';
-    };
-    testBtn.onclick = async () => {
-        const userId = localStorage.getItem('jojoland_userId');
-        const nickname = localStorage.getItem('jojoland_nickname');
-        
-        showNotification('🧪 Начинаем тестирование уведомлений...', 'info');
-        
-        try {
-            // Тест смены пароля
-            await sendEmailNotification(userId, 'password_change', {
-                ip: await getClientIP()
-            });
-            
-            // Тест изменения email
-            await sendEmailNotification(userId, 'email_change', {
-                newEmail: 'newemail@example.com'
-            });
-            
-            // Тест нового входа
-            await sendEmailNotification(userId, 'login', {
-                ip: await getClientIP(),
-                device: 'Chrome на Windows 10',
-                location: 'Москва, Россия'
-            });
-            
-            // Тест предупреждения безопасности
-            await sendEmailNotification(userId, 'security_alert', {
-                alertType: 'Необычная активность',
-                description: 'Обнаружены попытки входа с незнакомого устройства',
-                action: 'Проверьте историю входов и смените пароль при необходимости'
-            });
-            
-            showNotification('✅ Все тестовые уведомления отправлены!', 'success');
-            
-        } catch (error) {
-            console.error('❌ Ошибка тестирования уведомлений:', error);
-            showNotification('Ошибка при тестировании уведомлений', 'error');
-        }
-    };
-    document.body.appendChild(testBtn);
+    // Тестирование EmailJS
+    const testEmailBtn = document.getElementById('test-email-btn');
+    if (testEmailBtn) {
+        testEmailBtn.addEventListener('click', async () => {
+            const email = prompt('Введите email для тестирования EmailJS:', 'test@example.com');
+            if (email) {
+                const code = '123456';
+                const nickname = 'Тестовый пользователь';
+                
+                showNotification('🔍 Тестирование EmailJS...', 'info');
+                const result = await sendVerificationEmail(email, code, nickname);
+                
+                if (result) {
+                    showNotification('✅ Тестовый email отправлен успешно!', 'success');
+                } else {
+                    showNotification('❌ Не удалось отправить тестовый email', 'error');
+                }
+            }
+        });
+    }
 }
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
@@ -1307,11 +1025,6 @@ document.addEventListener('DOMContentLoaded', function() {
             margin-top: 3px;
             text-align: right;
         }
-        
-        /* Стили для тестовой кнопки */
-        #test-notifications-btn:hover {
-            animation: pulse 0.5s ease;
-        }
     `;
     document.head.appendChild(style);
     
@@ -1323,7 +1036,6 @@ document.addEventListener('DOMContentLoaded', function() {
         emailjsScript.onload = function() {
             console.log('✅ EmailJS загружен');
             console.log('🔑 User ID:', EMAILJS_CONFIG.userId);
-            console.log('📁 Шаблон:', EMAILJS_CONFIG.templateId);
         };
         document.head.appendChild(emailjsScript);
     } else {
