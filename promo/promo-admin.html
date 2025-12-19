@@ -84,6 +84,80 @@
                             </div>
                         </div>
                         
+                        <!-- БЛОК УСЛОВИЙ -->
+                        <div class="switch-group">
+                            <span class="switch-label">Требования для активации</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="conditions-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div id="conditions-container" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label" for="condition-type">Тип требования</label>
+                                <select id="condition-type" class="form-input">
+                                    <option value="none">Без условий</option>
+                                    <option value="telegram_subscription">Подписка на Telegram канал</option>
+                                    <option value="telegram_channels">Подписка на несколько каналов</option>
+                                    <option value="discord_server">Вступление в Discord сервер</option>
+                                    <option value="min_level">Минимальный уровень</option>
+                                    <option value="min_points">Минимальные очки</option>
+                                    <option value="referrals">Рефералы</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="condition-value">Значение</label>
+                                <input 
+                                    type="text" 
+                                    id="condition-value" 
+                                    class="form-input" 
+                                    placeholder="Кол-во/ID канала/Ник и т.д."
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="condition-link">Ссылка 1 (основная)</label>
+                                <input 
+                                    type="url" 
+                                    id="condition-link" 
+                                    class="form-input" 
+                                    placeholder="https://t.me/jojoland"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="condition-link2">Ссылка 2 (дополнительная)</label>
+                                <input 
+                                    type="url" 
+                                    id="condition-link2" 
+                                    class="form-input" 
+                                    placeholder="https://t.me/admin_channel"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="condition-channel">Название канала/условия</label>
+                                <input 
+                                    type="text" 
+                                    id="condition-channel" 
+                                    class="form-input" 
+                                    placeholder="@JojoLand"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="condition-description">Описание для игроков</label>
+                                <textarea 
+                                    id="condition-description" 
+                                    class="form-input" 
+                                    rows="2"
+                                    placeholder="Подпишитесь на наши каналы для получения бонуса"
+                                ></textarea>
+                            </div>
+                        </div>
+                        
                         <div class="switch-group">
                             <span class="switch-label">Срок действия</span>
                             <label class="toggle-switch">
