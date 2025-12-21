@@ -16,14 +16,24 @@ const playersPerPage = 9;
 let allPlayers = [];
 let filteredPlayers = [];
 let playersData = {};
-let currentUserId = null;
+let currentUser = null;
 
-async function getCurrentUser() {
+async function getCurrentUserData() {
     try {
-        const snapshot = await database.ref('currentUser').once('value');
-        return snapshot.val();
+        const nickname = localStorage.getItem('jojoland_nickname');
+        const userId = localStorage.getItem('jojoland_userId');
+        const isLoggedIn = localStorage.getItem('jojoland_loggedIn') === 'true';
+        
+        if (isLoggedIn && nickname && userId) {
+            return {
+                nickname: nickname,
+                userId: userId,
+                isLoggedIn: true
+            };
+        }
+        return null;
     } catch (error) {
-        console.error('Ошибка получения текущего пользователя:', error);
+        console.error('Ошибка получения пользователя:', error);
         return null;
     }
 }
@@ -224,6 +234,10 @@ async function createPlayerCard(player, index = -1) {
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const highlightedName = highlightSearchText(player.nickname || 'Неизвестно', searchTerm);
     
+    const isCurrentUser = currentUser && currentUser.userId === userId;
+    const canLike = currentUser && currentUser.isLoggedIn && !isCurrentUser;
+    const userLiked = player.userLiked || false;
+    
     return `
         <div class="player-card ${rank}" data-user-id="${userId}" data-index="${index}">
             ${trophy ? `<div class="achievement-badge">${trophy}</div>` : ''}
@@ -267,11 +281,14 @@ async function createPlayerCard(player, index = -1) {
             </div>
             
             <div class="card-footer">
-                <button class="like-btn ${player.userLiked ? 'liked' : ''}" 
+                <button class="like-btn ${userLiked ? 'liked' : ''}" 
                         onclick="toggleLike('${userId}')" 
-                        data-user-id="${userId}">
+                        data-user-id="${userId}"
+                        ${!canLike ? 'disabled' : ''}
+                        style="${!canLike ? 'opacity: 0.7; cursor: not-allowed;' : ''}">
                     <span>❤️</span>
                     <span class="like-count">${reputation}</span>
+                    ${!canLike ? '<div style="font-size: 10px; margin-top: 2px;">Войдите в систему</div>' : ''}
                 </button>
                 <button class="view-profile-btn" onclick="viewPlayerProfile('${userId}')">
                     <span>👁️</span>
@@ -283,13 +300,13 @@ async function createPlayerCard(player, index = -1) {
 }
 
 async function toggleLike(userId) {
-    if (!currentUserId) {
-        alert('Войдите в систему, чтобы ставить лайки');
+    if (!currentUser || !currentUser.isLoggedIn) {
+        showNotification('Войдите в систему, чтобы ставить лайки', 'error');
         return;
     }
     
-    if (userId === currentUserId) {
-        alert('Нельзя ставить лайк самому себе');
+    if (userId === currentUser.userId) {
+        showNotification('Нельзя ставить лайк самому себе', 'error');
         return;
     }
     
@@ -302,7 +319,7 @@ async function toggleLike(userId) {
     const userLiked = likeBtn.classList.contains('liked');
     
     try {
-        const userLikesRef = database.ref(`user_likes/${currentUserId}/${userId}`);
+        const userLikesRef = database.ref(`user_likes/${currentUser.userId}/${userId}`);
         
         if (userLiked) {
             await userLikesRef.remove();
@@ -313,6 +330,8 @@ async function toggleLike(userId) {
             const snapshot = await reputationRef.once('value');
             const currentRep = snapshot.val() || 0;
             await reputationRef.set(Math.max(0, currentRep - 1));
+            
+            showNotification('Лайк убран', 'success');
         } else {
             await userLikesRef.set(true);
             likeBtn.classList.add('liked');
@@ -322,6 +341,8 @@ async function toggleLike(userId) {
             const snapshot = await reputationRef.once('value');
             const currentRep = snapshot.val() || 0;
             await reputationRef.set(currentRep + 1);
+            
+            showNotification('Лайк поставлен!', 'success');
         }
         
         const playerIndex = allPlayers.findIndex(p => (p.userId || p.id) === userId);
@@ -332,12 +353,12 @@ async function toggleLike(userId) {
         
     } catch (error) {
         console.error('Ошибка при лайке:', error);
-        alert('Ошибка при обновлении лайка');
+        showNotification('Ошибка при обновлении лайка', 'error');
     }
 }
 
 function viewPlayerProfile(userId) {
-    window.location.href = `profile.html?view=${userId}`;
+    window.location.href = `profle/profile.html?view=${userId}`;
 }
 
 async function loadAllPlayers() {
@@ -349,11 +370,11 @@ async function loadAllPlayers() {
         const pointsData = batchData.points;
         const reputationData = batchData.reputation;
         
-        currentUserId = await getCurrentUser();
-        let userLikes = {};
+        currentUser = await getCurrentUserData();
         
-        if (currentUserId) {
-            const likesSnapshot = await database.ref(`user_likes/${currentUserId}`).once('value');
+        let userLikes = {};
+        if (currentUser && currentUser.isLoggedIn) {
+            const likesSnapshot = await database.ref(`user_likes/${currentUser.userId}`).once('value');
             userLikes = likesSnapshot.exists() ? likesSnapshot.val() : {};
         }
         
@@ -382,7 +403,6 @@ async function loadAllPlayers() {
             }
         }
         
-        console.log(`Загружено ${players.length} игроков`);
         playersData = { users, points: pointsData, reputation: reputationData };
         return players;
         
@@ -609,18 +629,6 @@ function showSkeleton(containerId) {
     }
 }
 
-function showLoading(containerId, message) {
-    const container = document.getElementById(containerId);
-    if (container) {
-        container.innerHTML = `
-            <div class="loading-state">
-                <div class="loading-spinner-small"></div>
-                <p>${message}</p>
-            </div>
-        `;
-    }
-}
-
 function showNoResults(containerId, message) {
     const container = document.getElementById(containerId);
     if (container) {
@@ -651,6 +659,58 @@ function setupBackToTop() {
     backToTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    
+    const colors = {
+        success: { bg: '#00cc66', border: '#00ff88' },
+        error: { bg: '#ff4444', border: '#ff6b6b' },
+        warning: { bg: '#ff9800', border: '#ffb347' },
+        info: { bg: '#00b4d8', border: '#48cae4' }
+    };
+    
+    const color = colors[type] || colors.success;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(90deg, ${color.bg}, ${color.border});
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        z-index: 1000;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        max-width: 300px;
+        font-family: 'Inter', sans-serif;
+        border: 2px solid ${color.border};
+    `;
+    
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">
+            ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+            ${type === 'success' ? 'Успешно!' : type === 'error' ? 'Ошибка!' : type === 'warning' ? 'Внимание!' : 'Информация'}
+        </div>
+        <div style="font-size: 14px;">
+            ${message}
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
 }
 
 async function initPlayersPage() {
@@ -685,3 +745,18 @@ window.onload = async function() {
         initPlayersPage();
     }, 400);
 };
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(style);
