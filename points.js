@@ -1,4 +1,3 @@
-// Инициализация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
     authDomain: "jojoland-chat.firebasestorage.app",
@@ -9,18 +8,15 @@ const firebaseConfig = {
     appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
 };
 
-// Инициализируем только если еще не инициализировано
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const database = firebase.database();
 
-// Глобальные переменные
 let userId = null;
 let userNickname = null;
 let pointsData = null;
 
-// ЗАГРУЗКА СТРАНИЦЫ
 window.onload = async function() {
     createParticles();
     
@@ -30,23 +26,20 @@ window.onload = async function() {
         document.getElementById("content").style.opacity = "1";
         
         if (await checkAuth()) {
-            await TimeManager.syncWithServer(); // Синхронизируем время
+            await TimeManager.syncWithServer();
             await loadPointsData();
             await updateUIWithTop();
             setupEventListeners();
             updateCountdown();
             updateDaysLeft();
             
-            // Проверяем реферальные бонусы
             await checkReferralBonus();
             
-            // Подписываемся на обновления очков в реальном времени
             setupRealtimeUpdates();
         }
     }, 400);
 };
 
-// СОЗДАНИЕ ФОНОВЫХ ЧАСТИЦ
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
     
@@ -71,20 +64,17 @@ function createParticles() {
     }
 }
 
-// ПОДПИСКА НА ОБНОВЛЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ
 function setupRealtimeUpdates() {
     database.ref('holiday_points/' + userId).on('value', (snapshot) => {
         if (snapshot.exists()) {
             const newData = snapshot.val();
             
-            // Обновляем данные и интерфейс
             pointsData = newData;
             updateUI();
         }
     });
 }
 
-// ПРОВЕРКА АВТОРИЗАЦИИ
 async function checkAuth() {
     userId = localStorage.getItem('jojoland_userId');
     userNickname = localStorage.getItem('jojoland_nickname');
@@ -100,21 +90,67 @@ async function checkAuth() {
     return true;
 }
 
-// ЗАГРУЗКА ДАННЫХ ОЧКОВ
+async function validateAndFixBalance() {
+    try {
+        const snapshot = await database.ref('holiday_points/' + userId).once('value');
+        
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            
+            if (data.total_points !== undefined) {
+                const fixedTotal = Math.max(0, Math.round(data.total_points));
+                
+                if (fixedTotal !== data.total_points) {
+                    await database.ref('holiday_points/' + userId).update({
+                        total_points: fixedTotal
+                    });
+                    
+                    console.log(`✅ Исправлен баланс: ${data.total_points} → ${fixedTotal}`);
+                    
+                    if (pointsData) {
+                        pointsData.total_points = fixedTotal;
+                    }
+                }
+            }
+            
+            const fieldsToFix = ['available_points', 'spent_points'];
+            for (const field of fieldsToFix) {
+                if (data[field] !== undefined) {
+                    const fixedValue = Math.max(0, Math.round(data[field]));
+                    
+                    if (fixedValue !== data[field]) {
+                        await database.ref('holiday_points/' + userId).update({
+                            [field]: fixedValue
+                        });
+                        
+                        console.log(`✅ Исправлено поле ${field}: ${data[field]} → ${fixedValue}`);
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки баланса:', error);
+    }
+}
+
 async function loadPointsData() {
     try {
+        await validateAndFixBalance();
+        
         const snapshot = await database.ref('holiday_points/' + userId).once('value');
         
         if (snapshot.exists()) {
             pointsData = snapshot.val();
             console.log('✅ Данные очков загружены:', pointsData);
             
-            // Проверяем и мигрируем если есть старые данные
             if (pointsData.available_points !== undefined && pointsData.available_points !== null) {
                 await migrateAvailablePointsToTotal();
             }
+            
+            if (pointsData.total_points !== undefined) {
+                pointsData.total_points = Math.round(pointsData.total_points);
+            }
         } else {
-            // Создаем новую запись с правильной структурой (без available_points)
             const todayKey = TimeManager.getTodayKey();
             pointsData = {
                 total_points: 0,
@@ -140,22 +176,18 @@ async function loadPointsData() {
     }
 }
 
-// МИГРАЦИЯ available_points В total_points
 async function migrateAvailablePointsToTotal() {
     try {
         const available = pointsData.available_points || 0;
         const total = pointsData.total_points || 0;
         
-        // Используем максимальное значение из двух
-        const newTotal = Math.max(available, total);
+        const newTotal = Math.round(Math.max(available, total));
         
-        // Обновляем в базе данных
         await database.ref('holiday_points/' + userId).update({
             total_points: newTotal,
-            available_points: null // Удаляем старую переменную
+            available_points: null
         });
         
-        // Обновляем локальные данные
         pointsData.total_points = newTotal;
         delete pointsData.available_points;
         
@@ -166,12 +198,10 @@ async function migrateAvailablePointsToTotal() {
     }
 }
 
-// ПРОВЕРКА РЕФЕРАЛЬНЫХ БОНУСОВ
 async function checkReferralBonus() {
     try {
         console.log('🔍 Проверка реферальных бонусов для:', userId);
         
-        // 1. Проверяем, получил ли пользователь бонус за регистрацию
         const userSnapshot = await database.ref('users/' + userId).once('value');
         if (userSnapshot.exists()) {
             const userData = userSnapshot.val();
@@ -185,12 +215,10 @@ async function checkReferralBonus() {
             }
         }
         
-        // 2. Проверяем, получил ли пользователь очки за приглашение друзей
         const refSnapshot = await database.ref('referrals/' + userId).once('value');
         if (refSnapshot.exists()) {
             const refData = refSnapshot.val();
             
-            // Проверяем последних приглашенных
             if (refData.referrals_list && refData.referrals_list.length > 0) {
                 const unshownRefs = refData.referrals_list.filter(ref => {
                     const storageKey = `ref_reward_shown_${userId}_${ref.user_id}`;
@@ -216,34 +244,26 @@ async function checkReferralBonus() {
     }
 }
 
-// ПОЛУЧЕНИЕ СЛУЧАЙНЫХ ОЧКОВ (1-10)
 function getRandomPoints(streakBonus = 0) {
-    // Базовые очки: от 1 до 10
     let minPoints = 1;
     let maxPoints = 10;
     
-    // Бонус за серию
     if (streakBonus > 0) {
-        minPoints += Math.min(streakBonus, 3); // Максимум +3 к минимуму
-        maxPoints += Math.min(streakBonus, 5); // Максимум +5 к максимуму
+        minPoints += Math.min(streakBonus, 3);
+        maxPoints += Math.min(streakBonus, 5);
     }
     
-    // Генерируем случайное число
     const points = Math.floor(Math.random() * (maxPoints - minPoints + 1)) + minPoints;
     
-    // Гарантируем минимум 1 и максимум 15
     return Math.max(1, Math.min(points, 15));
 }
 
-// ПРОВЕРКА, МОЖНО ЛИ ПОЛУЧИТЬ ПОДАРОК
 function canClaimGift() {
     console.log('🎁 Проверка возможности получения подарка');
     
-    // Проверка 1: по дате последнего получения
     const lastGiftTime = pointsData?.last_actions?.daily_gift;
     const canByTime = TimeManager.canPerformAction(lastGiftTime);
     
-    // Проверка 2: по данным сегодняшнего дня
     const todayKey = TimeManager.getTodayKey();
     const hasToday = pointsData?.daily_gifts && pointsData.daily_gifts[todayKey];
     
@@ -252,13 +272,11 @@ function canClaimGift() {
     return canByTime && !hasToday;
 }
 
-// ПОЛУЧЕНИЕ ВРЕМЕНИ ДО СЛЕДУЮЩЕГО ПОДАРКА
 function getTimeToNextGift() {
     const lastGiftTime = pointsData?.last_actions?.daily_gift;
     return TimeManager.getTimeToNextAction(lastGiftTime);
 }
 
-// ОТКРЫТИЕ ЕЖЕДНЕВНОГО ПОДАРКА
 async function openDailyGift() {
     console.log('🎁 Попытка открытия ежедневного подарка');
     
@@ -269,18 +287,14 @@ async function openDailyGift() {
     }
     
     try {
-        // Получаем случайное количество очков
         const streak = pointsData.current_streak || 0;
         const points = getRandomPoints(streak);
         
-        // Текущее время с серверной синхронизацией
         const now = new Date(TimeManager.getCurrentTime());
         const todayKey = TimeManager.getTodayKey();
         
-        // Обновляем серию
         let newStreak = 1;
         
-        // Проверяем серию по датам из daily_gifts
         const dailyGifts = pointsData.daily_gifts || {};
         const giftDates = Object.keys(dailyGifts).sort();
         
@@ -290,13 +304,14 @@ async function openDailyGift() {
             yesterday.setDate(yesterday.getDate() - 1);
             yesterday.setHours(0, 0, 0, 0);
             
-            // Если последний подарок был вчера - продолжаем серию
             if (lastDate.toDateString() === yesterday.toDateString()) {
                 newStreak = streak + 1;
             }
         }
         
-        // Создаем запись о награде
+        const currentTotal = pointsData.total_points || 0;
+        const newTotal = Math.round(currentTotal + points);
+        
         const reward = {
             date: now.toISOString(),
             points: points,
@@ -304,10 +319,9 @@ async function openDailyGift() {
             streak: newStreak
         };
         
-        // Обновляем данные только с total_points
         const newPointsData = {
             ...pointsData,
-            total_points: (pointsData.total_points || 0) + points,
+            total_points: newTotal,
             daily_gifts: {
                 ...pointsData.daily_gifts,
                 [todayKey]: {
@@ -328,23 +342,18 @@ async function openDailyGift() {
             max_streak: Math.max(newStreak, pointsData.max_streak || 0)
         };
         
-        // Удаляем available_points если он существует
         delete newPointsData.available_points;
-        delete newPointsData.spent_points; // Если есть, тоже удаляем
+        delete newPointsData.spent_points;
         
-        // Сохраняем в Firebase
         await database.ref('holiday_points/' + userId).set(newPointsData);
         
-        // Обновляем локальные данные
         pointsData = newPointsData;
         
-        // Показываем модальное окно с наградой
         showRewardModal(points, newStreak);
         
-        // Обновляем UI
         updateUI();
         
-        console.log(`✅ Подарок получен: ${points} очков, серия: ${newStreak} дней, всего: ${newPointsData.total_points}`);
+        console.log(`✅ Подарок получен: ${points} очков, серия: ${newStreak} дней, всего: ${newTotal}`);
         
     } catch (error) {
         console.error('❌ Ошибка открытия подарка:', error);
@@ -352,7 +361,6 @@ async function openDailyGift() {
     }
 }
 
-// ПОКАЗ МОДАЛЬНОГО ОКНА С НАГРАДОЙ
 function showRewardModal(points, streak) {
     const modal = document.getElementById('reward-modal');
     const pointsElement = document.getElementById('reward-amount');
@@ -360,12 +368,10 @@ function showRewardModal(points, streak) {
     const streakElement = document.getElementById('reward-streak');
     const messageElement = document.getElementById('reward-message');
     
-    // Устанавливаем значения
     document.querySelector('.points-number').textContent = points;
     totalElement.textContent = pointsData.total_points || 0;
     streakElement.textContent = streak;
     
-    // Устанавливаем сообщение в зависимости от количества очков
     let message = '';
     if (points <= 3) {
         message = 'Хорошее начало! Возвращайтесь завтра за большей наградой!';
@@ -379,13 +385,10 @@ function showRewardModal(points, streak) {
     
     messageElement.textContent = message;
     
-    // Создаем конфетти
     createConfetti();
     
-    // Показываем модальное окно
     modal.style.display = 'flex';
     
-    // Закрытие модального окна
     document.getElementById('close-reward').addEventListener('click', function() {
         modal.style.opacity = '0';
         setTimeout(() => {
@@ -395,7 +398,6 @@ function showRewardModal(points, streak) {
     });
 }
 
-// СОЗДАНИЕ КОНФЕТТИ
 function createConfetti() {
     const container = document.querySelector('.confetti-container');
     container.innerHTML = '';
@@ -404,18 +406,14 @@ function createConfetti() {
         const confetti = document.createElement('div');
         confetti.className = 'confetti';
         
-        // Случайная позиция
         confetti.style.left = `${Math.random() * 100}%`;
         
-        // Случайная задержка
         confetti.style.animationDelay = `${Math.random() * 2}s`;
         
-        // Случайный размер
         const size = Math.random() * 10 + 5;
         confetti.style.width = `${size}px`;
         confetti.style.height = `${size}px`;
         
-        // Случайный цвет
         const colors = ['#ff0000', '#ffff00', '#00ff00', '#0088ff', '#ff00ff'];
         confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
         
@@ -423,7 +421,6 @@ function createConfetti() {
     }
 }
 
-// ОБНОВЛЕНИЕ ТАЙМЕРА
 function updateCountdown() {
     const timerElement = document.getElementById('countdown');
     const giftBox = document.getElementById('daily-gift');
@@ -433,13 +430,11 @@ function updateCountdown() {
         const timeToNext = getTimeToNextGift();
         
         if (timeToNext > 0 || TimeManager.wasActionTodayInObject(pointsData?.daily_gifts)) {
-            // Нельзя получить подарок
             giftBox.classList.add('disabled');
             giftBox.classList.remove('opened');
             timerElement.textContent = TimeManager.formatTime(timeToNext);
             statusElement.textContent = 'Доступно через:';
         } else {
-            // Можно получить подарок
             giftBox.classList.remove('disabled');
             const todayKey = TimeManager.getTodayKey();
             const hasToday = pointsData?.daily_gifts && pointsData.daily_gifts[todayKey];
@@ -456,14 +451,11 @@ function updateCountdown() {
         }
     };
     
-    // Обновляем сразу
     updateTimer();
     
-    // Обновляем каждую секунду
     setInterval(updateTimer, 1000);
 }
 
-// ОБНОВЛЕНИЕ ДНЕЙ ДО КОНЦА АКЦИИ
 function updateDaysLeft() {
     const daysElement = document.getElementById('days-left');
     const now = TimeManager.getCurrentTime();
@@ -479,14 +471,12 @@ function updateDaysLeft() {
     }
 }
 
-// ОБНОВЛЕНИЕ ВИЗУАЛИЗАЦИИ СЕРИИ
 function updateStreakVisual() {
     const container = document.getElementById('streak-visual');
     const streak = pointsData.current_streak || 0;
     
     container.innerHTML = '';
     
-    // Показываем до 7 дней
     for (let i = 1; i <= 7; i++) {
         const day = document.createElement('div');
         day.className = 'streak-day';
@@ -505,7 +495,6 @@ function updateStreakVisual() {
     }
 }
 
-// ОБНОВЛЕНИЕ ИСТОРИИ НАГРАД
 function updateRewardsHistory() {
     const container = document.getElementById('rewards-list');
     const rewards = pointsData.rewards_history || [];
@@ -569,36 +558,29 @@ function updateRewardsHistory() {
     }).join('');
 }
 
-// ОБНОВЛЕНИЕ ВСЕГО UI
 function updateUI() {
     if (!pointsData) return;
     
-    // Обновляем статистику (используем только total_points)
-    document.getElementById('total-points').textContent = pointsData.total_points || 0;
+    document.getElementById('total-points').textContent = Math.round(pointsData.total_points || 0);
     document.getElementById('gifts-opened').textContent = Object.keys(pointsData.daily_gifts || {}).length;
     document.getElementById('streak-days').textContent = pointsData.current_streak || 0;
     document.getElementById('max-streak').textContent = pointsData.max_streak || 0;
     
-    // Обновляем визуализацию серии
     updateStreakVisual();
     
-    // Обновляем историю наград
     updateRewardsHistory();
 }
 
-// ЗАГРУЗКА ТОПА ИГРОКОВ
 async function loadTopPlayers() {
     try {
         const loadingElement = document.querySelector('.top-players-loading');
         const listElement = document.getElementById('top-players-list');
         const positionCard = document.getElementById('user-position-card');
         
-        // Показываем загрузку
         loadingElement.style.display = 'flex';
         listElement.innerHTML = '';
         positionCard.style.display = 'none';
         
-        // Получаем все данные очков
         const snapshot = await database.ref('holiday_points').once('value');
         
         if (!snapshot.exists()) {
@@ -609,16 +591,12 @@ async function loadTopPlayers() {
         
         const allPointsData = snapshot.val();
         const players = [];
-        let userInTop = false;
         
-        // Собираем данные всех игроков
         for (const playerId in allPointsData) {
             const playerData = allPointsData[playerId];
             
-            // Используем total_points, если нет - используем 0
-            const totalPoints = playerData.total_points || 0;
+            const totalPoints = Math.round(playerData.total_points || 0);
             
-            // Получаем никнейм из users
             const userSnapshot = await database.ref('users/' + playerId).once('value');
             let nickname = 'Игрок';
             
@@ -637,16 +615,12 @@ async function loadTopPlayers() {
             });
         }
         
-        // Сортируем по убыванию очков
         players.sort((a, b) => b.points - a.points);
         
-        // Берем топ-10
         const topPlayers = players.slice(0, 10);
         
-        // Обновляем отображение
         updateTopPlayersList(topPlayers);
         
-        // Показываем позицию текущего пользователя
         if (userId) {
             const userIndex = players.findIndex(p => p.id === userId);
             if (userIndex !== -1) {
@@ -654,10 +628,8 @@ async function loadTopPlayers() {
                 updateUserPosition(userPlayer, userIndex + 1);
                 positionCard.style.display = 'block';
                 
-                // Проверяем, есть ли пользователь в топе
-                userInTop = topPlayers.some(p => p.id === userId);
+                const userInTop = topPlayers.some(p => p.id === userId);
                 
-                // Если пользователя нет в топе, добавляем его карточку отдельно
                 if (!userInTop && userIndex >= 10) {
                     showUserBelowTop(userPlayer, userIndex + 1);
                 }
@@ -677,7 +649,6 @@ async function loadTopPlayers() {
     }
 }
 
-// ОБНОВЛЕНИЕ СПИСКА ТОПА
 function updateTopPlayersList(players) {
     const listElement = document.getElementById('top-players-list');
     
@@ -731,7 +702,6 @@ function updateTopPlayersList(players) {
     }).join('');
 }
 
-// ПОКАЗ СООБЩЕНИЯ ЕСЛИ НЕТ ИГРОКОВ
 function showNoPlayersMessage() {
     const listElement = document.getElementById('top-players-list');
     listElement.innerHTML = `
@@ -743,14 +713,12 @@ function showNoPlayersMessage() {
     `;
 }
 
-// ОБНОВЛЕНИЕ ПОЗИЦИИ ПОЛЬЗОВАТЕЛЯ
 function updateUserPosition(player, rank) {
     document.getElementById('user-rank').textContent = rank;
     document.getElementById('user-top-nickname').textContent = player.nickname;
-    document.getElementById('user-top-points').textContent = player.points;
+    document.getElementById('user-top-points').textContent = Math.round(player.points);
 }
 
-// ПОКАЗ ПОЛЬЗОВАТЕЛЯ НИЖЕ ТОПА
 function showUserBelowTop(player, rank) {
     const listElement = document.getElementById('top-players-list');
     
@@ -779,7 +747,7 @@ function showUserBelowTop(player, rank) {
                 </div>
                 <div style="text-align: left;">
                     <div style="color: white; font-weight: bold;">${player.nickname}</div>
-                    <div style="color: #00ff00; font-family: Michroma; font-size: 18px;">${player.points} очков</div>
+                    <div style="color: #00ff00; font-family: Michroma; font-size: 18px;">${Math.round(player.points)} очков</div>
                 </div>
             </div>
         </div>
@@ -788,29 +756,22 @@ function showUserBelowTop(player, rank) {
     listElement.appendChild(userCard);
 }
 
-// ОБНОВЛЕНИЕ ВСЕГО UI С ТОПОМ
 async function updateUIWithTop() {
     if (!pointsData) return;
     
-    // Обновляем статистику
-    document.getElementById('total-points').textContent = pointsData.total_points || 0;
+    document.getElementById('total-points').textContent = Math.round(pointsData.total_points || 0);
     document.getElementById('gifts-opened').textContent = Object.keys(pointsData.daily_gifts || {}).length;
     document.getElementById('streak-days').textContent = pointsData.current_streak || 0;
     document.getElementById('max-streak').textContent = pointsData.max_streak || 0;
     
-    // Обновляем визуализацию серии
     updateStreakVisual();
     
-    // Обновляем историю наград
     updateRewardsHistory();
     
-    // Загружаем топ игроков
     await loadTopPlayers();
 }
 
-// НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
 function setupEventListeners() {
-    // Открытие подарка
     const giftBox = document.getElementById('daily-gift');
     giftBox.addEventListener('click', async function() {
         if (!this.classList.contains('disabled')) {
@@ -818,7 +779,6 @@ function setupEventListeners() {
         }
     });
     
-    // Кнопка "Обновить топ"
     const refreshBtn = document.getElementById('refresh-top-btn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async function() {
@@ -830,7 +790,6 @@ function setupEventListeners() {
             this.disabled = false;
             this.innerHTML = '🔄 Обновить топ';
             
-            // Анимация обновления
             this.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 this.style.transform = 'scale(1)';
@@ -838,11 +797,10 @@ function setupEventListeners() {
         });
     }
     
-    // Кнопка "Поделиться"
     const shareBtn = document.getElementById('share-btn');
     if (shareBtn) {
         shareBtn.addEventListener('click', function() {
-            const totalPoints = pointsData.total_points || 0;
+            const totalPoints = Math.round(pointsData.total_points || 0);
             const shareText = `🎄 Я собираю новогодние очки на сервере JojoLand! Уже ${totalPoints} очков! Присоединяйся: ${window.location.origin}`;
             
             if (navigator.share) {
@@ -860,7 +818,6 @@ function setupEventListeners() {
     }
 }
 
-// ПОКАЗ УВЕДОМЛЕНИЯ
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -899,7 +856,6 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// ПОКАЗ ОШИБКИ
 function showError(message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
@@ -935,7 +891,6 @@ function showError(message) {
     }, 5000);
 }
 
-// Добавляем анимацию для уведомления
 const notificationStyle = document.createElement('style');
 notificationStyle.textContent = `
     @keyframes slideInRight {
