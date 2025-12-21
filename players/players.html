@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игроки | JojoLand</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="players.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Загрузка игроков...</p>
+    </div>
+
+    <header class="site-header">
+        <div class="header-content">
+            <a href="index.html" class="logo">JojoLand</a>
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link">🏠 Главная</a>
+                <a href="profile.html" class="nav-link">👤 Профиль</a>
+                <a href="players.html" class="nav-link active">👥 Игроки</a>
+                <a href="points.html" class="nav-link">🎄 Очки</a>
+            </nav>
+        </div>
+    </header>
+
+    <div id="content">
+        <div class="players-container">
+            <div class="page-header">
+                <h1 class="page-title">Сообщество игроков</h1>
+                <p class="page-subtitle">Найдите друзей, отслеживайте активность и взаимодействуйте с другими участниками сервера</p>
+            </div>
+
+            <div class="search-filters-section">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Поиск по нику, ID или рангу...">
+                    <div class="search-icon">🔍</div>
+                </div>
+                
+                <div class="filters-row">
+                    <div class="filters">
+                        <button class="filter-btn active" data-filter="all">
+                            <span>👥</span>
+                            Все игроки
+                        </button>
+                        <button class="filter-btn" data-filter="online">
+                            <span>🟢</span>
+                            Онлайн
+                        </button>
+                        <button class="filter-btn" data-filter="admin">
+                            <span>👑</span>
+                            Администрация
+                        </button>
+                        <button class="filter-btn" data-filter="moderator">
+                            <span>⚡</span>
+                            Модераторы
+                        </button>
+                    </div>
+                    
+                    <div class="sort-controls">
+                        <select id="sort-select" class="sort-select">
+                            <option value="activity">Активность</option>
+                            <option value="points">Топ по очкам</option>
+                            <option value="newest">Новички</option>
+                            <option value="oldest">Опытные</option>
+                            <option value="alphabetical">А-Я</option>
+                            <option value="reputation">Репутация</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="players-grid" id="players-grid">
+                <div class="loading-state" id="loading-players">
+                    <div class="loading-spinner-small"></div>
+                    <p>Загрузка списка игроков...</p>
+                </div>
+            </div>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <button class="back-to-top" id="back-to-top" aria-label="Наверх">↑</button>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="players.js"></script>
+</body>
+</html>
