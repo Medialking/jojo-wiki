@@ -551,7 +551,6 @@ async function startGame() {
         gameState.isPlaying = true;
         gameState.canPlay = false;
         
-        await updatePointsBalance(-gameState.betAmount);
         resetGameState();
         createNewGame();
         setCooldown(GAME_SETTINGS.cooldown);
@@ -614,6 +613,11 @@ async function updatePointsBalance(change) {
         change = Math.round(change);
         
         const newTotal = Math.max(0, Math.round(currentPoints + change));
+        
+        if (change < 0 && Math.abs(change) > currentPoints) {
+            showError('Недостаточно средств для списания');
+            throw new Error('Недостаточно средств');
+        }
         
         pointsData.total_points = newTotal;
         
