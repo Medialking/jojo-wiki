@@ -1,11 +1,11 @@
-// minesweeper.js - логика игры Сапер для казино (ИСПРАВЛЕННЫЙ)
+
 
 let userId = null;
 let userNickname = null;
 let pointsData = null;
 let casinoData = null;
 
-// Состояние игры
+
 let gameState = {
     balance: 0,
     betAmount: 50,
@@ -26,7 +26,7 @@ let gameState = {
     consecutiveGames: 0
 };
 
-// Настройки игры
+
 const GAME_SETTINGS = {
     gridSizes: {
         '5x5': { rows: 5, cols: 5, total: 25 },
@@ -42,10 +42,10 @@ const GAME_SETTINGS = {
     cooldown: 3000
 };
 
-// Логи для админ-панели
+
 let adminLogs = [];
 
-// ЗАГРУЗКА СТРАНИЦЫ
+
 window.onload = async function() {
     createParticles();
     
@@ -64,7 +64,7 @@ window.onload = async function() {
     }, 400);
 };
 
-// СОЗДАНИЕ ЧАСТИЦ
+
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
     if (!particlesContainer) return;
@@ -90,7 +90,7 @@ function createParticles() {
     }
 }
 
-// ДОБАВЛЕНИЕ ЛОГА ДЛЯ АДМИН-ПАНЕЛИ
+
 function addAdminLog(message, type = 'info') {
     const timestamp = new Date().toISOString();
     const logEntry = {
@@ -117,7 +117,7 @@ function addAdminLog(message, type = 'info') {
     }
 }
 
-// ПРОВЕРКА АВТОРИЗАЦИИ
+
 async function checkAuth() {
     userId = localStorage.getItem('jojoland_userId');
     userNickname = localStorage.getItem('jojoland_nickname');
@@ -133,10 +133,10 @@ async function checkAuth() {
     return true;
 }
 
-// ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+
 async function loadUserData() {
     try {
-        // Загружаем баланс очков
+        
         const pointsSnapshot = await database.ref('holiday_points/' + userId).once('value');
         if (pointsSnapshot.exists()) {
             pointsData = pointsSnapshot.val();
@@ -150,7 +150,7 @@ async function loadUserData() {
             gameState.balance = 0;
         }
         
-        // Загружаем данные казино
+        
         const casinoSnapshot = await database.ref('casino/' + userId).once('value');
         if (casinoSnapshot.exists()) {
             casinoData = casinoSnapshot.val();
@@ -197,7 +197,7 @@ async function loadUserData() {
     }
 }
 
-// ИНИЦИАЛИЗАЦИЯ ИГРОВОГО ПОЛЯ
+
 function initializeGameBoard() {
     const board = document.getElementById('game-board');
     if (!board) return;
@@ -228,7 +228,7 @@ function initializeGameBoard() {
     resetGameState();
 }
 
-// СБРОС СОСТОЯНИЯ ИГРЫ
+
 function resetGameState() {
     const gridSize = GAME_SETTINGS.gridSizes[gameState.gridSize];
     
@@ -240,7 +240,7 @@ function resetGameState() {
     gameState.cashoutEnabled = false;
     gameState.currentWin = 0;
     
-    // Обновляем UI если элементы существуют
+    
     safeUpdateElement('diamonds-found', '0');
     safeUpdateElement('total-diamonds', gameState.totalDiamonds.toString());
     safeUpdateElement('bombs-left', gameState.bombsCount.toString());
@@ -253,7 +253,7 @@ function resetGameState() {
     safeUpdateElement('multiplier-text', '1.00x');
     safeUpdateElement('game-status', 'Готов к игре');
     
-    // Сбрасываем ячейки
+    
     const cells = document.querySelectorAll('.cell');
     cells.forEach(cell => {
         cell.className = 'cell';
@@ -265,7 +265,7 @@ function resetGameState() {
     updateGameButtons();
 }
 
-// БЕЗОПАСНОЕ ОБНОВЛЕНИЕ ЭЛЕМЕНТА
+
 function safeUpdateElement(id, text) {
     const element = document.getElementById(id);
     if (element) {
@@ -273,7 +273,7 @@ function safeUpdateElement(id, text) {
     }
 }
 
-// СОЗДАНИЕ НОВОЙ ИГРЫ
+
 function createNewGame() {
     const gridSize = GAME_SETTINGS.gridSizes[gameState.gridSize];
     const totalCells = gridSize.total;
@@ -282,7 +282,7 @@ function createNewGame() {
     
     addAdminLog('🎮 Создание новой игры', 'game');
     
-    // 1. Распределяем алмазы
+    
     let diamondsPlaced = 0;
     while (diamondsPlaced < gameState.totalDiamonds) {
         const randomIndex = Math.floor(Math.random() * totalCells);
@@ -300,7 +300,7 @@ function createNewGame() {
         }
     }
     
-    // 2. Распределяем бомбы
+    
     let bombsPlaced = 0;
     while (bombsPlaced < gameState.bombsCount) {
         const randomIndex = Math.floor(Math.random() * totalCells);
@@ -320,7 +320,7 @@ function createNewGame() {
         }
     }
     
-    // 3. Остальные ячейки - пустые
+    
     for (let i = 0; i < totalCells; i++) {
         if (!gameState.gameGrid[i]) {
             gameState.gameGrid[i] = 'empty';
@@ -331,7 +331,7 @@ function createNewGame() {
     addAdminLog(`📊 Всего ячеек: ${totalCells}, Вероятность алмаза: ${Math.round((diamondsPlaced/totalCells)*100)}%`, 'stats');
 }
 
-// ОБРАБОТКА КЛИКА ПО ЯЧЕЙКЕ
+
 function handleCellClick(index) {
     if (gameState.gameOver || !gameState.isPlaying || gameState.revealedCells.includes(index)) {
         return;
@@ -358,7 +358,7 @@ function handleCellClick(index) {
     }, 300);
 }
 
-// ОБРАБОТКА НАЙДЕННОГО АЛМАЗА
+
 function handleDiamondFound(index) {
     gameState.diamondsFound++;
     updateMultiplier();
@@ -384,7 +384,7 @@ function handleDiamondFound(index) {
     addAdminLog(`💎 Найден алмаз в ячейке ${index + 1}`, 'diamond');
 }
 
-// ОБНОВЛЕНИЕ МНОЖИТЕЛЯ
+
 function updateMultiplier() {
     if (gameState.diamondsFound > 0 && gameState.diamondsFound <= GAME_SETTINGS.multipliers.length) {
         let newMultiplier = GAME_SETTINGS.multipliers[gameState.diamondsFound - 1];
@@ -409,7 +409,7 @@ function updateMultiplier() {
     }
 }
 
-// ОБРАБОТКА НАЙДЕННОЙ БОМБЫ
+
 function handleBombFound(index) {
     gameState.gameOver = true;
     gameState.isPlaying = false;
@@ -435,7 +435,7 @@ function handleBombFound(index) {
     addAdminLog(`💣 Найдена бомба в ячейке ${index + 1}`, 'bomb');
 }
 
-// ПОКАЗАТЬ ВСЕ БОМБЫ
+
 function revealAllBombs() {
     for (let i = 0; i < gameState.gameGrid.length; i++) {
         if (gameState.gameGrid[i] === 'bomb' && !gameState.revealedCells.includes(i)) {
@@ -450,7 +450,7 @@ function revealAllBombs() {
     }
 }
 
-// ОБРАБОТКА ПУСТОЙ ЯЧЕЙКИ
+
 function handleEmptyCell(index) {
     const cell = document.querySelector(`.cell[data-index="${index}"]`);
     if (cell) {
@@ -467,7 +467,7 @@ function handleEmptyCell(index) {
     addAdminLog(`⬜ Пустая ячейка ${index + 1}`, 'empty');
 }
 
-// ДЖЕКПОТ - ВСЕ АЛМАЗЫ НАЙДЕНЫ
+
 function handleJackpot() {
     gameState.gameOver = true;
     gameState.isPlaying = false;
@@ -483,7 +483,7 @@ function handleJackpot() {
     addAdminLog(`🎰 ДЖЕКПОТ! Все ${gameState.totalDiamonds} алмазов найдены!`, 'jackpot');
 }
 
-// ЗАБРАТЬ ВЫИГРЫШ
+
 async function cashout() {
     if (!gameState.cashoutEnabled || gameState.gameOver) {
         return;
@@ -495,16 +495,21 @@ async function cashout() {
     addAdminLog(`💰 Игрок забрал выигрыш: ${winAmount} (x${gameState.currentMultiplier})`, 'cashout');
 }
 
-// ЗАВЕРШЕНИЕ ИГРЫ
+
 async function finishGame(isWin, winAmount = 0) {
     gameState.gameOver = true;
     gameState.isPlaying = false;
     
     const finalWin = isWin ? winAmount : 0;
-    const balanceChange = isWin ? winAmount - gameState.betAmount : -gameState.betAmount;
+    
+   
+    const balanceChange = isWin ? winAmount : 0; 
     
     try {
-        await updatePointsBalance(balanceChange);
+        if (isWin && balanceChange > 0) {
+            await updatePointsBalance(balanceChange);
+        }
+        
         await saveGameResult(isWin, finalWin);
         showResultModal(isWin, finalWin);
         setCooldown(GAME_SETTINGS.cooldown);
@@ -518,7 +523,6 @@ async function finishGame(isWin, winAmount = 0) {
     }
 }
 
-// ОБНОВЛЕНИЕ КНОПКИ ЗАБРАТЬ
 function updateCashoutButton() {
     const cashoutBtn = document.getElementById('cashout-btn');
     const cashoutAmount = document.getElementById('cashout-amount');
@@ -538,7 +542,7 @@ function updateCashoutButton() {
     }
 }
 
-// ОБНОВЛЕНИЕ КНОПОК ИГРЫ
+
 function updateGameButtons() {
     const startBtn = document.getElementById('start-game-btn');
     const cashoutBtn = document.getElementById('cashout-btn');
@@ -573,7 +577,7 @@ function updateGameButtons() {
     cashoutBtn.disabled = !gameState.cashoutEnabled || gameState.gameOver;
 }
 
-// НАЧАТЬ НОВУЮ ИГРУ
+
 async function startGame() {
     addAdminLog('🎮 Попытка начать игру', 'game');
     
@@ -610,7 +614,7 @@ async function startGame() {
     }
 }
 
-// ПРОВЕРКА ВОЗМОЖНОСТИ НАЧАТЬ ИГРУ
+
 function canStartGame() {
     if (gameState.balance < gameState.betAmount) {
         showError('Недостаточно очков для ставки');
@@ -640,7 +644,7 @@ function canStartGame() {
     return true;
 }
 
-// ОБНОВЛЕНИЕ БАЛАНСА ОЧКОВ
+
 async function updatePointsBalance(change) {
     try {
         if (!pointsData) return;
@@ -672,7 +676,7 @@ async function updatePointsBalance(change) {
     }
 }
 
-// СОХРАНЕНИЕ РЕЗУЛЬТАТА ИГРЫ
+
 async function saveGameResult(isWin, winAmount) {
     try {
         const gameRecord = {
@@ -734,7 +738,7 @@ async function saveGameResult(isWin, winAmount) {
     }
 }
 
-// ОБНОВЛЕНИЕ ПОСЛЕДНИХ ИГР
+
 function updateRecentGames() {
     const recentGames = document.getElementById('recent-games');
     if (!recentGames) return;
@@ -769,7 +773,7 @@ function updateRecentGames() {
     }).join('');
 }
 
-// ПОКАЗ МОДАЛЬНОГО ОКНА С РЕЗУЛЬТАТОМ
+
 function showResultModal(isWin, winAmount) {
     const modal = document.getElementById('result-modal');
     const winConfetti = document.getElementById('win-confetti');
@@ -855,7 +859,7 @@ function showResultModal(isWin, winAmount) {
     }
 }
 
-// СОЗДАНИЕ КОНФЕТТИ
+
 function createWinConfetti() {
     const container = document.getElementById('win-confetti');
     if (!container) return;
@@ -880,7 +884,7 @@ function createWinConfetti() {
     }
 }
 
-// ЗАКРЫТИЕ МОДАЛЬНОГО ОКНА
+
 function closeResultModal() {
     const modal = document.getElementById('result-modal');
     if (!modal) return;
@@ -901,7 +905,7 @@ function closeResultModal() {
     }, 300);
 }
 
-// УСТАНОВКА КУЛДАУНА
+
 function setCooldown(duration) {
     gameState.cooldownEnd = Date.now() + duration;
     gameState.canPlay = false;
@@ -914,7 +918,7 @@ function setCooldown(duration) {
     startCooldownTimer();
 }
 
-// ЗАПУСК ТАЙМЕРА КУЛДАУНА
+
 function startCooldownTimer() {
     const cooldownInfo = document.getElementById('cooldown-info');
     const cooldownTimer = document.getElementById('cooldown-timer');
@@ -944,7 +948,7 @@ function startCooldownTimer() {
     updateTimer();
 }
 
-// ПРОВЕРКА КУЛДАУНА ПРИ ЗАГРУЗКЕ
+
 function checkCooldown() {
     if (gameState.cooldownEnd) {
         const now = Date.now();
@@ -958,7 +962,7 @@ function checkCooldown() {
     }
 }
 
-// ОБНОВЛЕНИЕ UI
+
 function updateUI() {
     try {
         safeUpdateElement('current-balance', gameState.balance.toString());
@@ -979,12 +983,12 @@ function updateUI() {
     }
 }
 
-// ВОСПРОИЗВЕДЕНИЕ ЗВУКА
+
 function playSound(type) {
-    // Можно добавить звуковые эффекты позже
+    
 }
 
-// МИГРАЦИЯ available_points
+
 async function migrateAvailablePointsToTotal() {
     try {
         const available = pointsData.available_points || 0;
@@ -1007,7 +1011,7 @@ async function migrateAvailablePointsToTotal() {
     }
 }
 
-// НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ
+
 function setupEventListeners() {
     const gameBoard = document.getElementById('game-board');
     if (gameBoard) {
@@ -1198,7 +1202,7 @@ function setupEventListeners() {
     }
 }
 
-// ПОКАЗ УВЕДОМЛЕНИЯ
+
 function showNotification(message, type = 'info') {
     if (!document.body) {
         console.log('Notification skipped - document.body not ready');
@@ -1252,12 +1256,12 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// ПОКАЗ ОШИБКИ
+
 function showError(message) {
     showNotification(message, 'error');
 }
 
-// Добавляем CSS для анимаций
+
 const gameStyle = document.createElement('style');
 gameStyle.textContent = `
     @keyframes confettiFall {
