@@ -358,7 +358,7 @@ async function toggleLike(userId) {
 }
 
 function viewPlayerProfile(userId) {
-    window.location.href = `profle/profile.html?view=${userId}`;
+    window.location.href = `../profle/profile.html?view=${userId}`;
 }
 
 async function loadAllPlayers() {
