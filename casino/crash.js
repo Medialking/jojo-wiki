@@ -606,34 +606,38 @@ function cashout() {
     updateActiveBetsUI();
 }
 
-// ЗАВЕРШЕНИЕ СТАВКИ
+// ЗАВЕРШЕНИЕ СТАВКИ — ИСПРАВЛЕНО
 async function finishBet(isWin) {
     const cashoutMultiplier = gameState.cashoutMultiplier || gameState.crashPoint;
-    const profit = isWin ? gameState.profit : 0;
-    const balanceChange = isWin ? profit - gameState.betAmount : -gameState.betAmount;
-    
+
+    // ПОЛНЫЙ ВЫИГРЫШ
+    const winAmount = isWin
+        ? Math.floor(gameState.betAmount * cashoutMultiplier)
+        : 0;
+
     try {
-        // Обновление баланса
-        await updatePointsBalance(balanceChange);
-        
-        // Сохранение результата
-        await saveBetResult(isWin, profit, cashoutMultiplier);
-        
-        // Показ модального окна
-        showResultModal(isWin, profit, cashoutMultiplier);
-        
+        // ✅ ЕСЛИ ВЫИГРАЛ — ДОБАВЛЯЕМ ВЕСЬ ВЫИГРЫШ
+        if (isWin) {
+            await updatePointsBalance(winAmount);
+        }
+
+        // Сохраняем результат
+        await saveBetResult(isWin, winAmount, cashoutMultiplier);
+
+        // Показываем результат
+        showResultModal(isWin, winAmount, cashoutMultiplier);
+
     } catch (error) {
         console.error('Ошибка при завершении ставки:', error);
         showError('Ошибка при завершении ставки');
     }
-    
-    // Сброс состояния ставки
+
+    // СБРОС
     gameState.hasBet = false;
     gameState.cashoutMultiplier = 0;
     gameState.yourBet = null;
     gameState.profit = 0;
-    
-    // Обновление кнопок
+
     updateButtons();
 }
 
