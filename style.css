@@ -1,2225 +1,377 @@
-/* ОБЩИЙ ФОН */
-body {
-    margin: 0;
-    background: linear-gradient(180deg, #0a0015 0%, #1a0030 50%, #0a0015 100%);
-    font-family: 'Orbitron', sans-serif;
-    color: #fff;
-    overflow-x: hidden;
-    min-height: 100vh;
-}
-
-/* АНИМАЦИЯ ЗАГРУЗКИ */
-#loader {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: #0a0011;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: 0.4s;
-    z-index: 1000;
-}
-
-.spinner {
-    width: 60px;
-    height: 60px;
-    border: 6px solid #6200ff;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0); }
-    to   { transform: rotate(360deg); }
-}
-
-#content {
-    opacity: 0;
-    transition: opacity 0.8s ease-in-out;
-}
-
-/* ХЕДЕР С КНОПКОЙ ПРОФИЛЯ */
-header {
-    text-align: center;
-    padding: 20px 20px 10px;
-    position: relative;
-}
-
-.header-top {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 15px;
-    position: relative;
-}
-
-.profile-btn {
-    position: absolute;
-    left: 20px;
-    top: 0;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 8px 15px;
-    color: white;
-    text-decoration: none;
-    font-size: 14px;
-    transition: all 0.3s;
-    z-index: 10;
-    backdrop-filter: blur(5px);
-    cursor: pointer;
-    border: none;
-    font-family: 'Orbitron', sans-serif;
-}
-
-.profile-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: #6200ff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(98, 0, 255, 0.3);
-}
-
-.profile-icon {
-    font-size: 18px;
-    margin-right: 8px;
-}
-
-.profile-text {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: bold;
-}
-
-/* ЛОГОТИП */
-.logo {
-    width: 120px;
-    height: 120px;
-    border-radius: 20px;
-    animation: logoFloat 4s ease-in-out infinite;
-    filter: drop-shadow(0 0 20px #7b00ff);
-    margin-bottom: 15px;
-}
-
-@keyframes logoFloat {
-    0%   { transform: translateY(0); }
-    50%  { transform: translateY(-8px); }
-    100% { transform: translateY(0); }
-}
-
-h1 {
-    font-size: 36px;
-    margin: 0 0 5px;
-    letter-spacing: 3px;
-    text-shadow: 0 0 15px #ff00ff;
-}
-
-.subtitle {
-    color: #aaaaff;
-    margin-bottom: 25px;
-    font-size: 14px;
-}
-
-/* МЕНЮ */
-nav {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    max-width: 500px;
-    margin: 0 auto 30px;
-    padding: 0 15px;
-}
-
-.nav-btn {
-    padding: 10px 20px;
-    background: rgba(255, 0, 170, 0.15);
-    border-radius: 12px;
-    color: #ffbaff;
-    text-decoration: none;
-    transition: all 0.25s;
-    box-shadow: 0 0 10px #b100ff50;
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-.nav-btn:hover {
-    background: rgba(255, 0, 200, 0.3);
-    box-shadow: 0 0 20px #ff00ee;
-    transform: translateY(-2px);
-}
-
-/* ОСНОВНОЙ КОНТЕНТ */
-.main-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px 40px;
-}
-
-/* ИНФОРМАЦИОННЫЙ БЛОК */
-.info-block {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.info-block h2 {
-    color: #ffcc00;
-    margin-bottom: 10px;
-    font-size: 24px;
-}
-
-.info-block p {
-    color: #aaaaff;
-    font-size: 14px;
-}
-
-/* СЕТКА КНОПОК (6 КНОПОК) */
-.button-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.main-btn {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 15px;
-    padding: 20px;
-    text-decoration: none;
-    color: white;
-    transition: all 0.3s;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-}
-
-.main-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    transition: width 0.3s;
-}
-
-.main-btn:hover::before {
-    width: 100%;
-    opacity: 0.1;
-}
-
-.main-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-.tgk-btn::before { background: #ff0066; }
-.tg-btn::before { background: #0088cc; }
-.donate-btn::before { background: #ff9900; }
-.refial-btn::before { background: #00bfff; }
-.points-btn::before { background: #ff0000; }
-.players-btn::before { background: #4CAF50; }
-
-.main-btn:hover .btn-icon {
-    transform: scale(1.2);
-}
-
-.btn-icon {
-    font-size: 32px;
-    margin-right: 20px;
-    transition: transform 0.3s;
-    width: 50px;
-    text-align: center;
-}
-
-.btn-content {
-    flex: 1;
-}
-
-.btn-content h3 {
-    margin: 0 0 5px;
-    font-size: 18px;
-    color: #ffffff;
-}
-
-.btn-content p {
-    margin: 0;
-    font-size: 13px;
-    color: #aaaaff;
-    opacity: 0.8;
-}
-
-/* БЫСТРЫЕ ССЫЛКИ / ЧАСТЫЕ ВОПРОСЫ */
-.quick-links {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    border-left: 4px solid #00cc66;
-}
-
-.quick-links h3 {
-    color: #00cc66;
-    margin-bottom: 20px;
-    font-size: 20px;
-    text-align: center;
-}
-
-.faq-items {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.faq-item {
-    background: rgba(0, 204, 102, 0.1);
-    border-radius: 10px;
-    padding: 15px;
-    border: 1px solid rgba(0, 204, 102, 0.2);
-}
-
-.faq-item h4 {
-    color: #00ff99;
-    margin: 0 0 8px;
-    font-size: 16px;
-}
-
-.faq-item p {
-    color: #ccccff;
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.faq-item a {
-    color: #00ffcc;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.faq-item a:hover {
-    text-decoration: underline;
-}
-
-/* ИНФОРМАЦИЯ О СЕРВЕРЕ */
-.server-info {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 25px;
-    margin-top: 30px;
-    border-left: 4px solid #ff00ff;
-}
-
-.server-info h3 {
-    color: #ffcc00;
-    margin-bottom: 15px;
-    font-size: 20px;
-}
-
-.server-info p {
-    color: #ccccff;
-    line-height: 1.6;
-    margin-bottom: 15px;
-    font-size: 15px;
-}
-
-.server-info strong {
-    color: #ff99ff;
-}
-
-/* НОВОГОДНИЙ БЛОК */
-.holiday-info {
-    background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(255, 153, 0, 0.1));
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 20px;
-    border: 1px solid rgba(255, 0, 0, 0.3);
-}
-
-.holiday-info h4 {
-    color: #ff9900;
-    margin: 0 0 10px;
-    font-size: 18px;
-}
-
-.holiday-info p {
-    color: #ffcc99;
-    margin-bottom: 15px;
-}
-
-.holiday-btn {
-    display: inline-block;
-    background: linear-gradient(90deg, #ff0000, #ff9900);
-    color: white;
-    text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: all 0.3s;
-    font-size: 14px;
-}
-
-.holiday-btn:hover {
-    transform: translateX(5px);
-    box-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
-}
-
-/* КНОПКА ПОМОЩИ */
-.help-btn {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    background: linear-gradient(135deg, #6200ff, #ff00ff);
-    border-radius: 50px;
-    padding: 15px 25px;
-    text-decoration: none;
-    color: white;
-    box-shadow: 0 5px 20px rgba(98, 0, 255, 0.5);
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    z-index: 100;
-    font-size: 14px;
-}
-
-.help-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 30px rgba(98, 0, 255, 0.7);
-}
-
-.help-icon {
-    font-size: 24px;
-    margin-right: 10px;
-}
-
-/* ФУТЕР */
-footer {
-    padding: 25px 20px;
-    text-align: center;
-    margin-top: 40px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.footer-content {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.footer-content p {
-    margin: 5px 0;
-    color: #aaaaff;
-    font-size: 14px;
-}
-
-.footer-ip {
-    color: #ffcc00 !important;
-    font-weight: bold;
-    font-size: 16px !important;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-}
-
-/* =========================================== */
-/* СТИЛИ ДЛЯ ПРОФИЛЯ (profile.html) */
-/* =========================================== */
-
-/* КОНТЕЙНЕР ПРОФИЛЯ */
-.profile-container {
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
-
-/* ЗАГОЛОВОК ПРОФИЛЯ */
-.profile-header {
-    display: flex;
-    align-items: center;
-    background: linear-gradient(135deg, rgba(98, 0, 255, 0.2), rgba(255, 0, 255, 0.2));
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 30px;
-    border: 2px solid #6200ff;
-    position: relative;
-    overflow: hidden;
-}
-
-.profile-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, #6200ff, #ff00ff);
-}
-
-.profile-avatar {
-    width: 100px;
-    height: 100px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    margin-right: 25px;
-    border: 3px solid #ffcc00;
-    box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
-}
-
-.profile-info {
-    flex: 1;
-}
-
-.profile-name {
-    color: #ffcc00;
-    font-size: 28px;
-    margin: 0 0 5px;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-}
-
-.profile-id {
-    color: #aaaaff;
-    font-size: 14px;
-    margin-bottom: 15px;
-}
-
-.profile-badges {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.badge {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 5px 10px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* СЕТКА СТАТИСТИКИ */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.stat-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 20px;
-    border-left: 4px solid #00cc66;
-    transition: all 0.3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.stat-card:nth-child(2) {
-    border-left-color: #6200ff;
-}
-
-.stat-card:nth-child(3) {
-    border-left-color: #ff9900;
-}
-
-.stat-icon {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-.stat-title {
-    color: #aaaaff;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.stat-value {
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    font-family: 'Michroma', sans-serif;
-}
-
-/* ЗАГОЛОВКИ РАЗДЕЛОВ */
-.section-title {
-    color: #ffcc00;
-    font-size: 22px;
-    margin: 40px 0 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(255, 204, 0, 0.3);
-}
-
-/* ДОСТИЖЕНИЯ */
-.achievements-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 40px;
-}
-
-.achievement-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 15px;
-    text-align: center;
-    transition: all 0.3s;
-    border: 1px solid transparent;
-    position: relative;
-}
-
-.achievement-card:hover {
-    border-color: #ffcc00;
-    transform: scale(1.05);
-}
-
-.achievement-card.locked {
-    opacity: 0.5;
-    filter: grayscale(1);
-}
-
-.achievement-icon {
-    font-size: 32px;
-    margin-bottom: 10px;
-}
-
-.achievement-name {
-    color: white;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.achievement-desc {
-    color: #aaaaff;
-    font-size: 12px;
-}
-
-/* НОВОГОДНИЕ ОЧКИ */
-.holiday-points-card {
-    background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(255, 153, 0, 0.1));
-    border-radius: 15px;
-    padding: 25px;
-    border: 2px solid #ff9900;
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-.points-display {
-    font-size: 48px;
-    color: #ffcc00;
-    font-weight: bold;
-    margin: 10px 0;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-}
-
-.points-label {
-    color: #ffcc99;
-    font-size: 14px;
-}
-
-/* КНОПКИ ДЕЙСТВИЙ */
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    margin-top: 30px;
-}
-
-.action-btn {
-    flex: 1;
-    padding: 12px;
-    background: rgba(98, 0, 255, 0.2);
-    border: 1px solid #6200ff;
-    border-radius: 10px;
-    color: white;
-    text-decoration: none;
-    text-align: center;
-    transition: all 0.3s;
-    font-family: 'Orbitron', sans-serif;
-    cursor: pointer;
-    border: none;
-    font-size: 14px;
-}
-
-.action-btn:hover {
-    background: rgba(98, 0, 255, 0.4);
-    transform: translateY(-3px);
-}
-
-.back-btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: white;
-    text-decoration: none;
-    margin-top: 20px;
-    transition: all 0.3s;
-    text-align: center;
-    font-size: 14px;
-}
-
-.back-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* ОШИБКИ И УВЕДОМЛЕНИЯ */
-.error-message {
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid #ff4444;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 20px 0;
-    color: #ffaaaa;
-    text-align: center;
-    font-size: 14px;
-}
-
-.success-message {
-    background: rgba(0, 204, 102, 0.1);
-    border: 1px solid #00cc66;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 20px 0;
-    color: #aaffcc;
-    text-align: center;
-}
-
-/* СТИЛИ ДЛЯ СТАТУСА ДОСТИЖЕНИЙ */
-.achievement-status {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 12px;
-    color: #00ff00;
-}
-
-/* =========================================== */
-/* СТИЛИ ДЛЯ СТРАНИЦЫ ИГРОКОВ (players.html) */
-/* =========================================== */
-
-/* СТИЛИ ДЛЯ СТРАНИЦЫ ИГРОКОВ */
-.players-container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
-
-.page-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.page-title {
-    color: #ffcc00;
-    font-size: 32px;
-    margin-bottom: 10px;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-}
-
-.page-subtitle {
-    color: #aaaaff;
-    font-size: 16px;
-    margin-bottom: 30px;
-}
-
-/* ПОИСК И ФИЛЬТРЫ */
-.search-section {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    border: 1px solid rgba(98, 0, 255, 0.3);
-}
-
-.search-box {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-#search-input {
-    width: 100%;
-    padding: 15px 50px 15px 20px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid #6200ff;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    transition: all 0.3s;
-}
-
-#search-input:focus {
-    outline: none;
-    border-color: #ff00ff;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
-}
-
-.search-icon {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #aaaaff;
-    font-size: 20px;
-}
-
-.filters {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: #aaaaff;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
-}
-
-.filter-btn:hover,
-.filter-btn.active {
-    background: rgba(98, 0, 255, 0.3);
-    color: white;
-    border-color: #6200ff;
-}
-
-/* КАТЕГОРИИ ИГРОКОВ */
-.players-category {
-    margin-bottom: 40px;
-}
-
-.category-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #ffcc00;
-    font-size: 24px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(255, 204, 0, 0.3);
-}
-
-.category-badge {
-    background: linear-gradient(90deg, #ff4444, #ff9900);
-    color: white;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-/* СЕТКА ИГРОКОВ */
-.players-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-/* КАРТОЧКА ИГРОКА */
-.player-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-}
-
-.player-card:hover {
-    transform: translateY(-5px);
-    border-color: #6200ff;
-    box-shadow: 0 10px 30px rgba(98, 0, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.player-card.admin {
-    border: 2px solid #ff4444;
-    background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 153, 0, 0.1));
-}
-
-.player-card.moderator {
-    border: 2px solid #00ccff;
-    background: linear-gradient(135deg, rgba(0, 204, 255, 0.1), rgba(0, 102, 255, 0.1));
-}
-
-.player-card.vip {
-    border: 2px solid #ffcc00;
-    background: linear-gradient(135deg, rgba(255, 204, 0, 0.1), rgba(255, 153, 0, 0.1));
-}
-
-.player-card.leaderboard {
-    border: 3px solid #ffcc00 !important;
-    background: linear-gradient(135deg, rgba(255, 204, 0, 0.2), rgba(255, 153, 0, 0.2)) !important;
-}
-
-.player-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.player-avatar {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    margin-right: 15px;
-    border: 2px solid #ffcc00;
-}
-
-.leaderboard:nth-child(1) .player-avatar {
-    border: 3px solid #ffcc00;
-    box-shadow: 0 0 25px rgba(255, 204, 0, 0.7);
-}
-
-.leaderboard:nth-child(2) .player-avatar {
-    border: 3px solid #c0c0c0;
-    box-shadow: 0 0 20px rgba(192, 192, 192, 0.7);
-}
-
-.leaderboard:nth-child(3) .player-avatar {
-    border: 3px solid #cd7f32;
-    box-shadow: 0 0 20px rgba(205, 127, 50, 0.7);
-}
-
-.player-info {
-    flex: 1;
-}
-
-.player-name {
-    color: white;
-    font-size: 18px;
-    margin: 0 0 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.player-rank {
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: bold;
-}
-
-.player-rank.admin {
-    background: linear-gradient(90deg, #ff4444, #ff9900);
-    color: white;
-}
-
-.player-rank.moderator {
-    background: linear-gradient(90deg, #00ccff, #0066ff);
-    color: white;
-}
-
-.player-rank.vip {
-    background: linear-gradient(90deg, #ffcc00, #ff9900);
-    color: black;
-}
-
-.player-rank.player {
-    background: rgba(255, 255, 255, 0.1);
-    color: #aaaaff;
-}
-
-.player-id {
-    color: #aaaaff;
-    font-size: 12px;
-    margin: 0;
-}
-
-/* СТАТИСТИКА ИГРОКА */
-.player-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.stat-item {
-    text-align: center;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 8px;
-    border-radius: 8px;
-}
-
-.stat-value {
-    color: #ffcc00;
-    font-size: 16px;
-    font-weight: bold;
-    display: block;
-}
-
-.stat-label {
-    color: #aaaaff;
-    font-size: 10px;
-    display: block;
-    margin-top: 2px;
-}
-
-/* КНОПКА ПРОСМОТРА ПРОФИЛЯ */
-.view-profile-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background: rgba(98, 0, 255, 0.2);
-    border: 1px solid #6200ff;
-    border-radius: 10px;
-    color: white;
-    text-decoration: none;
-    text-align: center;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
-    transition: all 0.3s;
-    cursor: pointer;
-    border: none;
-}
-
-.view-profile-btn:hover {
-    background: rgba(98, 0, 255, 0.4);
-    transform: translateY(-2px);
-}
-
-/* ОНЛАЙН СТАТУС */
-.online-status {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-
-.status-dot.online {
-    background: #00ff00;
-    box-shadow: 0 0 10px #00ff00;
-}
-
-.status-dot.offline {
-    background: #ff4444;
-}
-
-.status-dot.ingame {
-    background: #ffcc00;
-    box-shadow: 0 0 10px #ffcc00;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-/* ПАГИНАЦИЯ */
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 40px;
-}
-
-.page-btn {
-    padding: 8px 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: #aaaaff;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Orbitron', sans-serif;
-    border: none;
-}
-
-.page-btn:hover,
-.page-btn.active {
-    background: rgba(98, 0, 255, 0.3);
-    color: white;
-}
-
-.page-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* ЗАГРУЗКА */
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #aaaaff;
-    font-size: 18px;
-    grid-column: 1 / -1;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #6200ff;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-/* НИЧЕГО НЕ НАЙДЕНО */
-.no-results {
-    text-align: center;
-    padding: 40px;
-    color: #aaaaff;
-    font-size: 18px;
-    grid-column: 1 / -1;
-}
-
-/* РЕЙТИНГ ИГРОКОВ */
-.leaderboard-btn {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
-    background: linear-gradient(90deg, #ffcc00, #ff9900);
-    color: black;
-    text-decoration: none;
-    border-radius: 10px;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.leaderboard-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 20px rgba(255, 204, 0, 0.3);
-}
-
-/* ИНФОРМАЦИЯ ОБ ИГРОКЕ ПРИ НАВЕДЕНИИ */
-.player-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 10px;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s;
-    pointer-events: none;
-    z-index: 10;
-    border: 1px solid #6200ff;
-}
-
-.player-card:hover .player-tooltip {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* =========================================== */
-/* СТИЛИ ДЛЯ ФОРМЫ АВТОРИЗАЦИИ */
-/* =========================================== */
-
-/* МОДАЛЬНОЕ ОКНО */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-content {
-    background: linear-gradient(180deg, #1a0030 0%, #0a0015 100%);
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    border: 2px solid #6200ff;
-    box-shadow: 0 0 40px rgba(98, 0, 255, 0.5);
-    overflow: hidden;
-    animation: slideUp 0.5s ease;
-}
-
-@keyframes slideUp {
-    from { transform: translateY(50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* ВКЛАДКИ */
-.auth-tabs {
-    display: flex;
-    border-bottom: 1px solid rgba(98, 0, 255, 0.5);
-    background: rgba(0, 0, 0, 0.2);
-}
-
-.auth-tab {
-    flex: 1;
-    padding: 15px;
-    background: none;
-    border: none;
-    color: #aaaaff;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-}
-
-.auth-tab:hover {
-    color: white;
-    background: rgba(98, 0, 255, 0.1);
-}
-
-.auth-tab.active {
-    color: #ffcc00;
-    font-weight: bold;
-}
-
-.auth-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #6200ff, #ff00ff);
-}
-
-.modal-header {
-    padding: 30px 30px 20px;
-    text-align: center;
-    background: linear-gradient(90deg, #6200ff20, #ff00ff20);
-    border-bottom: 1px solid #6200ff50;
-}
-
-.modal-header h2 {
-    color: #ffcc00;
-    margin: 0 0 10px;
-    font-size: 24px;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-}
-
-.modal-header p {
-    color: #aaaaff;
-    margin: 0;
-    font-size: 14px;
-}
-
-.modal-body {
-    padding: 30px;
-}
-
-/* ПОЛЯ ВВОДА */
-.input-group {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.input-group label {
-    display: block;
-    color: #aaaaff;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-#nickname-input, #login-nickname, #reg-nickname, #login-password, #reg-password, #reg-confirm-password {
-    width: 100%;
-    padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid #6200ff;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    transition: all 0.3s;
-    box-sizing: border-box;
-}
-
-#nickname-input:focus, #login-nickname:focus, #reg-nickname:focus, 
-#login-password:focus, #reg-password:focus, #reg-confirm-password:focus {
-    outline: none;
-    border-color: #ff00ff;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
-    background: rgba(255, 255, 255, 0.12);
-}
-
-#nickname-input::placeholder, #login-nickname::placeholder, #reg-nickname::placeholder,
-#login-password::placeholder, #reg-password::placeholder, #reg-confirm-password::placeholder {
-    color: #8888cc;
-}
-
-/* КНОПКА ПОКАЗА ПАРОЛЯ */
-.password-toggle {
-    position: absolute;
-    right: 15px;
-    top: 42px;
-    cursor: pointer;
-    font-size: 18px;
-    user-select: none;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-    z-index: 2;
-}
-
-.password-toggle:hover {
-    opacity: 1;
-}
-
-/* ПОДСКАЗКИ */
-.input-hint {
-    text-align: right;
-    margin-top: 8px;
-    color: #aaaaff;
-    font-size: 13px;
-}
-
-#char-count, #reg-char-count {
-    background: rgba(98, 0, 255, 0.2);
-    padding: 2px 10px;
-    border-radius: 10px;
-    font-family: 'Michroma', sans-serif;
-}
-
-.error-message-modal {
-    color: #ff4444;
-    margin-top: 8px;
-    font-size: 13px;
-    min-height: 20px;
-    text-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
-}
-
-/* ТРЕБОВАНИЯ */
-.requirements {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.requirements h4 {
-    color: #00ccff;
-    margin: 0 0 15px;
-    font-size: 16px;
-    text-align: center;
-}
-
-.requirements ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.requirements li {
-    padding: 8px 0;
-    color: #ccccff;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-}
-
-.requirements li:before {
-    content: '';
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 10px;
-    border-radius: 50%;
-    background: #ff4444;
-}
-
-.requirements li.valid:before {
-    background: #00cc66;
-    content: '✓';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: white;
-}
-
-.requirements li.invalid:before {
-    background: #ff4444;
-    content: '✗';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: white;
-}
-
-/* ФУТЕР МОДАЛЬНОГО ОКНА */
-.modal-footer {
-    padding: 0 30px 30px;
-    text-align: center;
-}
-
-.submit-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(90deg, #6200ff, #ff00ff);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.submit-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(98, 0, 255, 0.5);
-}
-
-.submit-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: linear-gradient(90deg, #555, #777);
-}
-
-.modal-note {
-    color: #8888cc;
-    font-size: 12px;
-    margin-top: 15px;
-    font-style: italic;
-}
-
-.modal-note a {
-    color: #00ccff;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.modal-note a:hover {
-    text-decoration: underline;
-}
-
-.server-info-small {
-    background: rgba(98, 0, 255, 0.2);
-    padding: 15px;
-    text-align: center;
-    color: #aaaaff;
-    font-size: 14px;
-    border-top: 1px solid rgba(98, 0, 255, 0.5);
-}
-
-.server-info-small strong {
-    color: #ffcc00;
-}
-
-/* КНОПКА ВЫХОДА В ХЕДЕРЕ */
-#logout-btn-header {
-    right: 20px;
-    left: auto;
-    background: rgba(255, 68, 68, 0.2);
-    border-color: #ff4444;
-}
-
-#logout-btn-header:hover {
-    background: rgba(255, 68, 68, 0.3);
-}
-
-/* =========================================== */
-/* СТИЛИ ДЛЯ ВХОДА ЧЕРЕЗ EMAIL */
-/* =========================================== */
-
-/* Секция входа через email */
-.email-login-section {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-}
-
-.switch-login-type {
-    margin: 10px 0 20px;
-}
-
-.switch-login-type-btn {
-    background: none;
-    border: none;
-    color: #00ccff;
-    cursor: pointer;
-    font-size: 14px;
-    text-decoration: underline;
-    font-family: 'Orbitron', sans-serif;
-    padding: 5px;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.switch-login-type-btn:hover {
-    color: #00ffcc;
-    transform: translateY(-2px);
-}
-
-/* Форма входа через email */
-#login-email-form .input-group {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-#login-email {
-    width: 100%;
-    padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid #00b4d8;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    transition: all 0.3s;
-    box-sizing: border-box;
-}
-
-#login-email:focus {
-    outline: none;
-    border-color: #48cae4;
-    box-shadow: 0 0 20px rgba(72, 202, 228, 0.3);
-    background: rgba(255, 255, 255, 0.12);
-}
-
-#login-email::placeholder {
-    color: #8888cc;
-}
-
-/* Поле для кода */
-#login-code {
-    width: 100%;
-    padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid #00cc66;
-    border-radius: 12px;
-    color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 20px;
-    letter-spacing: 5px;
-    text-align: center;
-    transition: all 0.3s;
-    box-sizing: border-box;
-    text-transform: uppercase;
-}
-
-#login-code:focus {
-    outline: none;
-    border-color: #00ff88;
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-    background: rgba(255, 255, 255, 0.12);
-}
-
-#login-code::placeholder {
-    color: #8888cc;
-    letter-spacing: normal;
-    font-size: 14px;
-    text-transform: none;
-}
-
-/* Таймер для кода */
-#login-code-timer {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
-    font-weight: bold;
-    margin: 10px 0 20px;
-    padding: 10px;
-    background: rgba(255, 152, 0, 0.1);
-    border-radius: 8px;
-    border-left: 3px solid #ff9800;
-    animation: pulseWarning 2s infinite;
-}
-
-@keyframes pulseWarning {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
-}
-
-/* Кнопка для email-входа */
-#login-email-btn {
-    background: linear-gradient(90deg, #00b4d8, #0096c7);
-}
-
-#login-email-btn:hover:not(:disabled) {
-    box-shadow: 0 10px 25px rgba(0, 180, 216, 0.5);
-}
-
-/* Иконка email */
-.email-icon {
-    font-size: 24px;
-    margin-right: 10px;
-    vertical-align: middle;
-}
-
-/* Стили для уведомлений с кодом */
-.code-notification {
-    background: linear-gradient(135deg, #6200ff, #ff00ff);
-    border: 2px solid #ff00ff;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px 0;
-    text-align: center;
-    animation: slideIn 0.5s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.code-display {
-    font-family: 'Courier New', monospace;
-    font-size: 32px;
-    font-weight: bold;
-    letter-spacing: 8px;
-    color: white;
-    margin: 15px 0;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-/* Индикатор отправки email */
-.email-sending {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: #aaaaff;
-    margin-top: 10px;
-}
-
-.email-sending::before {
-    content: '';
-    width: 16px;
-    height: 16px;
-    border: 2px solid #00ccff;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-/* Сообщение об успешной отправке */
-.email-sent-message {
-    background: rgba(0, 204, 102, 0.1);
-    border: 1px solid #00cc66;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 15px 0;
-    text-align: center;
-    color: #aaffcc;
-    font-size: 14px;
-}
-
-.email-sent-message strong {
-    color: #00ff88;
-}
-
-/* Стили для формы в настройках (привязка email) */
-#email-verification-section {
-    background: rgba(0, 180, 216, 0.1);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 15px 0;
-    border: 1px solid rgba(0, 180, 216, 0.3);
-}
-
-#verification-code {
-    font-family: 'Courier New', monospace;
-    font-size: 18px;
-    letter-spacing: 3px;
-    text-align: center;
-}
-
-#verification-timer {
-    background: rgba(255, 152, 0, 0.1);
-    border-left: 3px solid #ff9800;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-top: 15px;
-    font-weight: bold;
-}
-
-/* Кнопка подтверждения email */
-#verify-email-btn {
-    background: linear-gradient(90deg, #00cc66, #00ff88);
-}
-
-#verify-email-btn:hover:not(:disabled) {
-    box-shadow: 0 10px 25px rgba(0, 204, 102, 0.5);
-}
-
-/* Отображение привязанного email */
-.email-display {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: rgba(0, 204, 102, 0.1);
-    border-radius: 12px;
-    margin-bottom: 15px;
-    border: 1px solid rgba(0, 204, 102, 0.3);
-}
-
-.email-text {
-    font-size: 18px;
-    color: white;
-    font-weight: bold;
-}
-
-.email-status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(0, 204, 102, 0.3);
-    color: #00ff88;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    margin-left: 10px;
-}
-
-/* Адаптивность для email формы */
-@media (max-width: 768px) {
-    #login-code {
-        font-size: 18px;
-        letter-spacing: 3px;
-        padding: 12px 15px;
-    }
-    
-    .code-display {
-        font-size: 24px;
-        letter-spacing: 5px;
-        padding: 10px;
-    }
-    
-    .switch-login-type-btn {
-        font-size: 13px;
-    }
-    
-    .email-icon {
-        font-size: 20px;
-    }
-    
-    .email-text {
-        font-size: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    #login-code {
-        font-size: 16px;
-        letter-spacing: 2px;
-        padding: 10px;
-    }
-    
-    .code-display {
-        font-size: 20px;
-        letter-spacing: 3px;
-    }
-    
-    .switch-login-type-btn span {
-        display: none;
-    }
-    
-    .switch-login-type-btn::before {
-        content: '📧';
-        font-size: 18px;
-    }
-    
-    #switch-to-nickname-login::before {
-        content: '👤';
-    }
-    
-    .email-display {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    
-    .email-status-badge {
-        margin-left: 0;
-        margin-top: 5px;
-    }
-}
-
-/* Анимация появления кода */
-@keyframes codeAppear {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.code-appear {
-    animation: codeAppear 0.5s ease-out;
-}
-
-/* Стили для иконок состояния email */
-.email-status-icon {
-    font-size: 24px;
-    margin-right: 10px;
-}
-
-.email-status-icon.verified {
-    color: #00cc66;
-    animation: pulseVerified 2s infinite;
-}
-
-@keyframes pulseVerified {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
-}
-
-.email-status-icon.pending {
-    color: #ff9800;
-    animation: spin 2s linear infinite;
-}
-
-.email-status-icon.unverified {
-    color: #ff4444;
-}
-
-/* Тултипы для email */
-.email-tooltip {
-    position: relative;
-    cursor: help;
-}
-
-.email-tooltip:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 10;
-    border: 1px solid #6200ff;
-    margin-bottom: 5px;
-}
-
-/* Прогресс бар для таймера */
-.timer-progress {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    margin-top: 10px;
-    overflow: hidden;
-}
-
-.timer-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #00cc66, #ff9800);
-    width: 100%;
-    transition: width 1s linear;
-}
-
-/* Сообщение об ошибке email */
-.email-error {
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid #ff4444;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 15px 0;
-    color: #ffaaaa;
-    text-align: center;
-    font-size: 14px;
-}
-
-.email-error::before {
-    content: '⚠️ ';
-    margin-right: 8px;
-}
-
-/* Успешное сообщение email */
-.email-success {
-    background: rgba(0, 204, 102, 0.1);
-    border: 1px solid #00cc66;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 15px 0;
-    color: #aaffcc;
-    text-align: center;
-    font-size: 14px;
-}
-
-.email-success::before {
-    content: '✅ ';
-    margin-right: 8px;
-}
-
-/* Стили для кнопки повторной отправки кода */
-.resend-code-btn {
-    background: none;
-    border: 1px solid #00b4d8;
-    color: #00b4d8;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-top: 10px;
-    font-family: 'Orbitron', sans-serif;
-}
-
-.resend-code-btn:hover:not(:disabled) {
-    background: rgba(0, 180, 216, 0.2);
-    transform: translateY(-2px);
-}
-
-.resend-code-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* =========================================== */
-/* АДАПТИВНОСТЬ */
-/* =========================================== */
-
-@media (max-width: 768px) {
-    .logo {
-        width: 100px;
-        height: 100px;
-    }
-    
-    h1 {
-        font-size: 28px;
-    }
-    
-    .button-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .main-btn {
-        padding: 15px;
-    }
-    
-    .btn-icon {
-        font-size: 28px;
-        margin-right: 15px;
-        width: 40px;
-    }
-    
-    .btn-content h3 {
-        font-size: 16px;
-    }
-    
-    .btn-content p {
-        font-size: 12px;
-    }
-    
-    .faq-item h4 {
-        font-size: 15px;
-    }
-    
-    .faq-item p {
-        font-size: 13px;
-    }
-    
-    .help-btn {
-        right: 15px;
-        bottom: 15px;
-        padding: 12px 20px;
-    }
-    
-    .help-icon {
-        font-size: 20px;
-        margin-right: 8px;
-    }
-    
-    .help-btn span {
-        font-size: 13px;
-    }
-    
-    /* Кнопка профиля на главной */
-    .profile-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-    }
-    
-    .profile-text {
-        display: none;
-    }
-    
-    .profile-icon {
-        margin-right: 0;
-        font-size: 20px;
-    }
-    
-    /* Адаптивность профиля */
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .profile-avatar {
-        margin-right: 0;
-        margin-bottom: 15px;
-        width: 80px;
-        height: 80px;
-        font-size: 36px;
-    }
-    
-    .profile-name {
-        font-size: 24px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .achievements-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-    
-    .action-buttons {
-        flex-direction: column;
-    }
-    
-    /* Модальное окно */
-    .modal-content {
-        width: 95%;
-        margin: 20px;
-    }
-    
-    .modal-header {
-        padding: 25px 20px 15px;
-    }
-    
-    .modal-header h2 {
-        font-size: 20px;
-    }
-    
-    .modal-body {
-        padding: 20px;
-    }
-    
-    #nickname-input, #login-nickname, #reg-nickname, #login-password, #reg-password, #reg-confirm-password {
-        padding: 12px 15px;
-        font-size: 14px;
-    }
-    
-    .modal-footer {
-        padding: 0 20px 20px;
-    }
-    
-    .submit-btn {
-        padding: 14px;
-        font-size: 14px;
-    }
-    
-    /* Формы авторизации */
-    .auth-tab {
-        padding: 12px;
-        font-size: 14px;
-    }
-    
-    .input-group label {
-        font-size: 13px;
-    }
-    
-    .password-toggle {
-        right: 10px;
-        top: 38px;
-    }
-    
-    /* Страница игроков */
-    .players-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    }
-    
-    .player-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .filters {
-        flex-direction: column;
-    }
-    
-    .filter-btn {
-        width: 100%;
-        text-align: center;
-    }
-    
-    .category-title {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    nav {
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .nav-btn {
-        width: 100%;
-        max-width: 250px;
-        text-align: center;
-    }
-    
-    .logo {
-        width: 80px;
-        height: 80px;
-    }
-    
-    h1 {
-        font-size: 24px;
-    }
-    
-    .subtitle {
-        font-size: 12px;
-    }
-    
-    .help-btn {
-        padding: 10px 15px;
-        font-size: 12px;
-    }
-    
-    .help-btn span {
-        display: none;
-    }
-    
-    .help-icon {
-        margin-right: 0;
-        font-size: 22px;
-    }
-    
-    .holiday-btn {
-        display: block;
-        text-align: center;
-        padding: 12px;
-    }
-    
-    /* Профиль */
-    .profile-btn {
-        left: 10px;
-        top: 5px;
-        padding: 5px 10px;
-    }
-    
-    .profile-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
-    }
-    
-    .profile-name {
-        font-size: 20px;
-    }
-    
-    .section-title {
-        font-size: 18px;
-    }
-    
-    .points-display {
-        font-size: 36px;
-    }
-    
-    /* Модальное окно */
-    .modal-header h2 {
-        font-size: 18px;
-    }
-    
-    .modal-header p {
-        font-size: 12px;
-    }
-    
-    .requirements h4 {
-        font-size: 14px;
-    }
-    
-    .requirements li {
-        font-size: 12px;
-    }
-    
-    /* Формы авторизации */
-    .auth-tab {
-        padding: 10px;
-        font-size: 13px;
-    }
-    
-    .password-toggle {
-        font-size: 16px;
-    }
-    
-    /* Страница игроков */
-    .players-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .player-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .player-avatar {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    
-    .page-title {
-        font-size: 24px;
-    }
+/* =========================================================
+   OBLIVION NETWORK 2025 – UNIFIED CSS
+   Автор: @yourname
+   Описание: адаптив, тёмная тема, neon-акценты, минимум дублирования
+   ========================================================= */
+
+/* ---------- CSS-ПЕРЕМЕННЫЕ ---------- */
+:root{
+  --clr-bg:#0a0015;
+  --clr-bg2:#1a0030;
+  --clr-primary:#6200ff;
+  --clr-accent:#ffcc00;
+  --clr-danger:#ff4444;
+  --clr-success:#00cc66;
+  --clr-muted:#aaaaff;
+  --clr-text:#ffffff;
+
+  --radius:12px;
+  --gap:clamp(8px, 2vw, 20px);
+  --font-base:'Orbitron', sans-serif;
+  --transition:.25s ease;
+  --max-width:1200px;
+
+  --header-h:clamp(60px, 10vh, 100px);
+}
+
+/* ---------- RESET + BASE ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg, var(--clr-bg) 0%, var(--clr-bg2) 50%, var(--clr-bg) 100%);
+  color:var(--clr-text);
+  font-family:var(--font-base);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+button{font:inherit;border:none;background:none;cursor:pointer}
+ul{list-style:none}
+
+/* ---------- УТИЛИТЫ ---------- */
+.wrapper{width:90%;max-width:var(--max-width);margin-inline:auto}
+.grid-auto{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.flex-col-center{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.text-center{text-align:center}
+.hidden{display:none}
+
+/* ---------- ТИПОГРАФИКА (clamp = автоматический размер) ---------- */
+h1{font-size:clamp(1.8rem, 4vw + 1rem, 3rem)}
+h2{font-size:clamp(1.4rem, 3vw + .5rem, 2rem)}
+h3{font-size:clamp(1.1rem, 2vw + .5rem, 1.5rem)}
+p,span,label{font-size:clamp(.8rem, 1.5vw, .95rem)}
+
+/* ---------- КНОПКИ ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  padding:.65em 1.3em;
+  border-radius:var(--radius);
+  background:rgba(255 255 255 /.08);
+  border:1px solid rgba(255 255 255 /.15);
+  color:var(--clr-text);
+  transition:var(--transition);
+  white-space:nowrap;
+}
+.btn:hover{background:rgba(255 255 255 /.15);transform:translateY(-2px)}
+.btn-primary{background:var(--clr-primary);border-color:var(--clr-primary);color:#fff}
+.btn-accent{background:var(--clr-accent);color:#000}
+.btn-danger{background:var(--clr-danger);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- HEADER ---------- */
+header{
+  padding:var(--gap) 0;
+  text-align:center;
+  position:relative;
+}
+.header-top{position:relative;display:flex;align-items:center;justify-content:center}
+.logo{
+  width:clamp(80px, 10vw, 120px);
+  aspect-ratio:1;
+  border-radius:var(--radius);
+  filter:drop-shadow(0 0 15px var(--clr-primary));
+  animation:float 4s ease-in-out infinite;
+}
+@keyframes float{50%{transform:translateY(-6px)}}
+.subtitle{color:var(--clr-muted);font-size:clamp(.75rem, 1.5vw, .9rem);margin-top:.25rem}
+
+/* кнопка профиля / выхода */
+.profile-btn{
+  position:absolute;left:var(--gap);top:0;
+  display:flex;align-items:center;gap:.5em;
+  padding:.5em 1em;
+  background:rgba(255 255 255 /.1);
+  border:1px solid rgba(255 255 255 /.2);
+  border-radius:20px;
+  font-size:clamp(.75rem, 1.5vw, .85rem);
+  transition:var(--transition);
+}
+.profile-btn:hover{background:rgba(255 255 255 /.2);border-color:var(--clr-primary)}
+#logout-btn-header{left:auto;right:var(--gap);background:rgba(255 68 68 /.2);border-color:var(--clr-danger)}
+
+/* ---------- NAV ---------- */
+nav{display:flex;flex-wrap:wrap;gap:var(--gap);justify-content:center;margin-block:1rem 2rem}
+nav .btn{flex:1 1 140px;max-width:160px}
+
+/* ---------- MAIN-GRID (6 кнопок) ---------- */
+.button-grid,.main-grid{margin-block:2rem}
+.card{
+  display:flex;align-items:center;gap:1rem;
+  padding:1.25rem;
+  background:rgba(255 255 255 /.05);
+  border-radius:var(--radius);
+  border:1px solid rgba(255 255 255 /.1);
+  transition:var(--transition);
+}
+.card:hover{background:rgba(255 255 255 /.08);transform:translateY(-4px)}
+.card-icon{font-size:2rem;width:50px;text-align:center}
+.card-content{flex:1}
+.card-content h3{margin-bottom:.25rem;color:var(--clr-text)}
+.card-content p{color:var(--clr-muted);font-size:clamp(.7rem, 1.3vw, .8rem)}
+
+/* цветовые полоски слева */
+.tgk-btn{border-left:4px solid #ff0066}
+.tg-btn{border-left:4px solid #0088cc}
+.donate-btn{border-left:4px solid #ff9900}
+.refial-btn{border-left:4px solid #00bfff}
+.points-btn{border-left:4px solid #ff0000}
+.players-btn{border-left:4px solid #4CAF50}
+
+/* ---------- FAQ ---------- */
+.quick-links{background:rgba(255 255 255 /.05);border-left:4px solid var(--clr-success);border-radius:var(--radius);padding:1.5rem}
+.quick-links h3{color:var(--clr-success);margin-bottom:1rem}
+.faq-item{background:rgba(0 204 102 /.1);border:1px solid rgba(0 204 102 /.2);border-radius:8px;padding:1rem}
+.faq-item h4{color:#00ff99;margin-bottom:.5rem}
+.faq-item a{color:#00ffcc;font-weight:bold}
+
+/* ---------- SERVER-INFO ---------- */
+.server-info{background:rgba(255 255 255 /.05);border-left:4px solid #ff00ff;border-radius:var(--radius);padding:1.5rem;margin-top:2rem}
+.server-info h3{color:var(--clr-accent);margin-bottom:1rem}
+.server-info strong{color:#ff99ff}
+
+/* ---------- FOOTER ---------- */
+footer{margin-top:auto;padding:1.5rem 0;text-align:center;font-size:clamp(.75rem, 1.5vw, .85rem);color:var(--clr-muted);border-top:1px solid rgba(255 255 255 /.1)}
+.footer-ip{color:var(--clr-accent)!important;font-weight:bold}
+
+/* ---------- ПРОФИЛЬ ---------- */
+.profile-container{margin:2rem auto;padding:0 var(--gap)}
+.profile-header{
+  display:flex;align-items:center;gap:1.5rem;
+  background:linear-gradient(135deg, rgba(98 0 255 /.2), rgba(255 0 255 /.2));
+  border:2px solid var(--clr-primary);
+  border-radius:var(--radius);
+  padding:1.5rem;
+  position:relative;
+}
+.profile-header::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg, var(--clr-primary), #ff00ff);
+}
+.profile-avatar{
+  width:clamp(60px, 12vw, 100px);aspect-ratio:1;
+  background:rgba(255 255 255 /.1);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:clamp(1.5rem, 6vw, 3rem);
+  border:3px solid var(--clr-accent);box-shadow:0 0 20px rgba(255 204 0 /.3);
+}
+.profile-name{color:var(--clr-accent);font-size:clamp(1.2rem, 4vw, 2rem);margin-bottom:.25rem}
+.profile-id{color:var(--clr-muted);font-size:clamp(.7rem, 1.5vw, .85rem)}
+.profile-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.badge{background:rgba(255 255 255 /.1);border-radius:8px;padding:.25em .5em;font-size:clamp(.65rem, 1.2vw, .75rem)}
+
+/* статистика */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--gap);margin-block:2rem}
+.stat-card{background:rgba(255 255 255 /.05);border-left:4px solid var(--clr-success);border-radius:var(--radius);padding:1rem;transition:var(--transition)}
+.stat-card:nth-child(2){border-left-color:var(--clr-primary)}
+.stat-card:nth-child(3){border-left-color:#ff9900}
+.stat-card:hover{transform:translateY(-4px);background:rgba(255 255 255 /.1)}
+.stat-icon{font-size:1.5rem;margin-bottom:.5rem}
+.stat-title{color:var(--clr-muted);font-size:clamp(.7rem, 1.5vw, .8rem)}
+.stat-value{color:var(--clr-text);font-size:clamp(1.2rem, 3vw, 1.8rem);font-weight:bold;font-family:'Michroma', sans-serif}
+
+/* достижения */
+.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--gap);margin-block:2rem}
+.achievement-card{
+  background:rgba(255 255 255 /.05);border:1px solid transparent;
+  border-radius:8px;padding:1rem;text-align:center;transition:var(--transition);position:relative;
+}
+.achievement-card:hover{border-color:var(--clr-accent);transform:scale(1.05)}
+.achievement-card.locked{opacity:.4;filter:grayscale(1)}
+.achievement-icon{font-size:clamp(1.5rem, 4vw, 2rem);margin-bottom:.5rem}
+.achievement-name{color:var(--clr-text);font-size:clamp(.7rem, 1.5vw, .85rem);margin-bottom:.25rem}
+.achievement-desc{color:var(--clr-muted);font-size:clamp(.6rem, 1.2vw, .75rem)}
+
+/* новогодние очки */
+.holiday-points-card{
+  background:linear-gradient(135deg, rgba(255 0 0 /.1), rgba(255 153 0 /.1));
+  border:2px solid #ff9900;border-radius:var(--radius);padding:1.5rem;text-align:center;margin-block:2rem;
+}
+.points-display{font-size:clamp(2rem, 6vw, 3rem);color:var(--clr-accent);font-weight:bold;text-shadow:0 0 10px rgba(255 204 0 /.3)}
+.points-label{color:#ffcc99;font-size:clamp(.7rem, 1.5vw, .85rem)}
+
+/* кнопки действий */
+.action-buttons{display:flex;flex-wrap:wrap;gap:var(--gap);margin-top:1.5rem}
+.action-btn{flex:1 1 140px;padding:.75em 1em;background:rgba(98 0 255 /.2);border:1px solid var(--clr-primary);border-radius:var(--radius);color:var(--clr-text);transition:var(--transition);text-align:center}
+.action-btn:hover{background:rgba(98 0 255 /.4);transform:translateY(-2px)}
+.back-btn{display:inline-block;margin-top:1rem;padding:.6em 1.2em;background:rgba(255 255 255 /.1);border-radius:var(--radius);transition:var(--transition)}
+.back-btn:hover{background:rgba(255 255 255 /.2)}
+
+/* ---------- СТРАНИЦА ИГРОКОВ ---------- */
+.players-container{margin:2rem auto;padding:0 var(--gap)}
+.page-header{text-align:center;margin-bottom:2rem}
+.page-title{color:var(--clr-accent);font-size:clamp(1.4rem, 4vw, 2.5rem);margin-bottom:.5rem}
+.page-subtitle{color:var(--clr-muted);font-size:clamp(.8rem, 2vw, 1rem)}
+
+/* поиск и фильтры */
+.search-section{background:rgba(255 255 255 /.05);border:1px solid rgba(98 0 255 /.3);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem}
+.search-box{position:relative;margin-bottom:1rem}
+#search-input{width:100%;padding:1em 2.5em 1em 1em;background:rgba(255 255 255 /.08);border:2px solid var(--clr-primary);border-radius:var(--radius);color:var(--clr-text);font-family:var(--font-base);transition:var(--transition)}
+#search-input:focus{outline:none;border-color:#ff00ff;box-shadow:0 0 15px rgba(255 0 255 /.3)}
+.search-icon{position:absolute;right:1em;top:50%;transform:translateY(-50%);color:var(--clr-muted)}
+.filters{display:flex;flex-wrap:wrap;gap:.5rem}
+.filter-btn{padding:.4em .8em;background:rgba(255 255 255 /.1);border:1px solid rgba(255 255 255 /.2);border-radius:8px;color:var(--clr-muted);transition:var(--transition)}
+.filter-btn:hover,.filter-btn.active{background:rgba(98 0 255 /.3);color:var(--clr-text);border-color:var(--clr-primary)}
+
+/* категории */
+.players-category{margin-bottom:2rem}
+.category-title{display:flex;align-items:center;gap:.5rem;color:var(--clr-accent);font-size:clamp(1.1rem, 3vw, 1.8rem);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid rgba(255 204 0 /.3)}
+.category-badge{background:linear-gradient(90deg, #ff4444, #ff9900);color:#fff;padding:.2em .6em;border-radius:20px;font-size:clamp(.6rem, 1.2vw, .75rem);font-weight:bold}
+
+/* сетка игроков */
+.players-grid{@extend .grid-auto}
+.player-card{
+  background:rgba(255 255 255 /.05);border:1px solid rgba(255 255 255 /.1);
+  border-radius:var(--radius);padding:1rem;transition:var(--transition);position:relative;
+}
+.player-card:hover{transform:translateY(-4px);border-color:var(--clr-primary);box-shadow:0 10px 25px rgba(98 0 255 /.3)}
+.player-card.admin{border:2px solid var(--clr-danger);background:linear-gradient(135deg, rgba(255 68 68 /.1), rgba(255 153 0 /.1))}
+.player-card.moderator{border:2px solid #00ccff;background:linear-gradient(135deg, rgba(0 204 255 /.1), rgba(0 102 255 /.1))}
+.player-card.vip{border:2px solid var(--clr-accent);background:linear-gradient(135deg, rgba(255 204 0 /.1), rgba(255 153 0 /.1))}
+.player-card.leaderboard:nth-child(1){border:3px solid var(--clr-accent)!important;box-shadow:0 0 25px rgba(255 204 0 /.7)}
+.player-card.leaderboard:nth-child(2){border:3px solid #c0c0c0!important;box-shadow:0 0 20px rgba(192 192 192 /.7)}
+.player-card.leaderboard:nth-child(3){border:3px solid #cd7f32!important;box-shadow:0 0 20px rgba(205 127 50 /.7)}
+
+.player-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.player-avatar{
+  width:clamp(50px, 10vw, 60px);aspect-ratio:1;
+  background:rgba(255 255 255 /.1);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:clamp(1.2rem, 4vw, 1.75rem);
+  border:2px solid var(--clr-accent);
+}
+.player-info{flex:1}
+.player-name{display:flex;align-items:center;gap:.5rem;color:var(--clr-text);font-size:clamp(.9rem, 2.5vw, 1.1rem);margin-bottom:.25rem}
+.player-rank{font-size:clamp(.6rem, 1.2vw, .75rem);padding:.2em .5em;border-radius:10px;font-weight:bold}
+.player-rank.admin{background:linear-gradient(90deg, var(--clr-danger), #ff9900);color:#fff}
+.player-rank.moderator{background:linear-gradient(90deg, #00ccff, #0066ff);color:#fff}
+.player-rank.vip{background:linear-gradient(90deg, var(--clr-accent), #ff9900);color:#000}
+.player-rank.player{background:rgba(255 255 255 /.1);color:var(--clr-muted)}
+.player-id{color:var(--clr-muted);font-size:clamp(.6rem, 1.2vw, .75rem)}
+
+.player-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
+.stat-item{text-align:center;background:rgba(0 0 0 /.2);padding:.5em;border-radius:8px}
+.stat-item .stat-value{color:var(--clr-accent);font-size:clamp(.9rem, 2.5vw, 1.1rem);font-weight:bold}
+.stat-item .stat-label{color:var(--clr-muted);font-size:clamp(.6rem, 1.2vw, .7rem);margin-top:.25rem}
+
+.view-profile-btn{display:block;width:100%;padding:.75em;background:rgba(98 0 255 /.2);border:1px solid var(--clr-primary);border-radius:var(--radius);color:var(--clr-text);transition:var(--transition);text-align:center}
+.view-profile-btn:hover{background:rgba(98 0 255 /.4);transform:translateY(-2px)}
+
+.online-status{position:absolute;top:1rem;right:1rem;display:flex;align-items:center;gap:.25rem;font-size:clamp(.6rem, 1.2vw, .75rem)}
+.status-dot{width:8px;height:8px;border-radius:50%}
+.status-dot.online{background:#00ff00;box-shadow:0 0 8px #00ff00}
+.status-dot.offline{background:var(--clr-danger)}
+.status-dot.ingame{background:#ffcc00;box-shadow:0 0 8px #ffcc00;animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.5}}
+
+/* ---------- ПАГИНАЦИЯ ---------- */
+.pagination{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:2rem}
+.page-btn{padding:.4em .8em;background:rgba(255 255 255 /.1);border:1px solid rgba(255 255 255 /.2);border-radius:8px;color:var(--clr-muted);transition:var(--transition)}
+.page-btn:hover,.page-btn.active{background:rgba(98 0 255 /.3);color:var(--clr-text);border-color:var(--clr-primary)}
+.page-btn.disabled{opacity:.5;cursor:not-allowed}
+
+/* ---------- СОСТОЯНИЯ ---------- */
+.loading,.no-results{grid-column:1/-1;text-align:center;padding:2rem;color:var(--clr-muted)}
+.loading-spinner{width:40px;height:40px;border:4px solid var(--clr-primary);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- МОДАЛКА АВТОРИЗАЦИИ ---------- */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0 0 0 /.85);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:2000;animation:fadeIn .5s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{
+  background:linear-gradient(180deg, var(--clr-bg2) 0%, var(--clr-bg) 100%);
+  border:2px solid var(--clr-primary);border-radius:var(--radius);
+  width:90%;max-width:500px;box-shadow:0 0 40px rgba(98 0 255 /.5);
+  animation:slideUp .5s ease;
+}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.auth-tabs{display:flex;border-bottom:1px solid rgba(98 0 255 /.5)}
+.auth-tab{flex:1;padding:1em;background:none;color:var(--clr-muted);transition:var(--transition);position:relative}
+.auth-tab:hover{color:var(--clr-text)}
+.auth-tab.active{color:var(--clr-accent);font-weight:bold}
+.auth-tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:3px;background:linear-gradient(90deg, var(--clr-primary), #ff00ff)}
+.modal-header{padding:1.5rem;text-align:center;background:linear-gradient(90deg, rgba(98 0 255 /.2), rgba(255 0 255 /.2));border-bottom:1px solid rgba(98 0 255 /.5)}
+.modal-header h2{color:var(--clr-accent);margin-bottom:.5rem}
+.modal-body{padding:1.5rem}
+.modal-footer{padding:0 1.5rem 1.5rem;text-align:center}
+
+/* поля ввода */
+.input-group{margin-bottom:1rem}
+.input-group label{display:block;color:var(--clr-muted);margin-bottom:.5em;font-size:clamp(.75rem, 1.5vw, .85rem)}
+.input-group input{
+  width:100%;padding:1em;background:rgba(255 255 255 /.08);
+  border:2px solid var(--clr-primary);border-radius:var(--radius);color:var(--clr-text);
+  font-family:var(--font-base);transition:var(--transition);
+}
+.input-group input:focus{outline:none;border-color:#ff00ff;box-shadow:0 0 15px rgba(255 0 255 /.3);background:rgba(255 255 255 /.12)}
+.password-toggle{position:absolute;right:1em;top:2.6em;color:var(--clr-muted);cursor:pointer;user-select:none}
+.error-message-modal{color:var(--clr-danger);font-size:clamp(.7rem, 1.2vw, .8rem);min-height:1.2rem}
+
+/* требования к паролю */
+.requirements{background:rgba(255 255 255 /.05);border:1px solid rgba(255 255 255 /.1);border-radius:var(--radius);padding:1rem}
+.requirements h4{color:#00ccff;margin-bottom:1rem;text-align:center}
+.requirements li{padding:.4em 0;color:#ccccff;font-size:clamp(.7rem, 1.2vw, .8rem);display:flex;align-items:center}
+.requirements li::before{
+  content:'';width:16px;height:16px;margin-right:.5em;border-radius:50%;background:#ff4444;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.requirements li.valid::before{content:'✓';background:var(--clr-success)}
+.requirements li.invalid::before{content:'✗';background:var(--clr-danger)}
+
+/* кнопка отправки */
+.submit-btn{width:100%;padding:1em;background:linear-gradient(90deg, var(--clr-primary), #ff00ff);border:none;border-radius:var(--radius);color:#fff;font-weight:bold;letter-spacing:.5px;transition:var(--transition)}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 25px rgba(98 0 255 /.4)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;background:#555}
+
+/* ---------- EMAIL-ВХОД ---------- */
+.email-login-section{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(255 255 255 /.1)}
+.switch-login-type-btn{background:none;border:none;color:#00ccff;text-decoration:underline;cursor:pointer;font-size:clamp(.7rem, 1.2vw, .8rem);display:inline-flex;align-items:center;gap:.5em;transition:var(--transition)}
+.switch-login-type-btn:hover{color:#00ffcc;transform:translateY(-2px)}
+#login-code{font-family:'Courier New', monospace;letter-spacing:4px;text-align:center;font-size:clamp(1rem, 3vw, 1.5rem)}
+#login-code-timer{background:rgba(255 152 0 /.1);border-left:3px solid #ff9800;padding:.5em 1em;border-radius:8px;margin-block:1rem;font-weight:bold;animation:pulseWarning 2s infinite}
+@keyframes pulseWarning{50%{opacity:.7}}
+.resend-code-btn{margin-top:.5rem;background:none;border:1px solid #00b4d8;color:#00b4d8;padding:.4em .8em;border-radius:8px;font-size:clamp(.65rem, 1vw, .75rem);transition:var(--transition)}
+.resend-code-btn:hover:not(:disabled){background:rgba(0 180 216 /.2);transform:translateY(-2px)}
+.resend-code-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ---------- АДАПТИВ ---------- */
+@media (max-width:768px){
+  .profile-header{flex-direction:column;text-align:center}
+  .profile-avatar{margin:0 0 1rem}
+  .stats-grid{grid-template-columns:1fr}
+  .achievements-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+  .action-buttons{flex-direction:column}
+  .modal-content{width:95%}
+  .players-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .player-stats{grid-template-columns:repeat(2,1fr)}
+  nav .btn{flex:1 1 120px}
+}
+@media (max-width:480px){
+  :root{--gap:6px}
+  .btn{width:100%;justify-content:center}
+  .logo{width:70px}
+  h1{font-size:1.5rem}
+  .player-card{padding:.75rem}
+  .player-avatar{width:45px;font-size:1.2rem}
+  .player-name{font-size:.9rem}
+  .card{flex-direction:column;text-align:center}
+  .modal-header h2{font-size:1.2rem}
+  .auth-tab{font-size:.85rem;padding:.8em}
+  .submit-btn{padding:.8em;font-size:.9rem}
+  #login-code{letter-spacing:2px;font-size:1rem}
 }
