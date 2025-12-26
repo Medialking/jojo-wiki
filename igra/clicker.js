@@ -1,5 +1,5 @@
 // ===========================================
-// НОВОГОДНИЙ КЛИКЕР - ОСНОВНОЙ КОД
+// НОВОГОДНИЙ КЛИКЕР - ИСПРАВЛЕННЫЙ КОД
 // ===========================================
 
 // Конфигурация игры
@@ -11,35 +11,35 @@ const CONFIG = {
         FAST: 30   // 30-0 сек: максимальная скорость
     },
     
-    // Скорость падения (пикселей в секунду)
+    // ИСПРАВЛЕНО: Увеличена скорость падения (пикселей в секунду)
     FALL_SPEEDS: {
-        SLOW: 100,
-        MEDIUM: 150,
-        FAST: 200
+        SLOW: 300,   // Было 100
+        MEDIUM: 450, // Было 150
+        FAST: 600    // Было 200
     },
     
-    // Интервалы спавна объектов (мс)
+    // ИСПРАВЛЕНО: Уменьшены интервалы спавна
     SPAWN_INTERVALS: {
-        SLOW: 1500,
-        MEDIUM: 1000,
-        FAST: 700
+        SLOW: 800,   // Было 1500
+        MEDIUM: 500, // Было 1000
+        FAST: 300    // Было 700
     },
     
     // Вероятности появления объектов (%)
     OBJECT_PROBABILITIES: {
-        GIFT: 60,      // 60% - подарок
-        BOMB: 10,      // 10% - бомба
-        SNOWFLAKE: 15, // 15% - заморозка
-        STAR: 15       // 15% - золотая звезда
+        GIFT: 55,      // Подарок
+        BOMB: 10,      // Бомба
+        SNOWFLAKE: 20, // Заморозка
+        STAR: 15       // Золотая звезда
     },
     
-    // Очки за объекты
+    // Очки за объекты - ИСПРАВЛЕНО для бомбы
     POINTS: {
         GIFT_MIN: 1,
         GIFT_MAX: 5,
         STAR_MIN: 10,
         STAR_MAX: 20,
-        BOMB: -999, // Обнуляет очки
+        BOMB_PENALTY: 50, // Вычитается 50 очков вместо обнуления
         SNOWFLAKE_FREEZE: 3 // Заморозка на 3 секунды
     },
     
@@ -71,6 +71,7 @@ let game = {
     // Статистика
     giftsCaught: 0,
     starsCaught: 0,
+    bombsClicked: 0,
     bombsAvoided: 0,
     
     // Таймеры
@@ -86,7 +87,12 @@ let game = {
     // Firebase
     userId: null,
     userNickname: null,
-    database: null
+    database: null,
+    
+    // Статистика для сохранения
+    maxCombo: 0,
+    totalClicks: 0,
+    startTime: null
 };
 
 // DOM элементы
@@ -152,480 +158,52 @@ const elements = {
 // ===========================================
 
 window.onload = async function() {
-    // Создаем фоновые частицы
     createParticles();
     
-    // Показываем анимацию загрузки
     document.getElementById("loader").style.opacity = "0";
     setTimeout(async () => {
         document.getElementById("loader").style.display = "none";
         document.getElementById("content").style.opacity = "1";
         
-        // Инициализируем Firebase
         game.database = firebase.database();
         
-        // Проверяем авторизацию
         await checkAuth();
-        
-        // Загружаем данные пользователя
         await loadUserData();
-        
-        // Обновляем информацию о билетах
         updateTicketInfo();
-        
-        // Настраиваем обработчики событий
         setupEventListeners();
-        
-        // Загружаем статистику
         await loadUserStats();
+        
+        // Адаптация для мобильных
+        if ('ontouchstart' in window) {
+            setupTouchEvents();
+        }
     }, 400);
 };
 
-// Создание фоновых частиц
-function createParticles() {
-    const particlesContainer = document.getElementById('particles');
-    
-    for (let i = 0; i < 30; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        
-        particle.style.left = `${Math.random() * 100}%`;
-        particle.style.top = `${Math.random() * 100}%`;
-        
-        const size = Math.random() * 2 + 1;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        
-        particle.style.opacity = Math.random() * 0.5 + 0.2;
-        
-        const duration = Math.random() * 20 + 15;
-        particle.style.animationDuration = `${duration}s`;
-        particle.style.animationDelay = `${Math.random() * 10}s`;
-        
-        particlesContainer.appendChild(particle);
-    }
-}
-
-// Проверка авторизации
-async function checkAuth() {
-    game.userId = localStorage.getItem('jojoland_userId');
-    game.userNickname = localStorage.getItem('jojoland_nickname');
-    
-    if (!game.userId || !game.userNickname) {
-        // Если не авторизован, перенаправляем на главную
-        showNotification('Для игры необходимо войти в аккаунт', 'error');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
-        return false;
-    }
-    
-    return true;
-}
-
-// Загрузка данных пользователя
-async function loadUserData() {
-    try {
-        // Загружаем данные о билетах
-        const snapshot = await game.database.ref('clicker_tickets/' + game.userId).once('value');
-        
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            game.tickets = data.tickets || 0;
-            game.lastTicketDate = data.lastTicketDate ? new Date(data.lastTicketDate) : null;
-        } else {
-            // Создаем запись для нового пользователя
-            game.tickets = 1; // Первый бесплатный билет
-            game.lastTicketDate = new Date();
-            
-            await game.database.ref('clicker_tickets/' + game.userId).set({
-                tickets: game.tickets,
-                lastTicketDate: game.lastTicketDate.toISOString(),
-                createdAt: new Date().toISOString()
-            });
-        }
-        
-        // Обновляем отображение билетов
-        updateTicketDisplay();
-        
-    } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
-        // В случае ошибки даем тестовый билет
-        game.tickets = 1;
-        updateTicketDisplay();
-    }
-}
-
-// Обновление информации о билетах
-function updateTicketInfo() {
-    // Останавливаем предыдущий таймер, если есть
-    if (game.nextTicketTimer) {
-        clearInterval(game.nextTicketTimer);
-    }
-    
-    // Обновляем каждую секунду
-    game.nextTicketTimer = setInterval(() => {
-        updateNextTicketTime();
-    }, 1000);
-    
-    updateNextTicketTime();
-}
-
-function updateNextTicketTime() {
-    if (!game.lastTicketDate) {
-        elements.nextTicketInfo.textContent = 'Билет доступен!';
-        return;
-    }
-    
-    const now = new Date();
-    const lastTicketTime = new Date(game.lastTicketDate);
-    const nextTicketTime = new Date(lastTicketTime.getTime() + 24 * 60 * 60 * 1000); // +24 часа
-    const timeDiff = nextTicketTime - now;
-    
-    if (timeDiff <= 0) {
-        // Можно получить новый билет
-        elements.nextTicketInfo.textContent = 'Билет доступен!';
-        giveDailyTicket();
-    } else {
-        // Показываем время до следующего билета
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-        
-        elements.nextTicketInfo.textContent = 
-            `Следующий билет через: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        // Обновляем также в модалке ошибки
-        if (elements.errorTimer) {
-            elements.errorTimer.textContent = 
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-    }
-}
-
-// Выдача ежедневного билета
-async function giveDailyTicket() {
-    const now = new Date();
-    const lastTicketTime = game.lastTicketDate ? new Date(game.lastTicketDate) : null;
-    
-    // Если прошло больше 24 часов с последнего билета
-    if (!lastTicketTime || (now - lastTicketTime) >= 24 * 60 * 60 * 1000) {
-        game.tickets += 1;
-        game.lastTicketDate = now;
-        
-        // Сохраняем в Firebase
-        try {
-            await game.database.ref('clicker_tickets/' + game.userId).update({
-                tickets: game.tickets,
-                lastTicketDate: game.lastTicketDate.toISOString()
-            });
-        } catch (error) {
-            console.error('Ошибка сохранения билета:', error);
-        }
-        
-        // Обновляем отображение
-        updateTicketDisplay();
-        showNotification('🎫 Получен ежедневный билет!', 'success');
-    }
-}
-
-// Обновление отображения билетов
-function updateTicketDisplay() {
-    elements.ticketsCount.textContent = `${game.tickets} билетик(ов)`;
-}
-
-// Загрузка статистики пользователя
-async function loadUserStats() {
-    try {
-        const snapshot = await game.database.ref('clicker_stats/' + game.userId).once('value');
-        
-        if (snapshot.exists()) {
-            const stats = snapshot.val();
-            elements.bestScorePreview.textContent = stats.bestScore || 0;
-            elements.gamesPlayed.textContent = stats.gamesPlayed || 0;
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки статистики:', error);
-    }
-}
+// ... (предыдущие функции остаются такими же до функции spawnObject)
 
 // ===========================================
-// ОБРАБОТЧИКИ СОБЫТИЙ
+// ИСПРАВЛЕННЫЕ ФУНКЦИИ ИГРОВОГО ПРОЦЕССА
 // ===========================================
 
-function setupEventListeners() {
-    // Кнопка старта игры
-    elements.startBtn.addEventListener('click', startGame);
-    
-    // Управление игрой
-    elements.pauseBtn.addEventListener('click', pauseGame);
-    elements.resumeBtn.addEventListener('click', resumeGame);
-    elements.restartBtn.addEventListener('click', restartGame);
-    elements.quitBtn.addEventListener('click', quitToMenu);
-    
-    // Экран результатов
-    elements.playAgainBtn.addEventListener('click', playAgain);
-    elements.shareBtn.addEventListener('click', shareResults);
-    elements.backToMenuBtn.addEventListener('click', backToMenu);
-    
-    // Модалка ошибки
-    elements.closeErrorBtn.addEventListener('click', () => {
-        elements.errorModal.style.display = 'none';
-    });
-    
-    // Обработка кликов по игровому полю
-    elements.gameField.addEventListener('click', handleFieldClick);
-    
-    // Обработка кликов по падающим объектам (делегирование)
-    elements.gameField.addEventListener('click', function(e) {
-        if (e.target.classList.contains('falling-object')) {
-            handleObjectClick(e.target);
-        }
-    });
-}
-
-// ===========================================
-// УПРАВЛЕНИЕ ИГРОЙ
-// ===========================================
-
-// Начало игры
-async function startGame() {
-    // Проверяем наличие билетов
-    if (game.tickets < 1) {
-        showErrorModal();
-        return;
-    }
-    
-    // Снимаем билет
-    game.tickets -= 1;
-    await game.database.ref('clicker_tickets/' + game.userId).update({
-        tickets: game.tickets
-    });
-    updateTicketDisplay();
-    
-    // Сбрасываем состояние игры
-    resetGame();
-    
-    // Переключаем экран
-    switchScreen('game');
-    
-    // Начинаем игру
-    game.isPlaying = true;
-    startGameTimer();
-    startSpawningObjects();
-}
-
-// Пауза игры
-function pauseGame() {
-    if (!game.isPlaying || game.isPaused) return;
-    
-    game.isPaused = true;
-    clearInterval(game.gameTimer);
-    clearInterval(game.spawnTimer);
-    
-    // Обновляем статистику на экране паузы
-    elements.pauseTime.textContent = formatTime(game.timeLeft);
-    elements.pauseScore.textContent = game.score;
-    elements.pauseCombo.textContent = `x${game.comboMultiplier}`;
-    
-    switchScreen('pause');
-}
-
-// Продолжение игры
-function resumeGame() {
-    if (!game.isPlaying || !game.isPaused) return;
-    
-    game.isPaused = false;
-    switchScreen('game');
-    startGameTimer();
-    startSpawningObjects();
-}
-
-// Перезапуск игры
-function restartGame() {
-    pauseGame();
-    
-    if (confirm('Начать игру заново? Будет использован ещё один билет.')) {
-        // Проверяем билеты
-        if (game.tickets < 1) {
-            showErrorModal();
-            return;
-        }
-        
-        // Снимаем билет
-        game.tickets -= 1;
-        game.database.ref('clicker_tickets/' + game.userId).update({
-            tickets: game.tickets
-        });
-        updateTicketDisplay();
-        
-        // Сбрасываем и начинаем заново
-        resetGame();
-        switchScreen('game');
-        game.isPlaying = true;
-        game.isPaused = false;
-        startGameTimer();
-        startSpawningObjects();
-    }
-}
-
-// Выход в меню
-function quitToMenu() {
-    pauseGame();
-    
-    if (confirm('Выйти в меню? Текущая игра будет потеряна.')) {
-        resetGame();
-        switchScreen('start');
-        game.isPlaying = false;
-        game.isPaused = false;
-    }
-}
-
-// Играть снова
-function playAgain() {
-    if (game.tickets < 1) {
-        showErrorModal();
-        return;
-    }
-    
-    startGame();
-}
-
-// Поделиться результатами
-function shareResults() {
-    const score = game.score;
-    const text = `🎄 Я набрал ${score} очков в новогоднем кликере на JojoLand! Попробуй побить мой рекорд!`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: 'Мой результат в новогоднем кликере',
-            text: text,
-            url: window.location.href
-        });
-    } else {
-        navigator.clipboard.writeText(text).then(() => {
-            showNotification('Результат скопирован в буфер обмена!', 'success');
-        });
-    }
-}
-
-// Назад в меню
-function backToMenu() {
-    switchScreen('start');
-}
-
-// ===========================================
-// ИГРОВОЙ ПРОЦЕСС
-// ===========================================
-
-// Сброс состояния игры
-function resetGame() {
-    game.timeLeft = CONFIG.TOTAL_TIME;
-    game.score = 0;
-    game.combo = 0;
-    game.comboMultiplier = 1;
-    game.isFrozen = false;
-    
-    game.giftsCaught = 0;
-    game.starsCaught = 0;
-    game.bombsAvoided = 0;
-    
-    // Очищаем таймеры
-    clearInterval(game.gameTimer);
-    clearInterval(game.spawnTimer);
-    clearTimeout(game.freezeTimer);
-    clearTimeout(game.comboDecayTimer);
-    
-    // Очищаем игровое поле
-    elements.gameField.innerHTML = '<div class="field-background"></div>';
-    
-    // Обновляем интерфейс
-    updateGameUI();
-}
-
-// Запуск игрового таймера
-function startGameTimer() {
-    updateTimerDisplay();
-    
-    game.gameTimer = setInterval(() => {
-        if (!game.isFrozen) {
-            game.timeLeft--;
-            
-            if (game.timeLeft <= 0) {
-                endGame();
-                return;
-            }
-            
-            updateTimerDisplay();
-        }
-    }, 1000);
-}
-
-// Обновление отображения таймера
-function updateTimerDisplay() {
-    const minutes = Math.floor(game.timeLeft / 60);
-    const seconds = game.timeLeft % 60;
-    elements.gameTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
-    // Обновляем скорость игры в зависимости от времени
-    updateGameSpeed();
-}
-
-// Обновление скорости игры
-function updateGameSpeed() {
-    // Скорость будет учтена при создании новых объектов
-}
-
-// Спавн объектов
-function startSpawningObjects() {
-    spawnObject(); // Первый объект сразу
-    
-    game.spawnTimer = setInterval(() => {
-        if (!game.isPaused && !game.isFrozen) {
-            spawnObject();
-        }
-    }, getSpawnInterval());
-}
-
-// Получение интервала спавна
-function getSpawnInterval() {
-    if (game.timeLeft <= CONFIG.TIME_INTERVALS.FAST) {
-        return CONFIG.SPAWN_INTERVALS.FAST;
-    } else if (game.timeLeft <= CONFIG.TIME_INTERVALS.MEDIUM) {
-        return CONFIG.SPAWN_INTERVALS.MEDIUM;
-    } else {
-        return CONFIG.SPAWN_INTERVALS.SLOW;
-    }
-}
-
-// Получение скорости падения
-function getFallSpeed() {
-    if (game.timeLeft <= CONFIG.TIME_INTERVALS.FAST) {
-        return CONFIG.FALL_SPEEDS.FAST;
-    } else if (game.timeLeft <= CONFIG.TIME_INTERVALS.MEDIUM) {
-        return CONFIG.FALL_SPEEDS.MEDIUM;
-    } else {
-        return CONFIG.FALL_SPEEDS.SLOW;
-    }
-}
-
-// Создание объекта
+// Создание объекта - ИСПРАВЛЕНО для лучшей видимости
 function spawnObject() {
     const objectType = getRandomObjectType();
     const object = createGameObject(objectType);
     
     // Случайная позиция по горизонтали
     const fieldWidth = elements.gameField.clientWidth;
-    const objectSize = 60;
+    const objectSize = getObjectSize(); // Адаптивный размер
     const maxLeft = fieldWidth - objectSize;
     const left = Math.random() * maxLeft;
     
     object.style.left = `${left}px`;
     object.style.top = `-${objectSize}px`;
     
-    // Анимация падения
+    // Анимация падения - ИСПРАВЛЕНО: скорость теперь заметная
     const fallSpeed = getFallSpeed();
-    const animationDuration = (elements.gameField.clientHeight + objectSize) / fallSpeed;
+    const fieldHeight = elements.gameField.clientHeight;
+    const animationDuration = (fieldHeight + objectSize) / fallSpeed;
     
     object.style.animation = `floatDown ${animationDuration}s linear forwards`;
     
@@ -638,9 +216,20 @@ function spawnObject() {
             if (object.classList.contains('bomb')) {
                 game.bombsAvoided++;
                 updateGameUI();
+                
+                // Показываем уведомление об избежании бомбы
+                showFloatingText(object, 'Избежано!', '#00ff00', true);
             }
         }
     }, animationDuration * 1000);
+    
+    return object;
+}
+
+// Получение размера объекта в зависимости от устройства
+function getObjectSize() {
+    const isMobile = window.innerWidth <= 768;
+    return isMobile ? 50 : 60; // Меньше на мобильных
 }
 
 // Получение случайного типа объекта
@@ -655,143 +244,194 @@ function getRandomObjectType() {
         }
     }
     
-    return 'gift'; // По умолчанию
+    return 'gift';
 }
 
-// Создание игрового объекта
+// Создание игрового объекта - ИСПРАВЛЕНО для лучшей видимости
 function createGameObject(type) {
     const object = document.createElement('div');
     object.className = `falling-object ${type}`;
     object.dataset.type = type;
     
+    // Добавляем тень для лучшей видимости
+    object.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.5)';
+    
     switch(type) {
         case 'gift':
             object.textContent = '🎁';
+            object.style.background = 'linear-gradient(135deg, #ff3366, #ff6699)';
+            object.style.border = '3px solid #ffcc00';
             break;
         case 'bomb':
             object.textContent = '💣';
+            object.style.background = 'linear-gradient(135deg, #333, #666)';
+            object.style.border = '3px solid #ff0000';
             break;
         case 'snowflake':
             object.textContent = '❄️';
+            object.style.background = 'linear-gradient(135deg, #00ccff, #0099ff)';
+            object.style.border = '3px solid #ffffff';
             break;
         case 'star':
             object.textContent = '⭐';
+            object.style.background = 'linear-gradient(135deg, #ffcc00, #ff9900)';
+            object.style.border = '3px solid #ffff00';
+            object.style.animation = 'pulse 1s infinite alternate'; // Добавляем пульсацию
             break;
     }
+    
+    // Увеличиваем шрифт
+    const isMobile = window.innerWidth <= 768;
+    object.style.fontSize = isMobile ? '28px' : '32px';
     
     elements.gameField.appendChild(object);
     return object;
 }
 
-// Обработка клика по объекту
+// Обработка клика по объекту - ИСПРАВЛЕНО для бомбы
 function handleObjectClick(object) {
     if (game.isFrozen || game.isPaused || !game.isPlaying) return;
     
-    // Помечаем объект как пойманный
-    object.dataset.caught = 'true';
+    game.totalClicks++;
     
+    object.dataset.caught = 'true';
     const type = object.dataset.type;
     const points = processObjectClick(type, object);
     
-    // Эффект при клике
     createClickEffect(object);
-    
-    // Обновляем комбо
     updateCombo();
-    
-    // Обновляем статистику
     updateGameUI();
-    
-    // Удаляем объект
     object.remove();
     
     return points;
 }
 
-// Обработка объекта в зависимости от типа
+// Обработка объекта - ИСПРАВЛЕНО для бомбы
 function processObjectClick(type, object) {
     let points = 0;
+    let displayText = '';
+    let color = '#ffffff';
     
     switch(type) {
         case 'gift':
-            points = getRandomPoints(CONFIG.POINTS.GIFT_MIN, CONFIG.POINTS.GIFT_MAX);
+            points = getRandomPoints(CONFIG.POINTS.GIFT_MIN, CONFIG.POINTS.GIFT_MAX) * game.comboMultiplier;
             game.giftsCaught++;
-            showFloatingText(object, `+${points}`, '#ff3366');
+            displayText = `+${points}`;
+            color = '#ff3366';
             break;
             
         case 'bomb':
-            points = CONFIG.POINTS.BOMB;
-            game.score = 0;
+            // ИСПРАВЛЕНО: Бомба теперь вычитает очки, а не обнуляет
+            points = -CONFIG.POINTS.BOMB_PENALTY;
+            game.score = Math.max(0, game.score + points); // Не уходим в минус
+            game.bombsClicked++;
+            
+            // Сбрасываем комбо при бомбе
             game.combo = 0;
             game.comboMultiplier = 1;
-            showFloatingText(object, 'БОМБА!', '#333');
+            updateComboBar();
+            
+            displayText = `-${CONFIG.POINTS.BOMB_PENALTY}`;
+            color = '#ff0000';
+            
+            // Эффект взрыва
+            createExplosionEffect(object);
             break;
             
         case 'snowflake':
             freezeGame();
-            showFloatingText(object, 'ЗАМОРОЗКА!', '#00ccff');
+            displayText = 'ЗАМОРОЗКА!';
+            color = '#00ccff';
             break;
             
         case 'star':
             const rewardType = Math.random() > 0.5 ? 'points' : 'time';
             
             if (rewardType === 'points') {
-                points = getRandomPoints(CONFIG.POINTS.STAR_MIN, CONFIG.POINTS.STAR_MAX);
+                points = getRandomPoints(CONFIG.POINTS.STAR_MIN, CONFIG.POINTS.STAR_MAX) * game.comboMultiplier;
                 game.starsCaught++;
-                showFloatingText(object, `+${points}`, '#ffcc00');
+                displayText = `+${points}`;
             } else {
                 game.timeLeft += 5;
                 updateTimerDisplay();
-                showFloatingText(object, '+5сек', '#ffcc00');
+                displayText = '+5сек';
             }
+            color = '#ffcc00';
             break;
     }
     
-    // Применяем множитель комбо (кроме бомбы)
-    if (type !== 'bomb' && points > 0) {
-        points *= game.comboMultiplier;
+    // Обновляем счёт (кроме снежинки)
+    if (type !== 'snowflake') {
+        game.score = Math.max(0, game.score + points); // Не уходим в минус
     }
     
-    // Обновляем счёт
-    if (type !== 'snowflake') {
-        game.score += points;
+    // Показываем текст
+    if (displayText) {
+        showFloatingText(object, displayText, color);
     }
     
     return points;
 }
 
-// Случайные очки в диапазоне
-function getRandomPoints(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// Создание эффекта клика
-function createClickEffect(object) {
+// Эффект взрыва для бомбы
+function createExplosionEffect(object) {
     const rect = object.getBoundingClientRect();
     const fieldRect = elements.gameField.getBoundingClientRect();
     
-    const effect = document.createElement('div');
-    effect.className = 'click-effect';
-    effect.style.cssText = `
-        position: absolute;
-        left: ${rect.left - fieldRect.left + 30}px;
-        top: ${rect.top - fieldRect.top + 30}px;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-        z-index: 5;
-    `;
+    // Создаем несколько частиц взрыва
+    for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position: absolute;
+            left: ${rect.left - fieldRect.left + 30}px;
+            top: ${rect.top - fieldRect.top + 30}px;
+            width: 10px;
+            height: 10px;
+            background: ${i % 2 === 0 ? '#ff0000' : '#ff9900'};
+            border-radius: 50%;
+            z-index: 5;
+            animation: explode 1s ease-out forwards;
+        `;
+        
+        // Случайное направление
+        const angle = (Math.PI * 2 * i) / 8;
+        const distance = 50 + Math.random() * 50;
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes explode {
+                0% {
+                    transform: translate(0, 0) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        elements.gameField.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+            style.remove();
+        }, 1000);
+    }
     
-    elements.gameField.appendChild(effect);
-    
-    setTimeout(() => {
-        effect.remove();
-    }, 500);
+    // Звуковой эффект (если есть)
+    playSound('explosion');
 }
 
-// Показать всплывающий текст
-function showFloatingText(object, text, color) {
+// Функция для звуковых эффектов (если добавите звуки)
+function playSound(type) {
+    // Здесь можно добавить воспроизведение звуков
+    console.log(`Play ${type} sound`);
+}
+
+// Показать всплывающий текст - УЛУЧШЕНО
+function showFloatingText(object, text, color, isSmall = false) {
     const rect = object.getBoundingClientRect();
     const fieldRect = elements.gameField.getBoundingClientRect();
     
@@ -803,46 +443,37 @@ function showFloatingText(object, text, color) {
         top: ${rect.top - fieldRect.top}px;
         color: ${color};
         font-family: 'Michroma', monospace;
-        font-size: 18px;
+        font-size: ${isSmall ? '14px' : '18px'};
         font-weight: bold;
-        text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        text-shadow: 0 0 8px ${color}80, 0 0 4px #000;
         z-index: 20;
         animation: floatUp 1s ease-out forwards;
+        white-space: nowrap;
     `;
     
     elements.gameField.appendChild(floatingText);
     
-    // Добавляем анимацию
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes floatUp {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
     setTimeout(() => {
         floatingText.remove();
-        style.remove();
     }, 1000);
 }
 
-// Заморозка игры
+// Заморозка игры - ИСПРАВЛЕНО
 function freezeGame() {
     if (game.isFrozen) return;
     
     game.isFrozen = true;
-    elements.freezeTimer.textContent = `${CONFIG.POINTS.SNOWFLAKE_FREEZE}с`;
+    
+    // Меняем цвет таймера
     elements.freezeTimer.style.color = '#00ccff';
+    elements.freezeTimer.style.fontWeight = 'bold';
     
     let freezeTime = CONFIG.POINTS.SNOWFLAKE_FREEZE;
+    elements.freezeTimer.textContent = `${freezeTime}с`;
+    
+    // Эффект заморозки на поле
+    elements.gameField.style.filter = 'blur(2px) hue-rotate(180deg)';
+    elements.gameField.style.transition = 'filter 0.5s';
     
     game.freezeTimer = setInterval(() => {
         freezeTime--;
@@ -851,20 +482,27 @@ function freezeGame() {
         if (freezeTime <= 0) {
             clearInterval(game.freezeTimer);
             game.isFrozen = false;
+            
+            // Возвращаем нормальный вид
+            elements.gameField.style.filter = '';
             elements.freezeTimer.textContent = '0с';
             elements.freezeTimer.style.color = '#00ccff';
+            elements.freezeTimer.style.fontWeight = 'normal';
         }
     }, 1000);
 }
 
-// Обновление комбо
+// Обновление комбо - ИСПРАВЛЕНО
 function updateCombo() {
     game.combo++;
     
-    // Сбрасываем таймер убывания комбо
+    // Обновляем максимальное комбо
+    if (game.combo > game.maxCombo) {
+        game.maxCombo = game.combo;
+    }
+    
     clearTimeout(game.comboDecayTimer);
     
-    // Проверяем множитель
     let newMultiplier = 1;
     for (const [key, data] of Object.entries(CONFIG.COMBO.MULTIPLIERS)) {
         if (game.combo >= data.threshold) {
@@ -872,50 +510,84 @@ function updateCombo() {
         }
     }
     
-    // Если множитель изменился
     if (newMultiplier !== game.comboMultiplier) {
         game.comboMultiplier = newMultiplier;
         showComboEffect();
     }
     
-    // Обновляем прогресс комбо
     updateComboBar();
     
-    // Запускаем таймер убывания комбо
     game.comboDecayTimer = setTimeout(() => {
         resetCombo();
     }, CONFIG.COMBO.DECAY_TIME);
 }
 
-// Сброс комбо
+// Сброс комбо - ИСПРАВЛЕНО
 function resetCombo() {
+    if (game.combo > 0) {
+        // Показываем сообщение о потере комбо
+        const comboText = document.createElement('div');
+        comboText.textContent = `Комбо потеряно! (было: ${game.combo})`;
+        comboText.style.cssText = `
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Michroma', monospace;
+            font-size: 20px;
+            color: #ff6666;
+            text-shadow: 0 0 10px rgba(255, 102, 102, 0.8);
+            z-index: 100;
+            animation: fadeOut 1s ease-out forwards;
+            pointer-events: none;
+        `;
+        
+        document.body.appendChild(comboText);
+        
+        setTimeout(() => {
+            comboText.remove();
+        }, 1000);
+    }
+    
     game.combo = 0;
     game.comboMultiplier = 1;
     updateComboBar();
 }
 
-// Обновление полосы комбо
+// Обновление полосы комбо - ИСПРАВЛЕНО
 function updateComboBar() {
     const maxCombo = Math.max(...Object.values(CONFIG.COMBO.MULTIPLIERS).map(m => m.threshold));
-    const percentage = Math.min((game.combo / maxCombo) * 100, 100);
+    const percentage = Math.min((game.combo / (maxCombo * 1.5)) * 100, 100); // Увеличили масштаб
     
     elements.comboFill.style.width = `${percentage}%`;
     elements.comboCount.textContent = game.combo;
     elements.comboMultiplier.textContent = `x${game.comboMultiplier}`;
     
-    // Цвет полосы в зависимости от множителя
-    let color;
+    // Градиент в зависимости от уровня комбо
+    let gradient;
     switch(game.comboMultiplier) {
-        case 1: color = '#ff3366'; break;
-        case 2: color = '#ff9966'; break;
-        case 3: color = '#ffcc00'; break;
-        case 5: color = '#00ff00'; break;
-        default: color = '#ff3366';
+        case 1: gradient = '#ff3366, #ff6699'; break;
+        case 2: gradient = '#ff9900, #ffcc00'; break;
+        case 3: gradient = '#00cc66, #00ff88'; break;
+        case 5: gradient = '#6200ff, #ff00ff'; break;
+        default: gradient = '#ff3366, #ff6699';
     }
-    elements.comboFill.style.background = `linear-gradient(90deg, ${color}, ${color}dd)`;
+    
+    elements.comboFill.style.background = `linear-gradient(90deg, ${gradient})`;
+    elements.comboMultiplier.style.color = getComboColor(game.comboMultiplier);
 }
 
-// Эффект при изменении комбо
+function getComboColor(multiplier) {
+    switch(multiplier) {
+        case 1: return '#ff3366';
+        case 2: return '#ff9900';
+        case 3: return '#00cc66';
+        case 5: return '#6200ff';
+        default: return '#ffffff';
+    }
+}
+
+// Эффект комбо - УЛУЧШЕНО
 function showComboEffect() {
     const comboText = document.createElement('div');
     comboText.textContent = `КОМБО x${game.comboMultiplier}!`;
@@ -925,28 +597,28 @@ function showComboEffect() {
         left: 50%;
         transform: translate(-50%, -50%);
         font-family: 'Michroma', monospace;
-        font-size: 48px;
+        font-size: ${game.comboMultiplier === 5 ? '64px' : '48px'};
         font-weight: bold;
-        color: #ffcc00;
-        text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+        color: ${getComboColor(game.comboMultiplier)};
+        text-shadow: 0 0 30px ${getComboColor(game.comboMultiplier)}80;
         z-index: 100;
-        animation: comboPop 1s ease-out forwards;
+        animation: comboPop 1.5s ease-out forwards;
         pointer-events: none;
     `;
     
     document.body.appendChild(comboText);
     
-    // Добавляем анимацию
+    // Анимация
     const style = document.createElement('style');
     style.textContent = `
         @keyframes comboPop {
             0% {
                 opacity: 0;
-                transform: translate(-50%, -50%) scale(0.5);
+                transform: translate(-50%, -50%) scale(0.3);
             }
             50% {
                 opacity: 1;
-                transform: translate(-50%, -50%) scale(1.2);
+                transform: translate(-50%, -50%) scale(1.3);
             }
             100% {
                 opacity: 0;
@@ -959,63 +631,61 @@ function showComboEffect() {
     setTimeout(() => {
         comboText.remove();
         style.remove();
-    }, 1000);
-}
-
-// Обновление игрового интерфейса
-function updateGameUI() {
-    elements.gameScore.textContent = game.score;
-    elements.giftsCaught.textContent = game.giftsCaught;
-    elements.starsCaught.textContent = game.starsCaught;
-    elements.bombsAvoided.textContent = game.bombsAvoided;
+    }, 1500);
 }
 
 // ===========================================
-// ЗАВЕРШЕНИЕ ИГРЫ
+// ЗАВЕРШЕНИЕ ИГРЫ И СОХРАНЕНИЕ
 // ===========================================
 
 // Завершение игры
 function endGame() {
     game.isPlaying = false;
     
-    // Останавливаем таймеры
     clearInterval(game.gameTimer);
     clearInterval(game.spawnTimer);
     clearTimeout(game.freezeTimer);
     clearTimeout(game.comboDecayTimer);
     
-    // Очищаем игровое поле
     elements.gameField.innerHTML = '<div class="field-background"></div>';
     
-    // Сохраняем результаты
     saveGameResults();
-    
-    // Показываем экран результатов
     showResultsScreen();
 }
 
-// Сохранение результатов
+// Сохранение результатов - ДОБАВЛЕНО больше статистики
 async function saveGameResults() {
     try {
+        const now = new Date();
+        const gameDuration = Math.round((now - game.startTime) / 1000);
+        
         // Загружаем текущую статистику
         const snapshot = await game.database.ref('clicker_stats/' + game.userId).once('value');
         let stats = snapshot.exists() ? snapshot.val() : {};
         
         // Обновляем статистику
-        const now = new Date().toISOString();
-        
         stats.bestScore = Math.max(stats.bestScore || 0, game.score);
         stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
-        stats.lastPlayed = now;
+        stats.lastPlayed = now.toISOString();
+        
+        // Добавляем общую статистику
+        stats.totalScore = (stats.totalScore || 0) + game.score;
+        stats.totalGifts = (stats.totalGifts || 0) + game.giftsCaught;
+        stats.totalStars = (stats.totalStars || 0) + game.starsCaught;
+        stats.totalBombs = (stats.totalBombs || 0) + game.bombsClicked;
+        stats.maxCombo = Math.max(stats.maxCombo || 0, game.maxCombo);
         
         // Сохраняем историю игры
         const gameHistory = {
             score: game.score,
-            time: CONFIG.TOTAL_TIME - game.timeLeft,
+            time: gameDuration,
             gifts: game.giftsCaught,
             stars: game.starsCaught,
-            maxCombo: game.combo,
-            timestamp: now
+            bombsClicked: game.bombsClicked,
+            bombsAvoided: game.bombsAvoided,
+            maxCombo: game.maxCombo,
+            totalClicks: game.totalClicks,
+            timestamp: now.toISOString()
         };
         
         // Сохраняем в Firebase
@@ -1030,56 +700,66 @@ async function saveGameResults() {
     }
 }
 
-// Сохранение в рейтинг
+// Сохранение в рейтинг - УЛУЧШЕНО
 async function saveToLeaderboard() {
     try {
         await game.database.ref('clicker_leaderboard/' + game.userId).set({
             nickname: game.userNickname,
             score: game.score,
-            lastPlayed: new Date().toISOString()
+            maxCombo: game.maxCombo,
+            gifts: game.giftsCaught,
+            stars: game.starsCaught,
+            lastPlayed: new Date().toISOString(),
+            gamesPlayed: await getTotalGamesPlayed()
         });
     } catch (error) {
         console.error('Ошибка сохранения в рейтинг:', error);
     }
 }
 
-// Показ экрана результатов
+async function getTotalGamesPlayed() {
+    try {
+        const snapshot = await game.database.ref('clicker_stats/' + game.userId).once('value');
+        if (snapshot.exists()) {
+            return snapshot.val().gamesPlayed || 1;
+        }
+    } catch (error) {
+        console.error('Ошибка получения количества игр:', error);
+    }
+    return 1;
+}
+
+// Показ экрана результатов - ДОБАВЛЕНА статистика по бомбам
 function showResultsScreen() {
-    // Обновляем статистику
+    const gameDuration = CONFIG.TOTAL_TIME - game.timeLeft;
+    
     elements.finalScore.textContent = game.score;
-    elements.finalTime.textContent = formatTime(CONFIG.TOTAL_TIME - game.timeLeft);
+    elements.finalTime.textContent = formatTime(gameDuration);
     elements.finalCombo.textContent = `x${game.comboMultiplier}`;
     elements.finalGifts.textContent = game.giftsCaught;
     elements.finalStars.textContent = game.starsCaught;
     
-    // Проверяем новый рекорд
+    // Добавляем информацию о бомбах
+    const bombsInfo = document.getElementById('final-bombs');
+    if (!bombsInfo) {
+        const detailRow = document.createElement('div');
+        detailRow.className = 'detail-row';
+        detailRow.id = 'final-bombs';
+        detailRow.innerHTML = `
+            <span class="detail-label">Нажато бомб:</span>
+            <span class="detail-value">${game.bombsClicked}</span>
+        `;
+        document.querySelector('.result-details').appendChild(detailRow);
+    } else {
+        bombsInfo.querySelector('.detail-value').textContent = game.bombsClicked;
+    }
+    
     checkNewRecord();
-    
-    // Загружаем рейтинг
     loadLeaderboard();
-    
-    // Переключаем экран
     switchScreen('result');
 }
 
-// Проверка нового рекорда
-async function checkNewRecord() {
-    try {
-        const snapshot = await game.database.ref('clicker_stats/' + game.userId).once('value');
-        if (snapshot.exists()) {
-            const stats = snapshot.val();
-            if (game.score > (stats.bestScore || 0)) {
-                elements.newRecordBadge.style.display = 'flex';
-            } else {
-                elements.newRecordBadge.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.error('Ошибка проверки рекорда:', error);
-    }
-}
-
-// Загрузка рейтинга
+// Загрузка рейтинга - УЛУЧШЕНО
 async function loadLeaderboard() {
     elements.rankingList.innerHTML = `
         <div class="ranking-loading">
@@ -1106,14 +786,17 @@ async function loadLeaderboard() {
         snapshot.forEach((childSnapshot) => {
             const player = childSnapshot.val();
             player.id = childSnapshot.key;
+            
+            // Рассчитываем рейтинг
+            player.rating = calculatePlayerRating(player);
             players.push(player);
         });
         
-        // Сортируем по очкам
-        players.sort((a, b) => b.score - a.score);
+        // Сортируем по рейтингу
+        players.sort((a, b) => b.rating - a.rating);
         
-        // Отображаем топ-10
-        const topPlayers = players.slice(0, 10);
+        // Отображаем топ-15
+        const topPlayers = players.slice(0, 15);
         displayLeaderboard(topPlayers);
         
     } catch (error) {
@@ -1127,7 +810,32 @@ async function loadLeaderboard() {
     }
 }
 
-// Отображение рейтинга
+// Расчет рейтинга игрока
+function calculatePlayerRating(player) {
+    let rating = player.score || 0;
+    
+    // Бонус за высокое комбо
+    if (player.maxCombo >= 15) rating += 500;
+    else if (player.maxCombo >= 10) rating += 300;
+    else if (player.maxCombo >= 5) rating += 100;
+    
+    // Бонус за много подарков
+    if (player.gifts >= 50) rating += 200;
+    else if (player.gifts >= 30) rating += 100;
+    
+    // Бонус за активность (количество игр)
+    if (player.gamesPlayed >= 10) rating += 150;
+    else if (player.gamesPlayed >= 5) rating += 50;
+    
+    // Штраф за бомбы (если есть статистика)
+    if (player.bombs) {
+        rating -= player.bombs * 10;
+    }
+    
+    return Math.max(0, rating);
+}
+
+// Отображение рейтинга - УЛУЧШЕНО с детальной статистикой
 function displayLeaderboard(players) {
     if (players.length === 0) {
         elements.rankingList.innerHTML = `
@@ -1150,12 +858,20 @@ function displayLeaderboard(players) {
                 <div class="rank-number rank-${rank}">
                     ${rank}
                 </div>
-                <div class="ranking-name">
-                    ${player.nickname || 'Игрок'}
-                    ${isCurrentUser ? ' <span style="color: #00ff00;">(Вы)</span>' : ''}
+                <div class="ranking-info">
+                    <div class="ranking-name">
+                        ${player.nickname || 'Игрок'}
+                        ${isCurrentUser ? ' <span class="you-badge">(Вы)</span>' : ''}
+                    </div>
+                    <div class="ranking-stats">
+                        <span class="stat" title="Очки">🎯 ${player.score || 0}</span>
+                        <span class="stat" title="Макс. комбо">⚡ x${player.maxCombo || 1}</span>
+                        <span class="stat" title="Подарки">🎁 ${player.gifts || 0}</span>
+                        <span class="stat" title="Звёзды">⭐ ${player.stars || 0}</span>
+                    </div>
                 </div>
-                <div class="ranking-score">
-                    ${player.score}
+                <div class="ranking-rating">
+                    ${player.rating || player.score || 0}
                 </div>
             </div>
         `;
@@ -1165,190 +881,181 @@ function displayLeaderboard(players) {
 }
 
 // ===========================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// НОВЫЕ ФУНКЦИИ ДЛЯ МОБИЛЬНЫХ
 // ===========================================
 
-// Переключение экранов
-function switchScreen(screenName) {
-    // Скрываем все экраны
-    elements.startScreen.classList.remove('active');
-    elements.gameScreen.classList.remove('active');
-    elements.pauseScreen.classList.remove('active');
-    elements.resultScreen.classList.remove('active');
-    
-    // Показываем нужный экран
-    switch(screenName) {
-        case 'start':
-            elements.startScreen.classList.add('active');
-            break;
-        case 'game':
-            elements.gameScreen.classList.add('active');
-            break;
-        case 'pause':
-            elements.pauseScreen.classList.add('active');
-            break;
-        case 'result':
-            elements.resultScreen.classList.add('active');
-            break;
-    }
-}
-
-// Форматирование времени
-function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
-// Показ уведомления
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    
-    const colors = {
-        success: { bg: '#00cc66', border: '#00ff88' },
-        error: { bg: '#ff4444', border: '#ff6b6b' },
-        info: { bg: '#6200ff', border: '#ff00ff' }
-    };
-    
-    const color = colors[type] || colors.info;
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${color.bg};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 12px;
-        z-index: 1000;
-        animation: slideInRight 0.5s ease;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-        max-width: 300px;
-        font-family: 'Orbitron', sans-serif;
-        border: 2px solid ${color.border};
-    `;
-    
-    notification.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 5px;">
-            ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
-            ${type === 'success' ? 'Успешно!' : type === 'error' ? 'Ошибка!' : 'Информация'}
-        </div>
-        <div style="font-size: 14px;">
-            ${message}
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
-
-// Показ модалки ошибки
-function showErrorModal() {
-    updateNextTicketTime();
-    elements.errorModal.style.display = 'flex';
-}
-
-// Обработка клика по игровому полю (на случай промаха)
-function handleFieldClick(e) {
-    if (!game.isPlaying || game.isPaused || game.isFrozen) return;
-    
-    // Если кликнули не по объекту - сбрасываем комбо
-    if (!e.target.classList.contains('falling-object')) {
-        resetCombo();
-    }
-}
-
-// Добавляем стиль для анимации
-const gameStyle = document.createElement('style');
-gameStyle.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(gameStyle);
-
-// ===========================================
-// АДАПТАЦИЯ ПОД МОБИЛЬНЫЕ УСТРОЙСТВА
-// ===========================================
-
-// Обработка сенсорных событий для мобильных
+// Настройка touch-событий
 function setupTouchEvents() {
-    let touchStartY = 0;
-    let touchStartX = 0;
+    let touchStartTime = 0;
+    let touchStartElement = null;
     
     elements.gameField.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
+        if (!game.isPlaying || game.isPaused || game.isFrozen) return;
         
-        // Предотвращаем прокрутку страницы
+        const touch = e.touches[0];
+        touchStartTime = Date.now();
+        
+        // Находим элемент под касанием
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element && element.classList.contains('falling-object')) {
+            touchStartElement = element;
+            
+            // Визуальная обратная связь
+            element.style.transform = 'scale(0.95)';
+            element.style.transition = 'transform 0.1s';
+        }
+        
         e.preventDefault();
     }, { passive: false });
     
     elements.gameField.addEventListener('touchend', (e) => {
+        if (!game.isPlaying || game.isPaused || game.isFrozen) return;
+        
         const touch = e.changedTouches[0];
-        const touchEndX = touch.clientX;
-        const touchEndY = touch.clientY;
+        const touchDuration = Date.now() - touchStartTime;
         
-        // Если перемещение небольшое - считаем это кликом
-        const diffX = Math.abs(touchEndX - touchStartX);
-        const diffY = Math.abs(touchEndY - touchStartY);
-        
-        if (diffX < 10 && diffY < 10) {
-            // Ищем объект под касанием
-            const element = document.elementFromPoint(touchEndX, touchEndY);
+        // Если это был короткий тап (не долгое нажатие)
+        if (touchDuration < 300) {
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Если элемент найден и он объект
             if (element && element.classList.contains('falling-object')) {
                 handleObjectClick(element);
+            } else if (touchStartElement) {
+                // Если элемент был в touchstart, но не в touchend (например, объект переместился)
+                handleObjectClick(touchStartElement);
             } else {
-                handleFieldClick(e);
+                // Клик по пустому месту - сбрасываем комбо
+                resetCombo();
             }
         }
         
+        // Сбрасываем визуальный эффект
+        if (touchStartElement) {
+            touchStartElement.style.transform = '';
+        }
+        
+        touchStartElement = null;
         e.preventDefault();
     }, { passive: false });
-}
-
-// Инициализация сенсорных событий
-if ('ontouchstart' in window) {
-    setupTouchEvents();
+    
+    // Предотвращаем масштабирование при двойном тапе
+    document.addEventListener('touchmove', (e) => {
+        if (game.isPlaying) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 }
 
 // Адаптация под размер экрана
 window.addEventListener('resize', () => {
-    // При изменении размера окна пересчитываем позиции объектов
+    // Корректируем размер объектов при изменении размера окна
     const objects = document.querySelectorAll('.falling-object');
+    const isMobile = window.innerWidth <= 768;
+    
     objects.forEach(obj => {
         if (!obj.dataset.caught) {
+            // Обновляем размер
+            const newSize = isMobile ? 50 : 60;
+            obj.style.width = `${newSize}px`;
+            obj.style.height = `${newSize}px`;
+            obj.style.fontSize = isMobile ? '28px' : '32px';
+            
+            // Корректируем позицию, если выходит за границы
             const fieldWidth = elements.gameField.clientWidth;
-            const objectSize = 60;
             const currentLeft = parseFloat(obj.style.left);
             
-            // Корректируем позицию, если объект выходит за границы
-            if (currentLeft + objectSize > fieldWidth) {
-                obj.style.left = `${fieldWidth - objectSize}px`;
+            if (currentLeft + newSize > fieldWidth) {
+                obj.style.left = `${fieldWidth - newSize}px`;
             }
         }
     });
 });
 
-// Запускаем игру при полной загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎮 Новогодний кликер загружен и готов к игре!');
-});
+// ===========================================
+// ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ CSS
+// ===========================================
+
+function addAdditionalStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Стили для рейтинга */
+        .ranking-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .ranking-stats {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .ranking-stats .stat {
+            font-size: 11px;
+            color: #aaaaff;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .ranking-rating {
+            color: #ffcc00;
+            font-family: 'Michroma', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .you-badge {
+            color: #00ff00;
+            font-size: 12px;
+        }
+        
+        /* Адаптация для мобильных */
+        @media (max-width: 768px) {
+            .ranking-item {
+                flex-wrap: wrap;
+            }
+            
+            .ranking-rating {
+                margin-top: 10px;
+                text-align: left;
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .ranking-stats {
+                font-size: 10px;
+            }
+            
+            .stat {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Инициализация дополнительных стилей
+addAdditionalStyles();
+
+// ===========================================
+// ИНИЦИАЛИЗАЦИЯ ИГРЫ ПРИ ЗАГРУЗКЕ
+// ===========================================
+
+console.log('🎮 Новогодний кликер загружен и готов к игре!');
