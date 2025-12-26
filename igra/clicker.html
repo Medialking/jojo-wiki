@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Новогодний Кликер | JojoLand</title>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="clicker.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Лоадер -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Загрузка праздничного кликера...</p>
+    </div>
+
+    <!-- Фоновые частицы -->
+    <div class="background-effects" id="particles"></div>
+
+    <!-- Основной контейнер -->
+    <div id="content">
+        <!-- Шапка -->
+        <header class="game-header">
+            <div class="header-top">
+                <a href="../index.html" class="back-btn">
+                    <i class="fas fa-home"></i>
+                    На главную
+                </a>
+                <div class="logo-container">
+                    <img src="../images/logo.png" class="logo" alt="JojoLand Logo">
+                    <span class="logo-text">Новогодний Кликер</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Экран начала игры -->
+        <div id="start-screen" class="screen active">
+            <div class="start-container">
+                <div class="start-header">
+                    <h1><i class="fas fa-gift"></i> Новогодний Кликер</h1>
+                    <p class="subtitle">Лови падающие подарки и собирай очки!</p>
+                </div>
+
+                <div class="game-info-cards">
+                    <div class="info-card">
+                        <div class="info-icon">⏱️</div>
+                        <div class="info-content">
+                            <h3>2 минуты</h3>
+                            <p>Игра длится 120 секунд</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">🎫</div>
+                        <div class="info-content">
+                            <h3 id="tickets-count">1 билетик</h3>
+                            <p>1 билет даётся ежедневно</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">🏆</div>
+                        <div class="info-content">
+                            <h3>Рейтинг</h3>
+                            <p>Соревнуйся с другими</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Правила игры -->
+                <div class="rules-container">
+                    <h3><i class="fas fa-info-circle"></i> Правила игры</h3>
+                    <div class="rules-grid">
+                        <div class="rule-item">
+                            <div class="rule-icon gift">🎁</div>
+                            <div class="rule-text">
+                                <h4>Подарок</h4>
+                                <p>1-5 очков</p>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-item">
+                            <div class="rule-icon bomb">💣</div>
+                            <div class="rule-text">
+                                <h4>Бомба</h4>
+                                <p>Обнуляет очки</p>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-item">
+                            <div class="rule-icon snowflake">❄️</div>
+                            <div class="rule-text">
+                                <h4>Заморозка</h4>
+                                <p>3 сек без кликов</p>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-item">
+                            <div class="rule-icon star">⭐</div>
+                            <div class="rule-text">
+                                <h4>Золотой подарок</h4>
+                                <p>10-20 очков или +5 сек</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Статистика -->
+                <div class="stats-preview">
+                    <div class="stat-item">
+                        <span class="stat-label">Лучший счёт:</span>
+                        <span class="stat-value" id="best-score-preview">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Игр сыграно:</span>
+                        <span class="stat-value" id="games-played">0</span>
+                    </div>
+                </div>
+
+                <!-- Кнопка старта -->
+                <div class="start-button-container">
+                    <button id="start-game-btn" class="start-btn">
+                        <i class="fas fa-play"></i>
+                        <span>Играть за 1 билетик</span>
+                        <div class="ticket-cost">
+                            <i class="fas fa-ticket-alt"></i> 1
+                        </div>
+                    </button>
+                    <p class="ticket-info" id="next-ticket-info">Следующий билет через: --:--:--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран игры -->
+        <div id="game-screen" class="screen">
+            <!-- Игровое поле -->
+            <div class="game-container">
+                <!-- Верхняя панель -->
+                <div class="game-top-panel">
+                    <div class="game-stats">
+                        <div class="stat-box time-box">
+                            <i class="fas fa-clock"></i>
+                            <span id="game-timer">02:00</span>
+                        </div>
+                        
+                        <div class="stat-box score-box">
+                            <i class="fas fa-star"></i>
+                            <span id="game-score">0</span>
+                        </div>
+                        
+                        <div class="stat-box combo-box">
+                            <i class="fas fa-bolt"></i>
+                            <span id="combo-multiplier">x1</span>
+                        </div>
+                        
+                        <div class="stat-box freeze-box">
+                            <i class="fas fa-snowflake"></i>
+                            <span id="freeze-timer">0с</span>
+                        </div>
+                    </div>
+
+                    <button id="pause-btn" class="control-btn">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                </div>
+
+                <!-- Игровое поле для падающих объектов -->
+                <div class="game-field" id="game-field">
+                    <div class="field-background"></div>
+                    
+                    <!-- Падающие объекты будут создаваться здесь -->
+                </div>
+
+                <!-- Нижняя панель -->
+                <div class="game-bottom-panel">
+                    <div class="items-counter">
+                        <div class="item-count">
+                            <span class="item-icon gift">🎁</span>
+                            <span id="gifts-caught">0</span>
+                        </div>
+                        <div class="item-count">
+                            <span class="item-icon star">⭐</span>
+                            <span id="stars-caught">0</span>
+                        </div>
+                        <div class="item-count">
+                            <span class="item-icon bomb">💣</span>
+                            <span id="bombs-avoided">0</span>
+                        </div>
+                    </div>
+
+                    <div class="combo-indicator">
+                        <div class="combo-bar">
+                            <div class="combo-fill" id="combo-fill"></div>
+                        </div>
+                        <div class="combo-text">Комбо: <span id="combo-count">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран паузы -->
+        <div id="pause-screen" class="screen">
+            <div class="pause-container">
+                <div class="pause-header">
+                    <h2><i class="fas fa-pause"></i> Игра на паузе</h2>
+                    <p>Твои текущие результаты</p>
+                </div>
+
+                <div class="pause-stats">
+                    <div class="pause-stat">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Время</div>
+                            <div class="stat-value" id="pause-time">02:00</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pause-stat">
+                        <div class="stat-icon"><i class="fas fa-star"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Очки</div>
+                            <div class="stat-value" id="pause-score">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pause-stat">
+                        <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Комбо</div>
+                            <div class="stat-value" id="pause-combo">x1</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pause-buttons">
+                    <button id="resume-btn" class="pause-btn resume">
+                        <i class="fas fa-play"></i> Продолжить
+                    </button>
+                    <button id="restart-btn" class="pause-btn restart">
+                        <i class="fas fa-redo"></i> Начать заново
+                    </button>
+                    <button id="quit-btn" class="pause-btn quit">
+                        <i class="fas fa-home"></i> Выйти в меню
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран результатов -->
+        <div id="result-screen" class="screen">
+            <div class="result-container">
+                <div class="result-header">
+                    <h2><i class="fas fa-trophy"></i> Игра завершена!</h2>
+                    <p>Вот твои результаты</p>
+                </div>
+
+                <div class="result-score">
+                    <div class="score-circle">
+                        <div class="score-value" id="final-score">0</div>
+                        <div class="score-label">очков</div>
+                    </div>
+                    
+                    <div class="result-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Время игры:</span>
+                            <span class="detail-value" id="final-time">02:00</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Максимальное комбо:</span>
+                            <span class="detail-value" id="final-combo">x1</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Поймано подарков:</span>
+                            <span class="detail-value" id="final-gifts">0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Поймано звёзд:</span>
+                            <span class="detail-value" id="final-stars">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Новый рекорд -->
+                <div class="new-record" id="new-record-badge" style="display: none;">
+                    <div class="record-icon">🏆</div>
+                    <div class="record-text">
+                        <h3>НОВЫЙ РЕКОРД!</h3>
+                        <p>Поздравляем с лучшим результатом!</p>
+                    </div>
+                </div>
+
+                <!-- Рейтинг -->
+                <div class="result-ranking">
+                    <h3><i class="fas fa-chart-line"></i> Топ игроков</h3>
+                    <div class="ranking-list" id="ranking-list">
+                        <div class="ranking-loading">
+                            <div class="loading-spinner small"></div>
+                            <p>Загрузка рейтинга...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-buttons">
+                    <button id="play-again-btn" class="result-btn play-again">
+                        <i class="fas fa-redo"></i> Играть снова
+                    </button>
+                    <button id="share-result-btn" class="result-btn share">
+                        <i class="fas fa-share-alt"></i> Поделиться
+                    </button>
+                    <button id="back-to-menu-btn" class="result-btn back">
+                        <i class="fas fa-home"></i> В меню
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модалка ошибки -->
+        <div id="error-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Недостаточно билетов!</h3>
+                </div>
+                <div class="modal-body">
+                    <p>У тебя нет билетиков для начала игры.</p>
+                    <p>Ежедневно ты получаешь 1 бесплатный билет.</p>
+                    <div class="ticket-info-modal">
+                        <i class="fas fa-ticket-alt"></i>
+                        <div>
+                            <strong>Следующий билет через:</strong>
+                            <div id="error-timer" class="error-timer">--:--:--</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="close-error-btn" class="modal-btn">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <!-- Подключаем JS файлы -->
+    <script src="clicker.js"></script>
+    <script>
+        // Firebase конфигурация
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwhNixWO8dF_drN2hHVYzfTAbMCiT91Gw",
+            authDomain: "jojoland-chat.firebasestorage.app",
+            databaseURL: "https://jojoland-chat-default-rtdb.firebaseio.com",
+            projectId: "jojoland-chat",
+            storageBucket: "jojoland-chat.firebasestorage.app",
+            messagingSenderId: "602788305122",
+            appId: "1:602788305122:web:c03f5b5ef59c85fc9fe6bb"
+        };
+        
+        // Инициализация Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
+</body>
+</html>
